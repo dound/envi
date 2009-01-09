@@ -1,0 +1,10 @@
+package org.openflow.lavi;
+
+public class LAVI {
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		System.out.println("LAVI GUI");
+	}
+}

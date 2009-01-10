@@ -10,9 +10,10 @@ import org.openflow.lavi.net.protocol.*;
 import org.openflow.lavi.net.protocol.auth.*;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
+import org.pzgui.PZClosing;
 import org.pzgui.PZManager;
 
-public class LAVI implements LAVIMessageProcessor {
+public class LAVI implements LAVIMessageProcessor, PZClosing {
 	/** run the LAVI front-end */
     public static void main(String args[]) {
     	String server = null;
@@ -31,7 +32,7 @@ public class LAVI implements LAVIMessageProcessor {
     public LAVI(String server, Short port) {
     	// ask the user for the NOX controller's IP if it wasn't already given
         if(server == null || server.length()==0)
-        	server = DialogHelper.getInput("What is the IP or hostname of the NOX server?");
+        	server = DialogHelper.getInput("What is the IP or hostname of the NOX server?", "noxtrial.stanford.edu");
 
         if(port == null)
         	conn = new LAVIConnection(this, server);
@@ -43,7 +44,18 @@ public class LAVI implements LAVIMessageProcessor {
 
     	// fire up the GUI
         manager = new PZManager();
+        manager.addClosingListener(this);
     	manager.start();
+    }
+
+    /** shutdown the connection */
+    public void pzClosing(PZManager manager) {
+        long start = System.currentTimeMillis();
+        conn.shutdown();
+        Thread.yield();
+
+        // wait until the connection has been torn down or 1sec has passed
+        while(!conn.isShutdown() && System.currentTimeMillis()-start<1000) {}
     }
 
 	/** Handles messages received from the LAVI backend */
@@ -184,5 +196,5 @@ public class LAVI implements LAVIMessageProcessor {
 
 	private void processStatReply(StatsHeader msg) {
 		
-	}	
+	}
 }

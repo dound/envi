@@ -34,7 +34,7 @@ public abstract class LinksList extends LAVIMessage {
         links = new Link[left / Link.SIZEOF];
         while(left > Link.SIZEOF) {
             left -= Link.SIZEOF;
-            links[index++] = new Link(in.readShort(), in.readLong(), in.readShort());
+            links[index++] = new Link(in.readLong(), in.readShort(), in.readLong(), in.readShort());
         }
     }
     

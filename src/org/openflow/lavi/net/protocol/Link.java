@@ -6,8 +6,11 @@ package org.openflow.lavi.net.protocol;
  * @author David Underhill
  */
 public class Link {
-    public static final int SIZEOF = 12;
-    
+    public static final int SIZEOF = 20;
+
+    /** datapath ID of the source switch */
+    public final long srcDPID;
+
     /** port number on the source switch */
     public final short srcPort;
     
@@ -17,9 +20,10 @@ public class Link {
     /** port number of the link is connected to on the destination switch */
     public final short dstPort;
     
-    public Link(short srcPort, long dstDPID, short dstPort) {
+    public Link(long srcDPID, short srcPort, long dstDPID, short dstPort) {
+        this.srcDPID = srcDPID;
         this.srcPort = srcPort;
-        this.dstPort = dstPort;
         this.dstDPID = dstDPID;
+        this.dstPort = dstPort;
     }
 }

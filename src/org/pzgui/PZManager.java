@@ -23,6 +23,9 @@ public class PZManager extends Thread {
     /** windows which are displaying the scene */
     private final Vector<PZWindow> windows = new Vector<PZWindow>();
 
+    /** closing event listeners */
+    private final LinkedList<PZClosing> closingListeners = new LinkedList<PZClosing>();
+
     /** adds a new display window in a thread-safe way */
     public void addWindow(int screenX, int screenY, int width, int height, int drawOffsetX, int drawOffsetY, float zoom) {
         PZWindow w = new PZWindow(this, screenX, screenY, width, height, drawOffsetX, drawOffsetY);
@@ -74,11 +77,25 @@ public class PZManager extends Thread {
     private void terminateIfNoWindowsLeft() {
         synchronized(windows) {
             if(windows.size()==0) {
+                for(PZClosing x : closingListeners)
+                    x.pzClosing(this);
+
                 System.exit(0);
             }
         }
     }
     
+    /** adds a listener to be notified when the manager is terminating */
+    public void addClosingListener(PZClosing c) {
+        if(!closingListeners.contains(c))
+            closingListeners.add(c);
+    }
+
+    /** removes the specified closing listener */
+    public void removeClosingListener(PZClosing c) {
+        closingListeners.remove(c);
+    }
+
     
     // ------- Scene Elements (Drawables) ------- //
     // ****************************************** //

@@ -175,6 +175,9 @@ public class LAVIConnection extends Thread {
             try {
                 msgProcessor.process(recvLAVIMessage());
             } catch(IOException e) {
+                if(done)
+                    break;
+                
                 System.err.println("LAVI Network Error: " + e);
                 reconnect = true;
             }
@@ -185,13 +188,13 @@ public class LAVIConnection extends Thread {
             }
         }
 
-        disconnect();
         shutdown = true;
     }
 
     /** tells the connection to shut down as soon as possible */
     public void shutdown() {
         done = true;
+        disconnect();
     }
 
     /** gets whether the connection has been shutdown yet */

@@ -18,6 +18,8 @@
     
 	<target name="clean">
         <delete dir="bin"/>
+        <delete dir="nbdist"/>
+        <delete dir="nb_project/build"/>
     </target>
     
 	<target depends="clean" name="cleanall"/>

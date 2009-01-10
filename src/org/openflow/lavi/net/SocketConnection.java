@@ -21,7 +21,7 @@ public class SocketConnection implements DataInput, DataOutput {
     public final DataOutputStream out;
 
     /** input stream to read from the socket */
-    public final DataInputStream in;
+    public final CountingDataInputStream in;
     
     /** 
      * Connect to the client on the specified port.
@@ -54,9 +54,9 @@ public class SocketConnection implements DataInput, DataOutput {
         } 
         out = tmp;
 
-        DataInputStream tmp2;
+        CountingDataInputStream tmp2;
         try {
-            tmp2 = new DataInputStream(s.getInputStream());
+            tmp2 = new CountingDataInputStream(s.getInputStream());
         } catch(IOException e) {
             System.err.println("Client Socket Setup Error: " + e.getMessage());
             tmp2 = null;
@@ -64,6 +64,7 @@ public class SocketConnection implements DataInput, DataOutput {
         in = tmp2;
     }
 
+    public long getBytesRead()                                           { return in.getBytesRead(); }
     public void readFully(byte b[])                   throws IOException { in.readFully(b); }
     public void readFully(byte b[], int off, int len) throws IOException { in.readFully(b, off, len); }
     public int skipBytes(int n)                       throws IOException { return in.skipBytes(n); }

@@ -93,9 +93,6 @@ public enum LAVIMessageType {
         
         // parse the rest of the message
         switch(t) {
-            case DISCONNECT:
-                return new LAVIMessage(t, xid);
-                
             case AUTH_REQUEST:
                 return AuthType.decode(len, t, xid, in);
                 
@@ -113,7 +110,8 @@ public enum LAVIMessageType {
                 
             case STAT_REPLY:
                 return StatsType.decode(len, t, xid, in);
-            
+
+            case DISCONNECT:
             case AUTH_REPLY:
             case SWITCHES_REQUEST:
             case LINKS_REQUEST:

@@ -49,10 +49,6 @@ public class LAVI implements LAVIMessageProcessor {
 	/** Handles messages received from the LAVI backend */
 	public void process(final LAVIMessage msg) {
 		switch(msg.type) {
-		case DISCONNECT:
-			System.out.println("Server sent disconnect message");
-			break;
-			
 		case AUTH_REQUEST:
 			processAuthRequest((AuthHeader)msg);
 			break;

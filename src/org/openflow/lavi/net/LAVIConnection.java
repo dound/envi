@@ -124,6 +124,12 @@ public class LAVIConnection extends Thread {
     
     /** the object responsible for processing LAVI messages */
     private final LAVIMessageProcessor msgProcessor;
+
+    /** whether the connection should be turned off */
+    private boolean done = false;
+
+    /** whether the connection has been turned off */
+    private boolean shutdown = false;
     
     /** 
      * Connect to the LAVI server at the specified IP on DEFAULT_PORT.
@@ -154,8 +160,18 @@ public class LAVIConnection extends Thread {
      */
     public void run() {
     	connect();
-    	
-        while(true) {
+
+        // ask the backend for a list of switches and links
+        try {
+            new LAVIMessage(LAVIMessageType.SWITCHES_REQUEST, 0).write(getStream());
+            //new LAVIMessage(LAVIMessageType.LINKS_REQUEST, 0).write(conn);
+        }
+        catch(IOException e) {
+            System.err.println("Error: unable to perform initial topology request");
+            System.exit(0);
+        }
+
+        while(!done) {
             try {
                 msgProcessor.process(recvLAVIMessage());
             } catch(IOException e) {
@@ -168,6 +184,19 @@ public class LAVIConnection extends Thread {
 	            connect();
             }
         }
+
+        disconnect();
+        shutdown = true;
+    }
+
+    /** tells the connection to shut down as soon as possible */
+    public void shutdown() {
+        done = true;
+    }
+
+    /** gets whether the connection has been shutdown yet */
+    public boolean isShutdown() {
+        return shutdown;
     }
     
     /** returns true if the connection to the server is currently alive */

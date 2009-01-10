@@ -2,7 +2,6 @@ package org.openflow.lavi.net;
 
 import org.openflow.lavi.net.protocol.LAVIMessage;
 
-import java.io.DataOutput;
 import java.io.IOException;
 import java.net.Socket;
 import org.openflow.lavi.net.protocol.LAVIMessageType;
@@ -217,11 +216,27 @@ public class LAVIConnection extends Thread {
     /** returns the next LAVI message received on the connection */
     private LAVIMessage recvLAVIMessage() throws IOException {
         while(true) {
-            // buffer entire msg to minimize time spent in any critical section
+            long bytesReadBefore = conn.getBytesRead();
+
+            // determine how long the message is
             int len = conn.readInt();
 
-            // return the decoded message
-            return LAVIMessageType.decode(len, conn);
+            // decode the message
+            LAVIMessage msg = LAVIMessageType.decode(len, conn);
+
+            // make sure we consume exactly the specified number of bytes or problems have
+            long bytesRead = conn.getBytesRead() - bytesReadBefore;
+            if(bytesRead < len) {
+                int bytesLeftover = (int)(len - bytesRead);
+                if(conn.skipBytes(bytesLeftover) != bytesLeftover)
+                    throw new IOException("unable to skip leftover bytes (" + bytesLeftover + "B)");
+                else
+                    System.err.println("Warning: " + bytesLeftover + "B leftover for message type " + msg.type.toString());
+            }
+            else if(bytesRead > len) {
+                long bytesOverread = bytesRead - len;
+                throw new IOException("read " + bytesOverread + "B over the specified length for message type " + msg.type.toString());
+            }
         }
     }
     

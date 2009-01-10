@@ -8,7 +8,7 @@ import java.io.*;
  * @author David Underhill
  */
 public class LAVIMessage {
-    public static final int SIZEOF = 9;
+    public static final int SIZEOF = 7;
     
     /** total length of this message in bytes */
     public int length() {
@@ -34,7 +34,7 @@ public class LAVIMessage {
     
     /** sends the message over the specified output stream */
     public void write(DataOutput out) throws IOException {
-    	out.writeInt(length());
+    	out.writeShort(length());
     	out.writeByte(type.getTypeID());
     	out.writeInt(xid);
     }

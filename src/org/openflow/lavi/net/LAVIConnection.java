@@ -219,7 +219,7 @@ public class LAVIConnection extends Thread {
             long bytesReadBefore = conn.getBytesRead();
 
             // determine how long the message is
-            int len = conn.readInt();
+            int len = conn.readShort();
 
             // decode the message
             LAVIMessage msg = LAVIMessageType.decode(len, conn);

@@ -252,7 +252,15 @@ public class LAVIConnection extends Thread {
     private static void tryToClose(SocketConnection sc) {
         if( sc != null ) {
             Socket s = sc.s;
-            if( s != null ) {
+            if(s != null && s.isConnected()) {
+                // tell the backend we're disconnecting
+                if(sc.out != null) {
+                    try {
+                        new LAVIMessage(LAVIMessageType.DISCONNECT, 0).write(sc.out);
+                    }
+                    catch(IOException e) { /* ignore */ }
+                }
+
                 try {
                     s.close();
                 } catch(IOException e){}

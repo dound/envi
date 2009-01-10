@@ -37,7 +37,10 @@ public class LAVI implements LAVIMessageProcessor {
         	conn = new LAVIConnection(this, server);
         else
         	conn = new LAVIConnection(this, server, port);
-    	
+
+        // try to connect to the backend
+        conn.start();
+
     	// fire up the GUI
         manager = new PZManager();
     	manager.start();

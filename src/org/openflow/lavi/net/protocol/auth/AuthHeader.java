@@ -1,7 +1,7 @@
 package org.openflow.lavi.net.protocol.auth;
 
+import java.io.DataInput;
 import java.io.IOException;
-import org.openflow.lavi.net.util.ByteBuffer;
 import org.openflow.lavi.net.protocol.LAVIMessage;
 import org.openflow.lavi.net.protocol.LAVIMessageType;
 
@@ -22,9 +22,9 @@ public abstract class AuthHeader extends LAVIMessage {
         authType = t;
     }
     
-    public AuthHeader(boolean request, final ByteBuffer buf) throws IOException {
-        super(request ? LAVIMessageType.AUTH_REQUEST : LAVIMessageType.AUTH_REPLY, buf);
-        authType = AuthType.typeValToAuthType(buf.nextByte());
+    public AuthHeader(boolean request, final DataInput in) throws IOException {
+        super(request ? LAVIMessageType.AUTH_REQUEST : LAVIMessageType.AUTH_REPLY, in);
+        authType = AuthType.typeValToAuthType(in.readByte());
     }
     
     public int length() {

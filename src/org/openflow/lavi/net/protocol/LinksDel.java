@@ -1,7 +1,7 @@
 package org.openflow.lavi.net.protocol;
 
+import java.io.DataInput;
 import java.io.IOException;
-import org.openflow.lavi.net.util.ByteBuffer;
 
 /**
  * Switch(es) deleted message.
@@ -17,7 +17,7 @@ public class LinksDel extends LinksList {
         super(LAVIMessageType.LINKS_DELETE, xid, links);
     }
     
-    public LinksDel(final int len, final ByteBuffer buf) throws IOException {
-        super(len, LAVIMessageType.LINKS_DELETE, buf);
+    public LinksDel(final int len, final DataInput in) throws IOException {
+        super(len, LAVIMessageType.LINKS_DELETE, in);
     }
 }

@@ -1,8 +1,8 @@
 package org.openflow.protocol;
 
+import java.io.DataInput;
 import java.io.IOException;
 import org.openflow.lavi.net.protocol.StatsHeader;
-import org.openflow.lavi.net.util.ByteBuffer;
 
 /**
  * A request for aggregate statistics.
@@ -53,16 +53,16 @@ public class AggregateStatsRequest extends StatsHeader {
      * Create an aggregate request for stats from the switch with the specified 
      * DPID and flags and read the request from the receive buffer.
      */
-    public AggregateStatsRequest(long dpid, StatsFlag flags, ByteBuffer buf) throws IOException {
+    public AggregateStatsRequest(long dpid, StatsFlag flags, DataInput in) throws IOException {
         super(StatsHeader.REQUEST,
               dpid,
               StatsType.AGGREGATE,
               flags);
         
-        match = new Match(buf);
-        tableID = buf.nextByte();
-        buf.nextByte(); /* 1B of pad */
-        outPort = buf.nextShort();
+        match = new Match(in);
+        tableID = in.readByte();
+        in.readByte(); /* 1B of pad */
+        outPort = in.readShort();
     }
     
     /** total length of this message in bytes */

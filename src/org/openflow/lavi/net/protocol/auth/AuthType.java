@@ -1,8 +1,8 @@
 package org.openflow.lavi.net.protocol.auth;
 
+import java.io.DataInput;
 import java.io.IOException;
 import org.openflow.lavi.net.protocol.LAVIMessageType;
-import org.openflow.lavi.net.util.ByteBuffer;
 
 /**
  * Type of authentication.
@@ -42,12 +42,12 @@ public enum AuthType {
      * known to be of length len and len - LAVIMessage.SIZEOF bytes representing
      * the rest of the message should be extracted from buf.
      */
-    public static AuthHeader decode(int len, LAVIMessageType t, int xid, ByteBuffer buf) throws IOException {
+    public static AuthHeader decode(int len, LAVIMessageType t, int xid, DataInput in) throws IOException {
         if(t != LAVIMessageType.AUTH_REQUEST)
             throw new IOException("AuthType.decode was unexpectedly asked to decode type " + t.toString());
         
         // parse the authentication header
-        byte authTypeByte = buf.nextByte();
+        byte authTypeByte = in.readByte();
         AuthType authType = AuthType.typeValToAuthType(authTypeByte);
         if(authType == null)
             throw new IOException("Unknown authentication type ID: " + authTypeByte);
@@ -55,7 +55,7 @@ public enum AuthType {
         // parse the rest of the message
         switch(authType) {
             case PLAIN_TEXT:
-                return new AuthPlainText(buf);
+                return new AuthPlainText(in);
             
             default:
                 throw new IOException("Unhandled authentication type received: " + authType.toString());

@@ -1,7 +1,7 @@
 package org.openflow.lavi.net.protocol;
 
+import java.io.DataInput;
 import java.io.IOException;
-import org.openflow.lavi.net.util.ByteBuffer;
 import org.openflow.protocol.*;
 
 /**
@@ -29,13 +29,13 @@ public abstract class StatsHeader extends LAVIMessage {
     }
     
     /** used to construct a message being received */
-    public StatsHeader(boolean request, final ByteBuffer buf) throws IOException {
+    public StatsHeader(boolean request, final DataInput in) throws IOException {
         super(request ? LAVIMessageType.STAT_REQUEST : LAVIMessageType.STAT_REPLY, 
-              buf);
+              in);
         
-        dpid = buf.nextLong();
-        statsType = StatsType.typeValToStatsType(buf.nextShort());
-        flags = StatsFlag.typeValToStatsFlag(buf.nextShort());
+        dpid = in.readLong();
+        statsType = StatsType.typeValToStatsType(in.readShort());
+        flags = StatsFlag.typeValToStatsFlag(in.readShort());
     }
     
     public int length() {

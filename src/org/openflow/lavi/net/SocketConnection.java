@@ -1,4 +1,4 @@
-package org.openflow.lavi.net.util;
+package org.openflow.lavi.net;
 
 import java.io.DataInput;
 import java.io.DataInputStream;

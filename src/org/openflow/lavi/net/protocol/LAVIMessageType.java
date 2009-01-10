@@ -1,8 +1,8 @@
 package org.openflow.lavi.net.protocol;
 
+import java.io.DataInput;
 import java.io.IOException;
 import org.openflow.lavi.net.protocol.auth.AuthType;
-import org.openflow.lavi.net.util.ByteBuffer;
 import org.openflow.protocol.StatsType;
 
 /**
@@ -82,14 +82,14 @@ public enum LAVIMessageType {
      * known to be of length len and len - 4 bytes representing the rest of the 
      * message should be extracted from buf.
      */
-    public static LAVIMessage decode(int len, ByteBuffer buf) throws IOException {
+    public static LAVIMessage decode(int len, DataInput in) throws IOException {
         // parse the LAVI message header (except length which was already done)
-        byte typeByte = buf.nextByte();
+        byte typeByte = in.readByte();
         LAVIMessageType t = LAVIMessageType.typeValToMessageType(typeByte);
         if(t == null)
             throw new IOException("Unknown type ID: " + typeByte);
         
-        int xid = buf.nextInt();
+        int xid = in.readInt();
         
         // parse the rest of the message
         switch(t) {
@@ -97,22 +97,22 @@ public enum LAVIMessageType {
                 return new LAVIMessage(t, xid);
                 
             case AUTH_REQUEST:
-                return AuthType.decode(len, t, xid, buf);
+                return AuthType.decode(len, t, xid, in);
                 
             case SWITCHES_ADD:
-                return new SwitchesAdd(xid, buf);
+                return new SwitchesAdd(xid, in);
                 
             case SWITCHES_DELETE:
-                return new SwitchesDel(xid, buf);
+                return new SwitchesDel(xid, in);
                 
             case LINKS_ADD:
-                return new LinksAdd(xid, buf);
+                return new LinksAdd(xid, in);
                 
             case LINKS_DELETE:
-                return new LinksDel(xid, buf);
+                return new LinksDel(xid, in);
                 
             case STAT_REPLY:
-                return StatsType.decode(len, t, xid, buf);
+                return StatsType.decode(len, t, xid, in);
             
             case AUTH_REPLY:
             case SWITCHES_REQUEST:

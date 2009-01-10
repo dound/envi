@@ -1,6 +1,5 @@
 package org.openflow.lavi.net;
 
-import org.openflow.lavi.net.util.SocketConnection;
 import org.openflow.lavi.net.protocol.LAVIMessage;
 import java.io.IOException;
 import java.net.Socket;
@@ -205,8 +204,7 @@ public class LAVIConnection extends Thread {
     private LAVIMessage recvLAVIMessage() throws IOException {
         while(true) {
             // buffer entire msg to minimize time spent in any critical section
-            int len = conn.nextInt();
-            conn.bufferBytes(len - 4);
+            int len = conn.readInt();
 
             // return the decoded message
             return LAVIMessageType.decode(len, conn);

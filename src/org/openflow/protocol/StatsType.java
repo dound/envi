@@ -1,9 +1,9 @@
 package org.openflow.protocol;
 
+import java.io.DataInput;
 import java.io.IOException;
 import org.openflow.lavi.net.protocol.LAVIMessageType;
 import org.openflow.lavi.net.protocol.StatsHeader;
-import org.openflow.lavi.net.util.ByteBuffer;
 
 /**
  * Enumerates what types of stats are in the OpenFlow protocol.  Equivalent 
@@ -56,24 +56,24 @@ public enum StatsType {
      * known to be of length len and len - LAVIMessage.SIZEOF bytes representing
      * the rest of the message should be extracted from buf.
      */
-    public static StatsHeader decode(int len, LAVIMessageType t, int xid, ByteBuffer buf) throws IOException {
+    public static StatsHeader decode(int len, LAVIMessageType t, int xid, DataInput in) throws IOException {
         if(t != LAVIMessageType.STAT_REPLY)
             throw new IOException("StatsType.decode was unexpectedly asked to decode type " + t.toString());
         
         // parse the stats header
-        long dpid = buf.nextLong();
+        long dpid = in.readLong();
         
-        short statsTypeVal = buf.nextShort();
+        short statsTypeVal = in.readShort();
         StatsType type = StatsType.typeValToStatsType(statsTypeVal);
         if(type == null)
             throw new IOException("Unknown stats type ID: " + statsTypeVal);
         
-        StatsFlag flags = StatsFlag.typeValToStatsFlag(buf.nextShort());
+        StatsFlag flags = StatsFlag.typeValToStatsFlag(in.readShort());
         
         // parse the rest of the message
         switch(type) {
             case AGGREGATE:
-                return new AggregateStatsReply(dpid, flags, buf);
+                return new AggregateStatsReply(dpid, flags, in);
             
             default:
                 throw new IOException("Unhandled stats type received: " + type.toString());

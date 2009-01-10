@@ -1,7 +1,7 @@
 package org.openflow.protocol;
 
+import java.io.DataInput;
 import java.io.IOException;
-import org.openflow.lavi.net.util.ByteBuffer;
 
 /**
  * Fields to match against flows.  Equivalent to ofp_match.
@@ -54,18 +54,18 @@ public class Match {
     }
     
     /** used to construct a message being received */
-    public Match(ByteBuffer buf) throws IOException {
-        wildcards.set(buf.nextInt());
-        in_port = buf.nextShort();
-        for(int i=0; i<6; i++) dl_src[i] = buf.nextByte();
-        for(int i=0; i<6; i++) dl_dst[i] = buf.nextByte();
-        dl_vlan = buf.nextShort();
-        dl_type = buf.nextShort();
-        nw_proto = buf.nextByte();
-        pad = buf.nextByte();
-        nw_src = buf.nextInt();
-        nw_dst = buf.nextInt();
-        tp_src = buf.nextShort();
-        tp_dst = buf.nextShort();
+    public Match(DataInput in) throws IOException {
+        wildcards.set(in.readInt());
+        in_port = in.readShort();
+        for(int i=0; i<6; i++) dl_src[i] = in.readByte();
+        for(int i=0; i<6; i++) dl_dst[i] = in.readByte();
+        dl_vlan = in.readShort();
+        dl_type = in.readShort();
+        nw_proto = in.readByte();
+        pad = in.readByte();
+        nw_src = in.readInt();
+        nw_dst = in.readInt();
+        tp_src = in.readShort();
+        tp_dst = in.readShort();
     }
 }

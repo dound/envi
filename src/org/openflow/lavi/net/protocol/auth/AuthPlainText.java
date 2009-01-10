@@ -1,7 +1,7 @@
 package org.openflow.lavi.net.protocol.auth;
 
+import java.io.DataInput;
 import java.io.IOException;
-import org.openflow.lavi.net.util.ByteBuffer;
 
 /**
  * Message containing authentication credentials in plain text.
@@ -28,18 +28,18 @@ public class AuthPlainText extends AuthHeader {
      * Construct an AUTH_REPLY of with plain-text authentication credentials
      * extracted from buf.
      */
-    public AuthPlainText(ByteBuffer buf) throws IOException {
+    public AuthPlainText(final DataInput in) throws IOException {
         super(AuthHeader.REPLY, AuthType.PLAIN_TEXT);
         
         byte strBuf[] = new byte[Math.max(MAX_UNAME_LEN, MAX_PW_LEN)];
         
         for(int i=0; i<MAX_UNAME_LEN; i++)
-            strBuf[i] = buf.nextByte();
+            strBuf[i] = in.readByte();
         
         this.uname = new String(strBuf);
                 
         for(int i=0; i<MAX_PW_LEN; i++)
-            strBuf[i] = buf.nextByte();
+            strBuf[i] = in.readByte();
         
         this.pw = new String(strBuf);
     }

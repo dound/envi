@@ -1,7 +1,7 @@
 package org.openflow.lavi.net.protocol;
 
+import java.io.DataInput;
 import java.io.IOException;
-import org.openflow.lavi.net.util.ByteBuffer;
 
 /**
  * Switch(es) added message.
@@ -17,7 +17,7 @@ public class SwitchesAdd extends SwitchList {
         super(LAVIMessageType.SWITCHES_ADD, xid, dpids);
     }
     
-    public SwitchesAdd(final int len, final ByteBuffer buf) throws IOException {
-        super(len, LAVIMessageType.SWITCHES_ADD, buf);
+    public SwitchesAdd(final int len, final DataInput in) throws IOException {
+        super(len, LAVIMessageType.SWITCHES_ADD, in);
     }
 }

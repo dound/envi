@@ -1,7 +1,7 @@
 package org.openflow.lavi.net.protocol;
 
+import java.io.DataInput;
 import java.io.IOException;
-import org.openflow.lavi.net.util.ByteBuffer;
 
 /**
  * A list of switches.
@@ -20,8 +20,8 @@ public abstract class SwitchList extends LAVIMessage {
         this.dpids = dpids;
     }
     
-    public SwitchList(final int len, final LAVIMessageType t, final ByteBuffer buf) throws IOException {
-        super(t, buf);
+    public SwitchList(final int len, final LAVIMessageType t, final DataInput in) throws IOException {
+        super(t, in);
         
         // make sure the number of bytes leftover makes sense
         int left = len - super.length();
@@ -34,7 +34,7 @@ public abstract class SwitchList extends LAVIMessage {
         dpids = new long[left / 8];
         while(left > 8) {
             left -= 8;
-            dpids[index++] = buf.nextLong();
+            dpids[index++] = in.readLong();
         }
     }
     

@@ -1,6 +1,7 @@
 package org.openflow.lavi.net.protocol;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 /**
@@ -40,5 +41,11 @@ public abstract class LinksList extends LAVIMessage {
     
     public int length() {
         return super.length() + links.length * Link.SIZEOF;
+    }
+    
+    public void write(DataOutput out) throws IOException {
+    	super.write(out);
+    	for(Link l : links)
+    		l.write(out);
     }
 }

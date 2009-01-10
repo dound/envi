@@ -1,6 +1,8 @@
 package org.openflow.lavi.net;
 
 import org.openflow.lavi.net.protocol.LAVIMessage;
+
+import java.io.DataOutput;
 import java.io.IOException;
 import java.net.Socket;
 import org.openflow.lavi.net.protocol.LAVIMessageType;
@@ -11,7 +13,7 @@ import org.openflow.lavi.net.protocol.LAVIMessageType;
  */
 public class LAVIConnection extends Thread {
     /** default port to connect to LAVI over */
-    public static final int DEFAULT_PORT = 2503;
+    public static final short DEFAULT_PORT = 2503;
     
     /** maximum time to wait between tries to get connected */
     public static final int RETRY_WAIT_MSEC_MAX = 2 * 60 * 1000; // two minutes
@@ -118,6 +120,9 @@ public class LAVIConnection extends Thread {
     /** the port the LAVI server listens on */
     private final int serverPort;
     
+    /** if true, then the connection should be re-initiated */
+    private boolean reconnect = false;
+    
     /** the object responsible for processing LAVI messages */
     private final LAVIMessageProcessor msgProcessor;
     
@@ -156,8 +161,12 @@ public class LAVIConnection extends Thread {
                 msgProcessor.process(recvLAVIMessage());
             } catch(IOException e) {
                 System.err.println("LAVI Network Error: " + e);
-                disconnect();
-                connect();
+                reconnect = true;
+            }
+            if(reconnect) {
+            	reconnect = false;
+	            disconnect();
+	            connect();
             }
         }
     }
@@ -200,6 +209,11 @@ public class LAVIConnection extends Thread {
         stats.connected();
     }
     
+    /** tells the LAVI connection to disconnect and then connect again */
+    public void reconnect() {
+    	this.reconnect = true;
+    }
+    
     /** returns the next LAVI message received on the connection */
     private LAVIMessage recvLAVIMessage() throws IOException {
         while(true) {
@@ -230,4 +244,9 @@ public class LAVIConnection extends Thread {
             }
         }
     }
+
+    /** returns the underyling socket connection */
+	public SocketConnection getStream() {
+		return conn;
+	}
 }

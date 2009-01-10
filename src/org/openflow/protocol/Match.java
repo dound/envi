@@ -1,6 +1,7 @@
 package org.openflow.protocol;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 /**
@@ -33,9 +34,6 @@ public class Match {
     /** IP protocol */
     public byte nw_proto;
 
-    /** Align to 32-bits */
-    public byte pad;
-
     /** IP source address */
     public int nw_src;
 
@@ -62,10 +60,25 @@ public class Match {
         dl_vlan = in.readShort();
         dl_type = in.readShort();
         nw_proto = in.readByte();
-        pad = in.readByte();
+        in.readByte(); // 1B pad
         nw_src = in.readInt();
         nw_dst = in.readInt();
         tp_src = in.readShort();
         tp_dst = in.readShort();
     }
+
+	public void write(DataOutput out) throws IOException {
+		out.writeInt(wildcards.getAssociatedBits());
+		out.writeShort(in_port);
+		out.write(dl_src);
+		out.write(dl_dst);
+		out.writeShort(dl_vlan);
+		out.writeShort(dl_type);
+		out.writeByte(nw_proto);
+		out.writeByte(0); // pad
+		out.writeInt(nw_src);
+		out.writeInt(nw_dst);
+		out.writeShort(tp_src);
+		out.writeShort(tp_dst);
+	}
 }

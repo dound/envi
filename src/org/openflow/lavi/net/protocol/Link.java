@@ -1,5 +1,8 @@
 package org.openflow.lavi.net.protocol;
 
+import java.io.DataOutput;
+import java.io.IOException;
+
 /**
  * Structure to specify a link.
  * 
@@ -25,5 +28,12 @@ public class Link {
         this.srcPort = srcPort;
         this.dstDPID = dstDPID;
         this.dstPort = dstPort;
+    }
+    
+    public void write(DataOutput out) throws IOException {
+    	out.writeLong(srcDPID);
+    	out.writeShort(srcPort);
+    	out.writeLong(dstDPID);
+    	out.writeShort(dstPort);
     }
 }

@@ -1,6 +1,7 @@
 package org.openflow.lavi.net.protocol.auth;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 /**
@@ -46,5 +47,20 @@ public class AuthPlainText extends AuthHeader {
     
     public int length() {
         return super.length() + MAX_UNAME_LEN + MAX_PW_LEN;
+    }
+    
+    public void write(DataOutput out) throws IOException {
+    	super.write(out);
+    	byte[] strBytes;
+    	
+    	strBytes = uname.getBytes();
+    	out.write(strBytes);
+    	for(int i=0; i<MAX_UNAME_LEN-strBytes.length; i++)
+    		out.writeByte(0);
+    	
+    	strBytes = pw.getBytes();
+    	out.write(strBytes);
+    	for(int i=0; i<MAX_PW_LEN-strBytes.length; i++)
+    		out.writeByte(0);
     }
 }

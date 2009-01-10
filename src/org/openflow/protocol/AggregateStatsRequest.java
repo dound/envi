@@ -1,6 +1,7 @@
 package org.openflow.protocol;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import org.openflow.lavi.net.protocol.StatsHeader;
 
@@ -68,5 +69,13 @@ public class AggregateStatsRequest extends StatsHeader {
     /** total length of this message in bytes */
     public int length() {
         return super.length() + Match.SIZEOF + 4;
+    }
+    
+    public void write(DataOutput out) throws IOException {
+    	super.write(out);
+    	match.write(out);
+    	out.writeByte(tableID);
+    	out.writeByte(0); // pad
+    	out.writeShort(outPort);
     }
 }

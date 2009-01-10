@@ -1,7 +1,6 @@
 package org.openflow.lavi.net.protocol;
 
-import java.io.DataInput;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Header for LAVI protocol messages.
@@ -31,5 +30,12 @@ public class LAVIMessage {
     /** used to construct a message being received */
     public LAVIMessage(final LAVIMessageType t, final DataInput in) throws IOException {
         this(t, in.readInt());
+    }
+    
+    /** sends the message over the specified output stream */
+    public void write(DataOutput out) throws IOException {
+    	out.writeInt(length());
+    	out.writeByte(type.getTypeID());
+    	out.writeInt(xid);
     }
 }

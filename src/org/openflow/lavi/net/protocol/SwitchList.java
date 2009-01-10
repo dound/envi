@@ -1,6 +1,7 @@
 package org.openflow.lavi.net.protocol;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 /**
@@ -40,5 +41,11 @@ public abstract class SwitchList extends LAVIMessage {
     
     public int length() {
         return super.length() + dpids.length * 8;
+    }
+    
+    public void write(DataOutput out) throws IOException {
+    	super.write(out);
+    	for(long dpid : dpids)
+    		out.writeLong(dpid);
     }
 }

@@ -1,6 +1,7 @@
 package org.openflow.lavi.net.protocol;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import org.openflow.protocol.*;
 
@@ -40,5 +41,12 @@ public abstract class StatsHeader extends LAVIMessage {
     
     public int length() {
         return super.length() + 12;
+    }
+    
+    public void send(DataOutput out) throws IOException {
+    	super.write(out);
+    	out.writeLong(dpid);
+    	out.writeShort(statsType.getTypeID());
+    	out.writeShort(flags.getTypeID());
     }
 }

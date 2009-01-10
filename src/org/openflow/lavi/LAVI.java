@@ -1,10 +1,8 @@
 package org.openflow.lavi;
 
 public class LAVI {
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		System.out.println("LAVI GUI");
-	}
+	/** run the manager with a single GUI window */
+    public static void main(String args[]) {
+        new org.pzgui.PZManager().start();
+    }
 }

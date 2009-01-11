@@ -20,8 +20,11 @@ public class SwitchDescriptionStats extends StatsHeader {
     /** 
      * Extract the descriptions from the specified input stream.
      */
-    public SwitchDescriptionStats(final DataInput in) throws IOException {
-        super(StatsHeader.REPLY, in);
+    public SwitchDescriptionStats(long dpid, StatsFlag flags, final DataInput in) throws IOException {
+        super(StatsHeader.REPLY,
+              dpid,
+              StatsType.DESC,
+              flags);
         
         byte strBuf[] = new byte[Math.max(MAX_DSEC_STR_LEN, SERIAL_NUM_LEN)];
         

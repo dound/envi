@@ -72,6 +72,9 @@ public enum StatsType {
         
         // parse the rest of the message
         switch(type) {
+            case DESC:
+                return new SwitchDescriptionStats(dpid, flags, in);
+
             case AGGREGATE:
                 return new AggregateStatsReply(dpid, flags, in);
             

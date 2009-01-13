@@ -24,11 +24,13 @@ public class PZLayoutManager extends org.pzgui.PZManager {
         super.addDrawable(d);
         
         if(d instanceof Vertex) {
-            graph.addVertex((Vertex)d);
-        }
-        else if(d instanceof Edge) {
-            Edge e = (Edge)d;
-            graph.addEdge(e, e.getSource(), e.getDestination()); 
+            Vertex v = (Vertex)d;
+            graph.addVertex(v);
+            
+            for(Object o : v.getEdges()) {
+                Edge e = (Edge)o;
+                graph.addEdge(e, e.getSource(), e.getDestination());
+            }
         }
     }
     
@@ -36,10 +38,11 @@ public class PZLayoutManager extends org.pzgui.PZManager {
         super.removeDrawable(d);
         
         if(d instanceof Vertex) {
-            graph.removeVertex((Vertex)d);
-        }
-        else if(d instanceof Edge) {
-            graph.removeEdge((Edge)d); 
+            Vertex v = (Vertex)d;
+            graph.removeVertex(v);
+            
+            for(Object o : v.getEdges())
+                graph.removeEdge((Edge)o); 
         }
     }
     

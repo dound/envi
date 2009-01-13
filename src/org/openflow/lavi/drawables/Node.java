@@ -1,24 +1,21 @@
 package org.openflow.lavi.drawables;
 
 import java.awt.Graphics2D;
-import org.pzgui.AbstractDrawable;
 import org.pzgui.icon.ImageIcon;
+import org.pzgui.layout.AbstractLayoutable;
 import org.pzgui.StringDrawer;
 
 /**
  * Information about a node in the topology.
+ * 
  * @author David Underhill
  */
-public abstract class Node extends AbstractDrawable {
+public abstract class Node extends AbstractLayoutable {
     private String name;
-    private int x;
-    private int y;
-    private boolean positionChanged = false;
     
     public Node(String name, int x, int y) {
         this.name = name;
-        this.x = x;
-        this.y = y;
+        setPos(x, y);
     }
 
     protected final void drawName( Graphics2D gfx, int x, int yMin, int yMax) {
@@ -32,13 +29,13 @@ public abstract class Node extends AbstractDrawable {
     }
     
     public void drawNodeWithImage( Graphics2D gfx, java.awt.Image img, java.awt.Dimension sz, boolean doDrawName) {
-        ImageIcon.draw(gfx, img, x, y, sz.width, sz.height);
+        ImageIcon.draw(gfx, img, getX(), getY(), sz.width, sz.height);
         if( doDrawName)
             drawName( gfx, getX(), getY() - sz.height / 2, getY() + sz.height / 2);
     }
     
     public void drawNodeWithImage( Graphics2D gfx, java.awt.Image img, java.awt.Dimension sz, int textYOffset) {
-        ImageIcon.draw(gfx, img, x, y, sz.width, sz.height);
+        ImageIcon.draw(gfx, img, getX(), getY(), sz.width, sz.height);
         drawName( gfx, getX(), getY() - textYOffset, getY() + textYOffset);
     }
     
@@ -52,41 +49,6 @@ public abstract class Node extends AbstractDrawable {
     
     public void setName(String name) {
         this.name = name;
-    }
-    
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public final void setPos( int x, int y) {
-        setXPos(x);
-        setYPos(y);
-    }
-    
-    public void setXPos( int x) {
-    	if(this.x != x)
-        	positionChanged = true;
-    	
-        this.x = x;
-    }
-    
-    public void setYPos( int y) {
-    	if(this.y != y)
-        	positionChanged = true;
-    	
-        this.y = y;
-    }
-    
-    public boolean hasPositionChanged() {
-    	return positionChanged;
-    }
-    
-    public void unsetPositionChanged() {
-    	positionChanged = false;
     }
     
     public abstract void draw(Graphics2D gfx);

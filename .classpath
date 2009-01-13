@@ -2,5 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/jung2-layout-min.jar" sourcepath="lib/src/jung2-layout-min-src.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

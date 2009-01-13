@@ -173,8 +173,8 @@ public class PZManager extends Thread {
         }
 
         // re-sort drawables based on the new ordering
-        Vector<Drawable> oldDrawables = (Vector<Drawable>)drawables.clone();
-        drawables.clear();
+        Vector<Drawable> oldDrawables = drawables;
+        drawables = new Vector<Drawable>();
         for(Drawable d : oldDrawables)
             addDrawable(d);
     }

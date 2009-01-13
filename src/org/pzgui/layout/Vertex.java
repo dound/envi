@@ -11,5 +11,5 @@ import org.pzgui.Drawable;
  */
 public interface Vertex<E extends Edge> extends Drawable, Layoutable {
     /** Return an iterator over the edges in a Vertex */
-    public java.util.Iterator<E> getEdges();
+    public Iterable<E> getEdges();
 }

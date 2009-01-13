@@ -3,6 +3,7 @@ package org.openflow.lavi.drawables;
 import java.awt.Graphics2D;
 import org.pzgui.icon.ImageIcon;
 import org.pzgui.layout.AbstractLayoutable;
+import org.pzgui.layout.Vertex;
 import org.pzgui.StringDrawer;
 
 /**
@@ -10,7 +11,7 @@ import org.pzgui.StringDrawer;
  * 
  * @author David Underhill
  */
-public abstract class Node extends AbstractLayoutable {
+public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
     private String name;
     
     public Node(String name, int x, int y) {

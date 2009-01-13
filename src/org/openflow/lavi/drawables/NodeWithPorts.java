@@ -71,6 +71,10 @@ public abstract class NodeWithPorts extends Node {
     public Link getLink(int i) {
         return links.get(i);
     }
+
+    public java.util.Collection<Link> getEdges() {
+        return links;
+    }
     
     public java.util.Collection<Link> getLinks() {
         return links;

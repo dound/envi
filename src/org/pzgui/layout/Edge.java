@@ -1,7 +1,5 @@
 package org.pzgui.layout;
 
-import org.pzgui.Drawable;
-
 /**
  * Interface which Edges must implement in order to be laid out.
  * 
@@ -9,8 +7,8 @@ import org.pzgui.Drawable;
  *
  * @param <V>  Vertex object type
  */
-public interface Edge<V extends Vertex> extends Drawable, Layoutable {
-    /** Get the source fo the edge */
+public interface Edge<V extends Vertex> {
+    /** Get the source of the edge */
     public V getSource();
     
     /** Get the destination of the edge */

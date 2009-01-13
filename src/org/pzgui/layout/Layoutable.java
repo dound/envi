@@ -1,11 +1,16 @@
 package org.pzgui.layout;
 
+import java.awt.geom.Point2D;
+
 /**
  * Indicates an object which can be laid out.
  * 
  * @author David Underhill
  */
 public interface Layoutable {
+    /** returns the x and y coordinates of this object */
+    public Point2D getPos();
+    
     /** returns the x-coordinate of this object */
     public int getX();
 

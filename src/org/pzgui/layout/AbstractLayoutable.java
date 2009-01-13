@@ -1,5 +1,6 @@
 package org.pzgui.layout;
 
+import java.awt.geom.Point2D;
 import org.pzgui.AbstractDrawable;
 
 /**
@@ -12,6 +13,10 @@ public abstract class AbstractLayoutable extends AbstractDrawable
     private int x = 0;
     private int y = 0;
     private boolean positionChanged = false;
+    
+    public Point2D getPos() {
+        return new Point2D.Double(x, y);
+    }
     
     public int getX() {
         return x;

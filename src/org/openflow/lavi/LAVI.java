@@ -12,6 +12,7 @@ import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
 import org.pzgui.PZClosing;
 import org.pzgui.PZManager;
+import org.pzgui.layout.PZLayoutManager;
 
 public class LAVI implements LAVIMessageProcessor, PZClosing {
 	/** run the LAVI front-end */
@@ -26,7 +27,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     private final LAVIConnection conn;
     
     /** the GUI window manager */
-    private final PZManager manager;
+    private final PZLayoutManager manager;
     
     /** start the LAVI front-end */
     public LAVI(String server, Short port) {
@@ -43,7 +44,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         conn.start();
 
     	// fire up the GUI
-        manager = new PZManager();
+        manager = new PZLayoutManager();
         manager.addClosingListener(this);
     	manager.start();
     }

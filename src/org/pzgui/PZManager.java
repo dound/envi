@@ -306,6 +306,8 @@ public class PZManager extends Thread {
                     prevPos.set(curPos);
                     prevSize.set(curSize);
                 }
+                
+                postRedraw();
             }
 
             // wait until it is time for the next redraw
@@ -318,6 +320,12 @@ public class PZManager extends Thread {
             catch(InterruptedException e) { /* ignore */ }
         }
     }
+    
+    /** 
+     * This method is called after each redraw.  This implementation is a no-op
+     * but derived classes may override it to do something after each redraw.
+     */
+    protected void postRedraw() {}
     
     /** Sets ups gfx based on the pan and zoom settings */
     private static void setupGraphicsView(Graphics2D gfx, Vector2i offset, float zoom) {

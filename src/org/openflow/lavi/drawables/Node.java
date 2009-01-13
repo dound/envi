@@ -1,7 +1,7 @@
 package org.openflow.lavi.drawables;
 
 import java.awt.Graphics2D;
-import org.pzgui.Drawable;
+import org.pzgui.AbstractDrawable;
 import org.pzgui.icon.ImageIcon;
 import org.pzgui.StringDrawer;
 
@@ -9,10 +9,11 @@ import org.pzgui.StringDrawer;
  * Information about a node in the topology.
  * @author David Underhill
  */
-public abstract class Node extends Drawable {
+public abstract class Node extends AbstractDrawable {
     private String name;
     private int x;
     private int y;
+    private boolean positionChanged = false;
     
     public Node(String name, int x, int y) {
         this.name = name;
@@ -67,11 +68,25 @@ public abstract class Node extends Drawable {
     }
     
     public void setXPos( int x) {
+    	if(this.x != x)
+        	positionChanged = true;
+    	
         this.x = x;
     }
     
     public void setYPos( int y) {
+    	if(this.y != y)
+        	positionChanged = true;
+    	
         this.y = y;
+    }
+    
+    public boolean hasPositionChanged() {
+    	return positionChanged;
+    }
+    
+    public void unsetPositionChanged() {
+    	positionChanged = false;
     }
     
     public abstract void draw(Graphics2D gfx);

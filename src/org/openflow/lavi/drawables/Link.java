@@ -7,14 +7,14 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Stroke;
 import org.pzgui.Constants;
-import org.pzgui.Drawable;
+import org.pzgui.AbstractDrawable;
 import org.pzgui.math.Vector2f;
 
 /**
  * Information about a link.
  * @author David Underhill
  */
-public class Link extends Drawable {
+public class Link extends AbstractDrawable {
     public static final int LINE_WIDTH = 3;
     public static final BasicStroke LINE_DEFAULT_STROKE = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     public static final BasicStroke LINE_OUTLINE_STROKE = new BasicStroke(LINE_WIDTH+4, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);

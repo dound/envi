@@ -50,17 +50,17 @@ public class AuthPlainText extends AuthHeader {
     }
     
     public void write(DataOutput out) throws IOException {
-    	super.write(out);
-    	byte[] strBytes;
-    	
-    	strBytes = uname.getBytes();
-    	out.write(strBytes);
-    	for(int i=0; i<MAX_UNAME_LEN-strBytes.length; i++)
-    		out.writeByte(0);
-    	
-    	strBytes = pw.getBytes();
-    	out.write(strBytes);
-    	for(int i=0; i<MAX_PW_LEN-strBytes.length; i++)
-    		out.writeByte(0);
+        super.write(out);
+        byte[] strBytes;
+        
+        strBytes = uname.getBytes();
+        out.write(strBytes);
+        for(int i=0; i<MAX_UNAME_LEN-strBytes.length; i++)
+            out.writeByte(0);
+        
+        strBytes = pw.getBytes();
+        out.write(strBytes);
+        for(int i=0; i<MAX_PW_LEN-strBytes.length; i++)
+            out.writeByte(0);
     }
 }

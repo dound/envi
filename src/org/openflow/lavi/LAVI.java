@@ -15,11 +15,11 @@ import org.pzgui.PZManager;
 import org.pzgui.layout.PZLayoutManager;
 
 public class LAVI implements LAVIMessageProcessor, PZClosing {
-	/** run the LAVI front-end */
+    /** run the LAVI front-end */
     public static void main(String args[]) {
-    	String server = null;
-    	Short port = null;
-    	
+        String server = null;
+        Short port = null;
+        
         new LAVI(server, port);
     }
     
@@ -31,22 +31,22 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     
     /** start the LAVI front-end */
     public LAVI(String server, Short port) {
-    	// ask the user for the NOX controller's IP if it wasn't already given
+        // ask the user for the NOX controller's IP if it wasn't already given
         if(server == null || server.length()==0)
-        	server = DialogHelper.getInput("What is the IP or hostname of the NOX server?", "noxtrial.stanford.edu");
+            server = DialogHelper.getInput("What is the IP or hostname of the NOX server?", "noxtrial.stanford.edu");
 
         if(port == null)
-        	conn = new LAVIConnection(this, server);
+            conn = new LAVIConnection(this, server);
         else
-        	conn = new LAVIConnection(this, server, port);
+            conn = new LAVIConnection(this, server, port);
 
         // try to connect to the backend
         conn.start();
 
-    	// fire up the GUI
+        // fire up the GUI
         manager = new PZLayoutManager();
         manager.addClosingListener(this);
-    	manager.start();
+        manager.start();
     }
 
     /** shutdown the connection */
@@ -59,19 +59,19 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         while(!conn.isShutdown() && System.currentTimeMillis()-start<1000) {}
     }
 
-	/** Handles messages received from the LAVI backend */
-	public void process(final LAVIMessage msg) {
-		switch(msg.type) {
-		case AUTH_REQUEST:
-			processAuthRequest((AuthHeader)msg);
-			break;
-			
-		case SWITCHES_ADD:
+    /** Handles messages received from the LAVI backend */
+    public void process(final LAVIMessage msg) {
+        switch(msg.type) {
+        case AUTH_REQUEST:
+            processAuthRequest((AuthHeader)msg);
+            break;
+            
+        case SWITCHES_ADD:
             processSwitchesAdd((SwitchesAdd)msg);
             break;
             
         case SWITCHES_DELETE:
-        	processSwitchesDel((SwitchesDel)msg);
+            processSwitchesDel((SwitchesDel)msg);
             break;
             
         case LINKS_ADD:
@@ -79,8 +79,8 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             break;
             
         case LINKS_DELETE:
-        	processLinksDel((LinksDel)msg);
-        	break;
+            processLinksDel((LinksDel)msg);
+            break;
             
         case STAT_REPLY:
             processStatReply((StatsHeader)msg);
@@ -94,108 +94,108 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             
         default:
             System.err.println("Unhandled type received: " + msg.type.toString());
-		}
-	}
-	
-	private void processAuthRequest(AuthHeader msg) {
-		switch(msg.authType) {
+        }
+    }
+    
+    private void processAuthRequest(AuthHeader msg) {
+        switch(msg.authType) {
         case PLAIN_TEXT:
             handleAuthRequestPlainText();
             break;
         
         default:
             System.err.println("Unhandled authentication type received: " + msg.authType.toString());
-		}
-	}
+        }
+    }
 
-	/** query the user for login credentials and send them to the backend */
-	private void handleAuthRequestPlainText() {
-		String username = DialogHelper.getInput("What is your username?");
-		if(username == null) username = "";
-		String pw = DialogHelper.getInput("What is your password, " + username + "?");
-		if(pw == null) pw = "";
-		
-		try {
-			new AuthPlainText(username, pw).write(conn.getStream());
-		}
-		catch(IOException e) {
-			System.err.println("Failed to send plain-text authentication reply");
-			conn.reconnect();
-		}
-	}
+    /** query the user for login credentials and send them to the backend */
+    private void handleAuthRequestPlainText() {
+        String username = DialogHelper.getInput("What is your username?");
+        if(username == null) username = "";
+        String pw = DialogHelper.getInput("What is your password, " + username + "?");
+        if(pw == null) pw = "";
+        
+        try {
+            new AuthPlainText(username, pw).write(conn.getStream());
+        }
+        catch(IOException e) {
+            System.err.println("Failed to send plain-text authentication reply");
+            conn.reconnect();
+        }
+    }
 
-	/** switches in the topology */
-	private HashMap<Long, OpenFlowSwitch> switches = new HashMap<Long, OpenFlowSwitch>(); 
-	
-	private OpenFlowSwitch addSwitch(long dpid) {
-		OpenFlowSwitch s = new OpenFlowSwitch(dpid);
-		switches.put(dpid, s);
-		manager.addDrawable(s);
-		return s;
-	}
-	
-	/** add new switches to the topology */
-	private void processSwitchesAdd(SwitchesAdd msg) {
-		for(long dpid : msg.dpids)
-			if(!switches.containsKey(dpid))
-				addSwitch(dpid);
-		
-	}
+    /** switches in the topology */
+    private HashMap<Long, OpenFlowSwitch> switches = new HashMap<Long, OpenFlowSwitch>(); 
+    
+    private OpenFlowSwitch addSwitch(long dpid) {
+        OpenFlowSwitch s = new OpenFlowSwitch(dpid);
+        switches.put(dpid, s);
+        manager.addDrawable(s);
+        return s;
+    }
+    
+    /** add new switches to the topology */
+    private void processSwitchesAdd(SwitchesAdd msg) {
+        for(long dpid : msg.dpids)
+            if(!switches.containsKey(dpid))
+                addSwitch(dpid);
+        
+    }
 
-	/** remove former switches from the topology */
-	private void processSwitchesDel(SwitchesDel msg) {
-		for(long dpid : msg.dpids)
-			if(switches.containsKey(dpid))
-				manager.removeDrawable(switches.remove(dpid));
-	}
-	
-	/** links in the topology */
-	private HashSet<Link> links = new HashSet<Link>();
-	
-	/** 
-	 * Makes sure a switch with the specified exists and creates one if not.  
-	 * 
-	 * @param dpid  DPID of the switch which should exist for a link
-	 * @return the switch associated with dpid
-	 */
-	private OpenFlowSwitch handleLinkToSwitch(long dpid) {
-		OpenFlowSwitch s = switches.get(dpid);
-		if(s != null)
-			return s;
-		
-		System.err.println("Warning: received link to switch DPID we didn't previously have (" + 
-				           DPIDUtil.dpidToHex(dpid) + ")");
-			
-		// create the missing switch
-		return addSwitch(dpid);
-	}
-	
-	private void processLinksAdd(LinksAdd msg) {
-		for(org.openflow.lavi.net.protocol.Link x : msg.links) {
-			OpenFlowSwitch dstSwitch = handleLinkToSwitch(x.dstDPID);
-			OpenFlowSwitch srcSwitch = handleLinkToSwitch(x.srcDPID);
-			Link newLink = new Link(dstSwitch, x.dstPort, srcSwitch, x.srcPort);
-			if(!links.contains(newLink))
-				links.add(newLink);
-			else
-				newLink.disconnect(); // already existed
-		}
-	}
-	
-	private void processLinksDel(LinksDel msg) {
-		for(org.openflow.lavi.net.protocol.Link x : msg.links) {
-			OpenFlowSwitch dstSwitch = handleLinkToSwitch(x.dstDPID);
-			OpenFlowSwitch srcSwitch = handleLinkToSwitch(x.srcDPID);
-			
-			Link existingLink = dstSwitch.getLinkTo(x.dstPort, srcSwitch, x.srcPort);
-			if(existingLink != null) {
-				existingLink.disconnect();
-				links.remove(existingLink);
-			}
-		}
-	}
+    /** remove former switches from the topology */
+    private void processSwitchesDel(SwitchesDel msg) {
+        for(long dpid : msg.dpids)
+            if(switches.containsKey(dpid))
+                manager.removeDrawable(switches.remove(dpid));
+    }
+    
+    /** links in the topology */
+    private HashSet<Link> links = new HashSet<Link>();
+    
+    /** 
+     * Makes sure a switch with the specified exists and creates one if not.  
+     * 
+     * @param dpid  DPID of the switch which should exist for a link
+     * @return the switch associated with dpid
+     */
+    private OpenFlowSwitch handleLinkToSwitch(long dpid) {
+        OpenFlowSwitch s = switches.get(dpid);
+        if(s != null)
+            return s;
+        
+        System.err.println("Warning: received link to switch DPID we didn't previously have (" + 
+                           DPIDUtil.dpidToHex(dpid) + ")");
+            
+        // create the missing switch
+        return addSwitch(dpid);
+    }
+    
+    private void processLinksAdd(LinksAdd msg) {
+        for(org.openflow.lavi.net.protocol.Link x : msg.links) {
+            OpenFlowSwitch dstSwitch = handleLinkToSwitch(x.dstDPID);
+            OpenFlowSwitch srcSwitch = handleLinkToSwitch(x.srcDPID);
+            Link newLink = new Link(dstSwitch, x.dstPort, srcSwitch, x.srcPort);
+            if(!links.contains(newLink))
+                links.add(newLink);
+            else
+                newLink.disconnect(); // already existed
+        }
+    }
+    
+    private void processLinksDel(LinksDel msg) {
+        for(org.openflow.lavi.net.protocol.Link x : msg.links) {
+            OpenFlowSwitch dstSwitch = handleLinkToSwitch(x.dstDPID);
+            OpenFlowSwitch srcSwitch = handleLinkToSwitch(x.srcDPID);
+            
+            Link existingLink = dstSwitch.getLinkTo(x.dstPort, srcSwitch, x.srcPort);
+            if(existingLink != null) {
+                existingLink.disconnect();
+                links.remove(existingLink);
+            }
+        }
+    }
 
-	private void processStatReply(StatsHeader msg) {
-		
-	}
+    private void processStatReply(StatsHeader msg) {
+        
+    }
 }

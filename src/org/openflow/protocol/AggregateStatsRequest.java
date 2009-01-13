@@ -72,10 +72,10 @@ public class AggregateStatsRequest extends StatsHeader {
     }
     
     public void write(DataOutput out) throws IOException {
-    	super.write(out);
-    	match.write(out);
-    	out.writeByte(tableID);
-    	out.writeByte(0); // pad
-    	out.writeShort(outPort);
+        super.write(out);
+        match.write(out);
+        out.writeByte(tableID);
+        out.writeByte(0); // pad
+        out.writeShort(outPort);
     }
 }

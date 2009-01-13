@@ -165,7 +165,7 @@ public class PZManager extends Thread {
      * @param newOrder  The new order, with the first class specified being the
      *                  class of objects drawn on top (e.g. drawn last).
      */
-	public synchronized void setDrawOrder(Collection<Class> newOrder) {
+    public synchronized void setDrawOrder(Collection<Class> newOrder) {
         // copy-in the new ordering
         classDrawOrder.clear();
         for(Class c : newOrder) {

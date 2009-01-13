@@ -98,8 +98,8 @@ public abstract class NodeWithPorts extends Node {
     public Link getLinkTo(short myPort, NodeWithPorts n, short nPort) {
         for(Link l : links)
             if(l.getOther(this) == n)
-            	if(l.getMyPort(this)==myPort && l.getOtherPort(n)==nPort)
-            		return l;
+                if(l.getMyPort(this)==myPort && l.getOtherPort(n)==nPort)
+                    return l;
             
         return null;
     }
@@ -118,13 +118,13 @@ public abstract class NodeWithPorts extends Node {
     public abstract long getDatapathID();
     
     public int hashCode() {
-    	return (int)(getDatapathID() ^ (getDatapathID() >>> 32));
+        return (int)(getDatapathID() ^ (getDatapathID() >>> 32));
     }
     
     public boolean equals(Object o) {
-    	if(this == o) return true;
-    	if((o == null) || (o.getClass() != this.getClass())) return false;
-    	NodeWithPorts n = (NodeWithPorts)o;
-    	return n.getDatapathID() == getDatapathID();
+        if(this == o) return true;
+        if((o == null) || (o.getClass() != this.getClass())) return false;
+        NodeWithPorts n = (NodeWithPorts)o;
+        return n.getDatapathID() == getDatapathID();
     }
 }

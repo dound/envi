@@ -33,7 +33,7 @@ public abstract class AuthHeader extends LAVIMessage {
     }
     
     public void write(DataOutput out) throws IOException {
-    	super.write(out);
-    	out.writeByte(authType.getAuthTypeID());
+        super.write(out);
+        out.writeByte(authType.getAuthTypeID());
     }
 }

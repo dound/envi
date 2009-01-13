@@ -97,7 +97,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     private void updateBoundingBox(int x1, int y1, int x2, int y2) {
         Vector2f from = new Vector2f(x1, y1);
         Vector2f to = new Vector2f(x2, y2);
-        Vector2f dir = Vector2f.subtract			(to, from);
+        Vector2f dir = Vector2f.subtract            (to, from);
         Vector2f unitDir = Vector2f.makeUnit(dir);
         Vector2f perp = new Vector2f(unitDir.y, -unitDir.x).multiply(LINE_WIDTH / 2.0f + 4.0f);
 
@@ -131,39 +131,39 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         return dst==p ? src : dst;
     }
     
-	public short getMyPort(NodeWithPorts p) {
-		if(src == p)
-			return srcPort;
-		else
-			return dstPort;
-	}
-	
-	public short getOtherPort(NodeWithPorts p) {
-		if(src == p)
-			return dstPort;
-		else
-			return srcPort;
-	}
+    public short getMyPort(NodeWithPorts p) {
+        if(src == p)
+            return srcPort;
+        else
+            return dstPort;
+    }
+    
+    public short getOtherPort(NodeWithPorts p) {
+        if(src == p)
+            return dstPort;
+        else
+            return srcPort;
+    }
     
     public int hashCode() {
-    	int hash = 7;
-    	
-    	hash += dst.hashCode();
-    	hash += 31 * dstPort;
-    	hash += 31 * src.hashCode();
-    	hash += 31 * srcPort;
-    	
-    	return hash;
+        int hash = 7;
+        
+        hash += dst.hashCode();
+        hash += 31 * dstPort;
+        hash += 31 * src.hashCode();
+        hash += 31 * srcPort;
+        
+        return hash;
     }
     
     public boolean equals(Object o) {
-    	if(this == o) return true;
-    	if((o == null) || (o.getClass() != this.getClass())) return false;
-    	Link l = (Link)o;
-    	return l.dst.getDatapathID() == dst.getDatapathID() &&
-    	       l.dstPort == dstPort &&
-    	       l.src.getDatapathID() == src.getDatapathID() &&
-    	       l.srcPort == srcPort;
+        if(this == o) return true;
+        if((o == null) || (o.getClass() != this.getClass())) return false;
+        Link l = (Link)o;
+        return l.dst.getDatapathID() == dst.getDatapathID() &&
+               l.dstPort == dstPort &&
+               l.src.getDatapathID() == src.getDatapathID() &&
+               l.srcPort == srcPort;
     }
     
     public String toString() {

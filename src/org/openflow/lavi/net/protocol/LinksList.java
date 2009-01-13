@@ -44,8 +44,8 @@ public abstract class LinksList extends LAVIMessage {
     }
     
     public void write(DataOutput out) throws IOException {
-    	super.write(out);
-    	for(Link l : links)
-    		l.write(out);
+        super.write(out);
+        for(Link l : links)
+            l.write(out);
     }
 }

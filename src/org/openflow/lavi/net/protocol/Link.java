@@ -31,9 +31,9 @@ public class Link {
     }
     
     public void write(DataOutput out) throws IOException {
-    	out.writeLong(srcDPID);
-    	out.writeShort(srcPort);
-    	out.writeLong(dstDPID);
-    	out.writeShort(dstPort);
+        out.writeLong(srcDPID);
+        out.writeShort(srcPort);
+        out.writeLong(dstDPID);
+        out.writeShort(dstPort);
     }
 }

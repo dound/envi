@@ -44,8 +44,8 @@ public abstract class SwitchList extends LAVIMessage {
     }
     
     public void write(DataOutput out) throws IOException {
-    	super.write(out);
-    	for(long dpid : dpids)
-    		out.writeLong(dpid);
+        super.write(out);
+        for(long dpid : dpids)
+            out.writeLong(dpid);
     }
 }

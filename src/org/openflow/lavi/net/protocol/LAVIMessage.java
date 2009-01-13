@@ -34,8 +34,8 @@ public class LAVIMessage {
     
     /** sends the message over the specified output stream */
     public void write(DataOutput out) throws IOException {
-    	out.writeShort(length());
-    	out.writeByte(type.getTypeID());
-    	out.writeInt(xid);
+        out.writeShort(length());
+        out.writeByte(type.getTypeID());
+        out.writeInt(xid);
     }
 }

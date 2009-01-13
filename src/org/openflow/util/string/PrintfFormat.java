@@ -1338,19 +1338,19 @@ public class PrintfFormat {
         }
         for (; i<ca5.length; i++,k++) {
           ca6[k]=ca5[i];
-		}
+        }
       }
       return ca6;
     }
-	/**
-	 * An intermediate routine on the way to creating
-	 * an f format String.  The method decides whether
-	 * the input double value is an infinity,
-	 * not-a-number, or a finite double and formats
-	 * each type of input appropriately.
-	 * @param x the double value to be formatted.
-	 * @return the converted double value.
-	 */
+    /**
+     * An intermediate routine on the way to creating
+     * an f format String.  The method decides whether
+     * the input double value is an infinity,
+     * not-a-number, or a finite double and formats
+     * each type of input appropriately.
+     * @param x the double value to be formatted.
+     * @return the converted double value.
+     */
     private String fFormatString(double x) {
       char[] ca6,ca7;
       if (Double.isInfinite(x)) {
@@ -1685,17 +1685,17 @@ public class PrintfFormat {
       }
       return carry;
     }
-	/**
-	 * An intermediate routine on the way to creating
-	 * an e format String.  The method decides whether
-	 * the input double value is an infinity,
-	 * not-a-number, or a finite double and formats
-	 * each type of input appropriately.
-	 * @param x the double value to be formatted.
-	 * @param eChar an 'e' or 'E' to use in the
-	 *     converted double value.
-	 * @return the converted double value.
-	 */
+    /**
+     * An intermediate routine on the way to creating
+     * an e format String.  The method decides whether
+     * the input double value is an infinity,
+     * not-a-number, or a finite double and formats
+     * each type of input appropriately.
+     * @param x the double value to be formatted.
+     * @param eChar an 'e' or 'E' to use in the
+     *     converted double value.
+     * @return the converted double value.
+     */
     private String eFormatString(double x,char eChar) {
       char[] ca4,ca5;
       if (Double.isInfinite(x)) {

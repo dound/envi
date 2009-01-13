@@ -159,7 +159,7 @@ public class LAVIConnection extends Thread {
      * or if it fails to get connected.
      */
     public void run() {
-    	connect();
+        connect();
 
         // ask the backend for a list of switches and links
         try {
@@ -182,9 +182,9 @@ public class LAVIConnection extends Thread {
                 reconnect = true;
             }
             if(reconnect) {
-            	reconnect = false;
-	            disconnect();
-	            connect();
+                reconnect = false;
+                disconnect();
+                connect();
             }
         }
 
@@ -242,7 +242,7 @@ public class LAVIConnection extends Thread {
     
     /** tells the LAVI connection to disconnect and then connect again */
     public void reconnect() {
-    	this.reconnect = true;
+        this.reconnect = true;
     }
     
     /** returns the next LAVI message received on the connection */
@@ -274,7 +274,7 @@ public class LAVIConnection extends Thread {
     
     /** closes the connection to the LAVI server */
     private void disconnect() {
-    	System.err.println("Disconnecting from the LAVI server");
+        System.err.println("Disconnecting from the LAVI server");
         tryToClose(conn);
         conn = null;
         stats.disconnected();
@@ -301,7 +301,7 @@ public class LAVIConnection extends Thread {
     }
 
     /** returns the underyling socket connection */
-	public SocketConnection getStream() {
-		return conn;
-	}
+    public SocketConnection getStream() {
+        return conn;
+    }
 }

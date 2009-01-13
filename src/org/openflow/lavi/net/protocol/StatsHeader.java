@@ -44,9 +44,9 @@ public abstract class StatsHeader extends LAVIMessage {
     }
     
     public void send(DataOutput out) throws IOException {
-    	super.write(out);
-    	out.writeLong(dpid);
-    	out.writeShort(statsType.getTypeID());
-    	out.writeShort(flags.getTypeID());
+        super.write(out);
+        out.writeLong(dpid);
+        out.writeShort(statsType.getTypeID());
+        out.writeShort(flags.getTypeID());
     }
 }

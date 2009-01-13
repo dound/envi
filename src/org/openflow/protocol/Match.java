@@ -67,18 +67,18 @@ public class Match {
         tp_dst = in.readShort();
     }
 
-	public void write(DataOutput out) throws IOException {
-		out.writeInt(wildcards.getAssociatedBits());
-		out.writeShort(in_port);
-		out.write(dl_src);
-		out.write(dl_dst);
-		out.writeShort(dl_vlan);
-		out.writeShort(dl_type);
-		out.writeByte(nw_proto);
-		out.writeByte(0); // pad
-		out.writeInt(nw_src);
-		out.writeInt(nw_dst);
-		out.writeShort(tp_src);
-		out.writeShort(tp_dst);
-	}
+    public void write(DataOutput out) throws IOException {
+        out.writeInt(wildcards.getAssociatedBits());
+        out.writeShort(in_port);
+        out.write(dl_src);
+        out.write(dl_dst);
+        out.writeShort(dl_vlan);
+        out.writeShort(dl_type);
+        out.writeByte(nw_proto);
+        out.writeByte(0); // pad
+        out.writeInt(nw_src);
+        out.writeInt(nw_dst);
+        out.writeShort(tp_src);
+        out.writeShort(tp_dst);
+    }
 }

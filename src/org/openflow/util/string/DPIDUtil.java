@@ -11,41 +11,41 @@ import java.nio.ByteBuffer;
  *
  */
 public class DPIDUtil {
-	/**
-	 * Size of an DPID in bytes
-	 */
-	public static final int DPID_LEN = 8;
-	
-	/**
-	 * ByteArray -- convert DPID into a byte array
-	 * @param dpid DPID to convert
-	 * @return byte array representation of DPID
-	 */
-	public static byte[] toByteArray(long dpid) {
-		byte[] dpidArray = new byte[DPID_LEN];
-		ByteBuffer buf = ByteBuffer.wrap(dpidArray);
-		buf.putLong(dpid);
-		return dpidArray;
-	}
-	
-	/**
-	 * toString -- convert a DPID into a string
-	 * @param dpid DPID to convert
-	 * @return String representation of DPID
-	 */
-	public static String toString(long dpid) {
-		byte[] dpidArray = toByteArray(dpid);
-		Integer[] dpidIntArray = new Integer[dpidArray.length];
-		
-		for (int i = 0; i < dpidArray.length; i++) {
-			int d = dpidArray[i];
-			if (d < 0)
-				d += 256;
-			dpidIntArray[i] = Integer.valueOf(d);
-		}
-		
-		return new PrintfFormat("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x").sprintf(dpidIntArray);
-	}
+    /**
+     * Size of an DPID in bytes
+     */
+    public static final int DPID_LEN = 8;
+    
+    /**
+     * ByteArray -- convert DPID into a byte array
+     * @param dpid DPID to convert
+     * @return byte array representation of DPID
+     */
+    public static byte[] toByteArray(long dpid) {
+        byte[] dpidArray = new byte[DPID_LEN];
+        ByteBuffer buf = ByteBuffer.wrap(dpidArray);
+        buf.putLong(dpid);
+        return dpidArray;
+    }
+    
+    /**
+     * toString -- convert a DPID into a string
+     * @param dpid DPID to convert
+     * @return String representation of DPID
+     */
+    public static String toString(long dpid) {
+        byte[] dpidArray = toByteArray(dpid);
+        Integer[] dpidIntArray = new Integer[dpidArray.length];
+        
+        for (int i = 0; i < dpidArray.length; i++) {
+            int d = dpidArray[i];
+            if (d < 0)
+                d += 256;
+            dpidIntArray[i] = Integer.valueOf(d);
+        }
+        
+        return new PrintfFormat("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x").sprintf(dpidIntArray);
+    }
         
         public static String dpidToHex(long dpid) {
             String hex = Long.toHexString(dpid).toUpperCase();

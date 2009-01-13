@@ -50,10 +50,10 @@ public class AggregateStatsReply extends StatsHeader {
     }
     
     public void write(DataOutput out) throws IOException {
-    	super.write(out);
-    	out.writeLong(packet_count);
-    	out.writeLong(byte_count);
-    	out.writeInt(flow_count);
-    	out.writeInt(0); // pad
+        super.write(out);
+        out.writeLong(packet_count);
+        out.writeLong(byte_count);
+        out.writeInt(flow_count);
+        out.writeInt(0); // pad
     }
 }

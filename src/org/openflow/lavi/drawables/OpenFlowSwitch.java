@@ -12,14 +12,14 @@ import org.pzgui.Constants;
  * @author David Underhill
  */
 public class OpenFlowSwitch extends NodeWithPorts {
-	java.awt.Dimension SIZE = new java.awt.Dimension(5, 5);
+    java.awt.Dimension SIZE = new java.awt.Dimension(5, 5);
     public static final Color NAME_COLOR = new Color(222, 222, 222);
     
     private long datapathID;
     private static final double OUTLINE_RATIO = 4.0 / 3.0;
     
     public OpenFlowSwitch(long dpid) {
-    	this("", 0, 0, dpid);
+        this("", 0, 0, dpid);
     }
     
     public OpenFlowSwitch(String name, int x, int y, long dpid) {

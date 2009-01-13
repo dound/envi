@@ -13,57 +13,57 @@ import java.nio.ByteBuffer;
  *
  */
 public class IPUtil {
-	/**
-	 * Size of an IPv4 address in bytes
-	 */
-	public static final int IP4_ADDR_LEN = 4;
-	
-	/**
-	 * ByteArray -- convert an integer IP address into a byte array
-	 * @param ip IP address to convert
-	 * @return byte array representation of IP
-	 */
-	public static byte[] toByteArray(int ip) {
-		byte[] ipArray = new byte[IP4_ADDR_LEN];
-		ByteBuffer buf = ByteBuffer.wrap(ipArray);
-		buf.putInt(ip);
-		return ipArray;
-	}
-	
-	/**
-	 * toInetAddress -- convert an integer IP address into an InetAddress
-	 * @param ip IP address to convert
-	 * @return InetAddress object
-	 */
-	public static InetAddress toInetAddress(int ip) {
-		try {
-			return InetAddress.getByAddress(toByteArray(ip));
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
-	}
+    /**
+     * Size of an IPv4 address in bytes
+     */
+    public static final int IP4_ADDR_LEN = 4;
+    
+    /**
+     * ByteArray -- convert an integer IP address into a byte array
+     * @param ip IP address to convert
+     * @return byte array representation of IP
+     */
+    public static byte[] toByteArray(int ip) {
+        byte[] ipArray = new byte[IP4_ADDR_LEN];
+        ByteBuffer buf = ByteBuffer.wrap(ipArray);
+        buf.putInt(ip);
+        return ipArray;
+    }
+    
+    /**
+     * toInetAddress -- convert an integer IP address into an InetAddress
+     * @param ip IP address to convert
+     * @return InetAddress object
+     */
+    public static InetAddress toInetAddress(int ip) {
+        try {
+            return InetAddress.getByAddress(toByteArray(ip));
+        } catch (UnknownHostException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
+    }
 
-	/**
-	 * toString -- convert an integer IP address into a string
-	 * @param ip IP address to convert
-	 * @return String representation of IP address
-	 */
-	public static String toString(int ip) {
-		byte[] ipArray = toByteArray(ip);
-		int[] ipIntArray = new int[ipArray.length];
-		for (int i = 0; i < ipArray.length; i++) {
-			ipIntArray[i] = ipArray[i];
-			if (ipIntArray[i] < 0)
-				ipIntArray[i] += 256;
-		}
-		
-		String ret = Integer.toString(ipIntArray[0]);
-		for (int i = 1; i < ipArray.length; i++)
-			ret += "." + Integer.toString(ipIntArray[i]);
-		return ret;
-	}
+    /**
+     * toString -- convert an integer IP address into a string
+     * @param ip IP address to convert
+     * @return String representation of IP address
+     */
+    public static String toString(int ip) {
+        byte[] ipArray = toByteArray(ip);
+        int[] ipIntArray = new int[ipArray.length];
+        for (int i = 0; i < ipArray.length; i++) {
+            ipIntArray[i] = ipArray[i];
+            if (ipIntArray[i] < 0)
+                ipIntArray[i] += 256;
+        }
+        
+        String ret = Integer.toString(ipIntArray[0]);
+        for (int i = 1; i < ipArray.length; i++)
+            ret += "." + Integer.toString(ipIntArray[i]);
+        return ret;
+    }
         
         public static int stringToIP(String ip) {
             String[] terms = ip.split("\\.");

@@ -145,7 +145,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
 	private void processSwitchesDel(SwitchesDel msg) {
 		for(long dpid : msg.dpids)
 			if(switches.containsKey(dpid))
-				manager.removeEntity(switches.remove(dpid));
+				manager.removeDrawable(switches.remove(dpid));
 	}
 	
 	/** links in the topology */

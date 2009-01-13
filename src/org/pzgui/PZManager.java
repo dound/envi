@@ -154,7 +154,7 @@ public class PZManager extends Thread {
      * Stop drawing the specified entity.
      * @param d  the entity to stop drawing
      */
-    public synchronized void removeEntity(Drawable d) {
+    public synchronized void removeDrawable(Drawable d) {
         drawables.remove(d);
     }
 

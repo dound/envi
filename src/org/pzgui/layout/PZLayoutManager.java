@@ -74,7 +74,7 @@ public class PZLayoutManager extends org.pzgui.PZManager {
             }
         }
     }
-
+    
     /** gets the current layout, if any */
     public Layout<Vertex, Edge> getLayout() {
         return layout;
@@ -85,7 +85,9 @@ public class PZLayoutManager extends org.pzgui.PZManager {
      * @param layout  the new layout, or null to turn off auto-layout
      */
     public synchronized void setLayout(Layout<Vertex, Edge> layout) {
-        this.layout.setGraph(null);
+        if(this.layout != null)
+            this.layout.setGraph(null);
+        
         this.layout = layout;
         this.layout.setGraph(graph);
         this.layout.reset();

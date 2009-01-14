@@ -33,7 +33,7 @@ public abstract class LinksList extends LAVIMessage {
         // read in the DPIDs
         int index = 0;
         links = new Link[left / Link.SIZEOF];
-        while(left > Link.SIZEOF) {
+        while(left >= Link.SIZEOF) {
             left -= Link.SIZEOF;
             links[index++] = new Link(in.readLong(), in.readShort(), in.readLong(), in.readShort());
         }

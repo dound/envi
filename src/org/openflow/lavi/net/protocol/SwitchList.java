@@ -33,7 +33,7 @@ public abstract class SwitchList extends LAVIMessage {
         // read in the DPIDs
         int index = 0;
         dpids = new long[left / 8];
-        while(left > 8) {
+        while(left >= 8) {
             left -= 8;
             dpids[index++] = in.readLong();
         }

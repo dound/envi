@@ -12,8 +12,9 @@ import org.pzgui.Constants;
  * @author David Underhill
  */
 public class OpenFlowSwitch extends NodeWithPorts {
-    java.awt.Dimension SIZE = new java.awt.Dimension(5, 5);
-    public static final Color NAME_COLOR = new Color(222, 222, 222);
+    java.awt.Dimension SIZE = new java.awt.Dimension(25, 25);
+    public static final Paint NAME_COLOR = new Color(128, 128, 255);
+    public static final Paint FILL_COLOR = new Color(128, 128, 255);
     
     private long datapathID;
     private static final double OUTLINE_RATIO = 4.0 / 3.0;
@@ -37,7 +38,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
     }
 
     public void draw(Graphics2D gfx) {
-                 Paint outlineColor;
+        Paint outlineColor;
         if(isSelected())
             outlineColor = Constants.COLOR_SELECTED;
         else if(isHovered())
@@ -57,10 +58,13 @@ public class OpenFlowSwitch extends NodeWithPorts {
         }
         
         gfx.drawOval(getX(), getY(), SIZE.width, SIZE.height);
+        gfx.setPaint(FILL_COLOR);
+        gfx.fillOval(getX(), getY(), SIZE.width, SIZE.height);
         
         gfx.setPaint(NAME_COLOR);
         int textYOffset = -SIZE.height / 2 + 2;
         drawName(gfx, getX(), getY() - textYOffset, getY() + textYOffset);
+        gfx.setPaint(Constants.PAINT_DEFAULT);
     }
     
     public java.awt.Dimension getSize() {

@@ -18,7 +18,7 @@ public class PZLayoutManager extends org.pzgui.PZManager {
     private Layout<Vertex, Edge> layout = null;
     
     /** the graph to layout */
-    private Graph<Vertex, Edge> graph = new DirectedSparseGraph<Vertex, Edge>();
+    private final Graph<Vertex, Edge> graph = new DirectedSparseGraph<Vertex, Edge>();
     
     public synchronized void addDrawable(Drawable d) {
         super.addDrawable(d);

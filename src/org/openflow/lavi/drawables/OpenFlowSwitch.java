@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.geom.Ellipse2D;
+
+import org.openflow.protocol.SwitchDescriptionStats;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.Constants;
 
@@ -18,6 +20,9 @@ public class OpenFlowSwitch extends NodeWithPorts {
     
     private long datapathID;
     private static final double OUTLINE_RATIO = 4.0 / 3.0;
+    
+    private String manufacturer="?", hw_desc="?", sw_desc="?", serial_num="?";
+    private long descUpdateTime = 0;
     
     public OpenFlowSwitch(long dpid) {
         this("", 0, 0, dpid);
@@ -77,6 +82,36 @@ public class OpenFlowSwitch extends NodeWithPorts {
     
     public long getDatapathID() {
         return datapathID;
+    }
+    
+    public String getManufacturer() {
+        return manufacturer;
+    }
+    
+    public String getHWDescription() {
+        return hw_desc;
+    }
+    
+    public String getSWDescription() {
+        return sw_desc;
+    }
+    
+    public String getSerialNumber() {
+        return serial_num;
+    }
+    
+    /** Returns the time the switch's description was last updated */
+    public long getDescriptionUpdateTime() {
+        return descUpdateTime;
+    }
+    
+    /** Update info about the switch's description */
+    public void setSwitchDescription(SwitchDescriptionStats stats) {
+        manufacturer = stats.manufacturer;
+        hw_desc = stats.hw_desc;
+        sw_desc = stats.sw_desc;
+        serial_num = stats.serial_num;
+        descUpdateTime = System.currentTimeMillis();
     }
     
     public boolean isWithin(int x, int y) {

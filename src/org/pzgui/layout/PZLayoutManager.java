@@ -74,6 +74,11 @@ public class PZLayoutManager extends org.pzgui.PZManager {
             }
         }
     }
+
+    /** gets the graph backing the layout manager */
+    public Graph<Vertex, Edge> getGraph() {
+        return graph;
+    }
     
     /** gets the current layout, if any */
     public Layout<Vertex, Edge> getLayout() {

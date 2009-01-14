@@ -1,5 +1,6 @@
 package org.openflow.lavi;
 
+import edu.uci.ics.jung.algorithms.layout.FRLayout2;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,7 +13,9 @@ import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
 import org.pzgui.PZClosing;
 import org.pzgui.PZManager;
+import org.pzgui.layout.Edge;
 import org.pzgui.layout.PZLayoutManager;
+import org.pzgui.layout.Vertex;
 
 public class LAVI implements LAVIMessageProcessor, PZClosing {
     /** run the LAVI front-end */
@@ -46,6 +49,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         // fire up the GUI
         manager = new PZLayoutManager();
         manager.addClosingListener(this);
+        manager.setLayout(new FRLayout2<Vertex, Edge>(manager.getGraph()));
         manager.start();
     }
 

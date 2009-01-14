@@ -66,6 +66,11 @@ public class AggregateStatsRequest extends StatsHeader {
         outPort = in.readShort();
     }
     
+    /** returns true because this message is part of a stateful exchange */
+    public boolean isStatefulRequest() {
+        return true;
+    }
+    
     /** total length of this message in bytes */
     public int length() {
         return super.length() + Match.SIZEOF + 4;

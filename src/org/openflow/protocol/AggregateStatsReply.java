@@ -44,6 +44,11 @@ public class AggregateStatsReply extends StatsHeader {
         in.readInt(); /* 4B pad */
     }
     
+    /** returns true because this message is part of a stateful exchange */
+    public boolean isStatefulReply() {
+        return true;
+    }
+    
     /** total length of this message in bytes */
     public int length() {
         return super.length() + 24;

@@ -21,10 +21,23 @@ public class LAVIMessage {
     /** transaction id of this message, if any */
     public int xid;
     
+    /** the time this message was created in this application */
+    public long timeCreated = System.currentTimeMillis();
+    
     /** used to construct a LAVI message */
     public LAVIMessage(final LAVIMessageType t, final int xid) {
         this.type = t;
         this.xid = xid;
+    }
+    
+    /** returns whether this message starts a stateful exchange (default=false) */
+    public boolean isStatefulRequest() {
+        return false;
+    }
+
+    /** returns whether this message is a reply to a stateful exchange (default=false) */
+    public boolean isStatefulReply() {
+        return false;
     }
     
     /** sends the message over the specified output stream */
@@ -32,5 +45,10 @@ public class LAVIMessage {
         out.writeShort(length());
         out.writeByte(type.getTypeID());
         out.writeInt(xid);
+    }
+
+    /** Gets the time this message was created in this application */
+    public long timeCreated() {
+        return timeCreated;
     }
 }

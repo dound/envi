@@ -9,7 +9,7 @@ import org.openflow.lavi.drawables.Link;
 import org.openflow.lavi.net.*;
 import org.openflow.lavi.net.protocol.*;
 import org.openflow.lavi.net.protocol.auth.*;
-import org.openflow.protocol.SwitchDescriptionStats;
+import org.openflow.protocol.*;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
 import org.pzgui.PZClosing;
@@ -144,7 +144,6 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         for(long dpid : msg.dpids)
             if(!switches.containsKey(dpid))
                 addSwitch(dpid);
-        
     }
 
     /** remove former switches from the topology */
@@ -207,12 +206,30 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             break;
             
         case AGGREGATE:
-            System.err.println("Warning: aggregate stats reply not yet handled");
+            processStatReplyAggregate((AggregateStatsReply)msg);
             break;
         
         default:
             System.err.println("Unhandled stats type received: " + msg.statsType.toString());
         }
+    }
+
+    private void processStatReplyAggregate(AggregateStatsReply reply) {
+        // get the request which solicited this reply
+        LAVIMessage msg = conn.popAssociatedStatefulRequest(reply.xid);
+        AggregateStatsRequest req;
+        if(msg==null || !(msg instanceof AggregateStatsRequest)) {
+            System.err.println("Warning: matching stateful request for AggregateStatsReply is not an AggregateStatsRequest");
+            return;
+        }
+        req = (AggregateStatsRequest)msg;
+        
+        // get the switch associated with these stats
+        OpenFlowSwitch s = switches.get(req.dpid);
+        if(s == null)
+            System.err.println("Warning: received switch description for unknown switch " + DPIDUtil.toString(req.dpid));
+        
+        // TODO: do something with the received stats reply
     }
 
     private void processStatReplyDesc(SwitchDescriptionStats msg) {

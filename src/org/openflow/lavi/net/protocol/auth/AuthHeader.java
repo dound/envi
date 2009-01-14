@@ -23,8 +23,8 @@ public abstract class AuthHeader extends LAVIMessage {
         authType = t;
     }
     
-    public AuthHeader(boolean request, final DataInput in) throws IOException {
-        super(request ? LAVIMessageType.AUTH_REQUEST : LAVIMessageType.AUTH_REPLY, in);
+    public AuthHeader(boolean request, final int xid, final DataInput in) throws IOException {
+        super(request ? LAVIMessageType.AUTH_REQUEST : LAVIMessageType.AUTH_REPLY, xid);
         authType = AuthType.typeValToAuthType(in.readByte());
     }
     

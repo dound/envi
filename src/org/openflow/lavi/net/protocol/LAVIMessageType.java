@@ -97,16 +97,16 @@ public enum LAVIMessageType {
                 return AuthType.decode(len, t, xid, in);
                 
             case SWITCHES_ADD:
-                return new SwitchesAdd(len, in);
+                return new SwitchesAdd(len, xid, in);
                 
             case SWITCHES_DELETE:
-                return new SwitchesDel(len, in);
+                return new SwitchesDel(len, xid, in);
                 
             case LINKS_ADD:
-                return new LinksAdd(len, in);
+                return new LinksAdd(len, xid, in);
                 
             case LINKS_DELETE:
-                return new LinksDel(len, in);
+                return new LinksDel(len, xid, in);
                 
             case STAT_REPLY:
                 return StatsType.decode(len, t, xid, in);

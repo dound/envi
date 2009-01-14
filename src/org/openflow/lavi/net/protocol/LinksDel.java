@@ -17,7 +17,7 @@ public class LinksDel extends LinksList {
         super(LAVIMessageType.LINKS_DELETE, xid, links);
     }
     
-    public LinksDel(final int len, final DataInput in) throws IOException {
-        super(len, LAVIMessageType.LINKS_DELETE, in);
+    public LinksDel(final int len, final int xid, final DataInput in) throws IOException {
+        super(len, LAVIMessageType.LINKS_DELETE, xid, in);
     }
 }

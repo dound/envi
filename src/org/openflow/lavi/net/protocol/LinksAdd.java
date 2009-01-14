@@ -17,7 +17,7 @@ public class LinksAdd extends LinksList {
         super(LAVIMessageType.LINKS_ADD, xid, links);
     }
     
-    public LinksAdd(final int len, final DataInput in) throws IOException {
-        super(len, LAVIMessageType.LINKS_ADD, in);
+    public LinksAdd(final int len, final int xid, final DataInput in) throws IOException {
+        super(len, LAVIMessageType.LINKS_ADD, xid, in);
     }
 }

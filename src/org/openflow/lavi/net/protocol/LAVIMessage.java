@@ -27,11 +27,6 @@ public class LAVIMessage {
         this.xid = xid;
     }
     
-    /** used to construct a message being received */
-    public LAVIMessage(final LAVIMessageType t, final DataInput in) throws IOException {
-        this(t, in.readInt());
-    }
-    
     /** sends the message over the specified output stream */
     public void write(DataOutput out) throws IOException {
         out.writeShort(length());

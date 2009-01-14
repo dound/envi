@@ -21,8 +21,8 @@ public abstract class SwitchList extends LAVIMessage {
         this.dpids = dpids;
     }
     
-    public SwitchList(final int len, final LAVIMessageType t, final DataInput in) throws IOException {
-        super(t, in);
+    public SwitchList(final int len, final LAVIMessageType t, final int xid, final DataInput in) throws IOException {
+        super(t, xid);
         
         // make sure the number of bytes leftover makes sense
         int left = len - super.length();

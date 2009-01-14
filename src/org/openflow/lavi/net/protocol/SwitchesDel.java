@@ -17,7 +17,7 @@ public class SwitchesDel extends SwitchList {
         super(LAVIMessageType.SWITCHES_DELETE, xid, dpids);
     }
     
-    public SwitchesDel(final int len, final DataInput in) throws IOException {
-        super(len, LAVIMessageType.SWITCHES_DELETE, in);
+    public SwitchesDel(final int len, final int xid, final DataInput in) throws IOException {
+        super(len, LAVIMessageType.SWITCHES_DELETE, xid, in);
     }
 }

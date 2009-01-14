@@ -17,7 +17,7 @@ public class SwitchesAdd extends SwitchList {
         super(LAVIMessageType.SWITCHES_ADD, xid, dpids);
     }
     
-    public SwitchesAdd(final int len, final DataInput in) throws IOException {
-        super(len, LAVIMessageType.SWITCHES_ADD, in);
+    public SwitchesAdd(final int len, final int xid, final DataInput in) throws IOException {
+        super(len, LAVIMessageType.SWITCHES_ADD, xid, in);
     }
 }

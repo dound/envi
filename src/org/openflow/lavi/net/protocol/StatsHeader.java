@@ -30,9 +30,9 @@ public abstract class StatsHeader extends LAVIMessage {
     }
     
     /** used to construct a message being received */
-    public StatsHeader(boolean request, final DataInput in) throws IOException {
+    public StatsHeader(boolean request, final int xid, final DataInput in) throws IOException {
         super(request ? LAVIMessageType.STAT_REQUEST : LAVIMessageType.STAT_REPLY, 
-              in);
+              xid);
         
         dpid = in.readLong();
         statsType = StatsType.typeValToStatsType(in.readShort());

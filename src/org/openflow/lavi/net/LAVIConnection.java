@@ -4,6 +4,9 @@ import org.openflow.lavi.net.protocol.LAVIMessage;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.openflow.lavi.net.protocol.LAVIMessageType;
 
 /**
@@ -159,6 +162,16 @@ public class LAVIConnection extends Thread {
      * or if it fails to get connected.
      */
     public void run() {
+        // start a thread to scrub expired cached stateful requests
+        final LAVIConnection me = this;
+        new Thread() {
+            public void run() {
+                scrubExpiredStatefulRequests();
+                try { Thread.sleep(me.getRequestLifetime()); }
+                catch(InterruptedException e) {}
+            }
+        };
+        
         connect();
 
         // ask the backend for a list of switches and links
@@ -272,12 +285,60 @@ public class LAVIConnection extends Thread {
         return msg;
     }
     
+    /** next transaction ID to use */
+    private int nextXID = 1;
+    
+    /** how much time to remember a request before expiring it */
+    private long requestLifetime_msec = 2000;
+    
+    /** messages which are expecting a stateful response */
+    protected ConcurrentHashMap<Integer, LAVIMessage> outstandingStatefulRequests = new ConcurrentHashMap<Integer, LAVIMessage>();
+    
+    /** tries to send a LAVI message */
+    public void sendLAVIMessage(LAVIMessage m) throws IOException {
+        if(m.isStatefulRequest()) {
+            m.xid = nextXID++;
+            outstandingStatefulRequests.put(m.xid, m);
+        }
+        
+        m.write(conn);
+    }
+    
+    /** 
+     * Returns the request sent with the specified transaction ID, if any.  The 
+     * stateful request returned will no longer be remembered. 
+     */
+    public LAVIMessage popAssociatedStatefulRequest(int xid) {
+        return outstandingStatefulRequests.remove(xid);
+    }
+    
+    /** Gets the number of milliseconds a stateful request will be stored */
+    public long getRequestLifetime() {
+        return requestLifetime_msec;
+    }
+
+    /** Sets the number of milliseconds a stateful request will be stored */
+    public void setRequestLifetime(long msec) {
+        requestLifetime_msec = msec;
+    }
+    
+    /** Remove cached stateful requests which have been cached for longer than getRequestLifetime() */
+    protected void scrubExpiredStatefulRequests() {
+        long now = System.currentTimeMillis();
+        
+        Iterator<LAVIMessage> itr = outstandingStatefulRequests.values().iterator();
+        while(itr.hasNext())
+            if(now - itr.next().timeCreated() > requestLifetime_msec)
+                itr.remove();
+    }
+    
     /** closes the connection to the LAVI server */
     private void disconnect() {
         System.err.println("Disconnecting from the LAVI server");
         tryToClose(conn);
         conn = null;
         stats.disconnected();
+        outstandingStatefulRequests.clear();
     }
     
     /** try to close the connection to the server */

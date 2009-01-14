@@ -51,6 +51,10 @@ public class PZLayoutManager extends org.pzgui.PZManager {
      * layout engine if it is an incremental layout engine.
      */
     protected void postRedraw() {
+        // do nothing if there is no special layout engine installed
+        if(layout == null)
+            return;
+        
         // update the layout if it is iterative
         if(layout instanceof IterativeContext) 
             ((IterativeContext)layout).step();

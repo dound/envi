@@ -9,6 +9,7 @@ import org.openflow.lavi.drawables.Link;
 import org.openflow.lavi.net.*;
 import org.openflow.lavi.net.protocol.*;
 import org.openflow.lavi.net.protocol.auth.*;
+import org.openflow.protocol.SwitchDescriptionStats;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
 import org.pzgui.PZClosing;
@@ -200,6 +201,25 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     }
 
     private void processStatReply(StatsHeader msg) {
+        switch(msg.statsType) {
+        case DESC:
+            processStatReplyDesc((SwitchDescriptionStats)msg);
+            break;
+            
+        case AGGREGATE:
+            System.err.println("Warning: aggregate stats reply not yet handled");
+            break;
         
+        default:
+            System.err.println("Unhandled stats type received: " + msg.statsType.toString());
+        }
+    }
+
+    private void processStatReplyDesc(SwitchDescriptionStats msg) {
+        OpenFlowSwitch s = switches.get(msg.dpid);
+        if(s != null)
+            s.setSwitchDescription(msg);
+        else
+            System.err.println("Warning: received switch description for unknown switch " + DPIDUtil.toString(msg.dpid));
     }
 }

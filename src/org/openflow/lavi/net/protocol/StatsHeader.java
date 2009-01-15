@@ -43,7 +43,7 @@ public abstract class StatsHeader extends LAVIMessage {
         return super.length() + 12;
     }
     
-    public void send(DataOutput out) throws IOException {
+    public void write(DataOutput out) throws IOException {
         super.write(out);
         out.writeLong(dpid);
         out.writeShort(statsType.getTypeID());

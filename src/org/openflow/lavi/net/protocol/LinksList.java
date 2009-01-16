@@ -26,18 +26,19 @@ public abstract class LinksList extends LAVIMessage {
         
         // read the source DPID associated with all links in this missage
         long srcDPID = in.readLong();
+        final int SIZEOF_REST_OF_LINK = Link.SIZEOF - 8; 
         
         // make sure the number of bytes leftover makes sense
         int left = len - super.length() - 8;
-        if(left % (Link.SIZEOF-8) != 0) {
+        if(left % SIZEOF_REST_OF_LINK != 0) {
             throw new IOException("Body of links list is not a multiple of " + (Link.SIZEOF-8) + " (length of body is " + left + " bytes)");
         }
         
         // read in the DPIDs
         int index = 0;
-        links = new Link[left / Link.SIZEOF];
-        while(left >= Link.SIZEOF) {
-            left -= Link.SIZEOF;
+        links = new Link[left / SIZEOF_REST_OF_LINK];
+        while(left >= SIZEOF_REST_OF_LINK) {
+            left -= SIZEOF_REST_OF_LINK;
             links[index++] = new Link(srcDPID, in.readShort(), in.readLong(), in.readShort());
         }
     }

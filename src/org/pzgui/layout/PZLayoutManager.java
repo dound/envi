@@ -104,6 +104,7 @@ public class PZLayoutManager extends org.pzgui.PZManager {
         
         this.layout = layout;
         this.layout.setGraph(graph);
+        this.layout.setSize(maxLayoutSize);
         this.layout.reset();
         
         for(Vertex v : graph.getVertices()) {

@@ -8,9 +8,7 @@ package org.openflow.protocol;
  */
 public enum StatsFlag {
     /* none exist yet */
-    ;
-
-    public static final StatsFlag NONE = null;
+    NONE((short)0);
     
     /** the special value used to identify stats flags */
     private final short typeID;

@@ -1,7 +1,10 @@
 package org.pzgui.layout;
 
+import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import org.pzgui.Drawable;
+import org.pzgui.PZWindow;
+
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.algorithms.util.IterativeContext;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
@@ -19,6 +22,9 @@ public class PZLayoutManager extends org.pzgui.PZManager {
     
     /** the graph to layout */
     private final Graph<Vertex, Edge> graph = new DirectedSparseGraph<Vertex, Edge>();
+    
+    /** maximum size of the layout area */
+    private Dimension maxLayoutSize = new Dimension(500, 500);
     
     public synchronized void addDrawable(Drawable d) {
         super.addDrawable(d);
@@ -104,5 +110,25 @@ public class PZLayoutManager extends org.pzgui.PZManager {
             this.layout.setLocation(v, v.getPos());
             v.unsetPositionChanged();
         }
+    }
+    
+    /** Get the maximum size the layout engine will use for laying out elements. */
+    public Dimension getLayoutSize() {
+        return maxLayoutSize;
+    }
+
+    /** Get the maximum height the layout engine will use for laying out elements. */
+    public int getLayoutHeight() {
+        return maxLayoutSize.height;
+    }
+
+    /** Get the maximum width the layout engine will use for laying out elements. */
+    public int getLayoutWidth() {
+        return maxLayoutSize.width;
+    }
+    
+    /** Set the maximum size the layout engine will use for laying out elements. */
+    public void setLayoutSize(int width, int height) {
+        maxLayoutSize.setSize(width, height);
     }
 }

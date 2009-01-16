@@ -26,6 +26,9 @@ public class PZLayoutManager extends org.pzgui.PZManager {
     /** maximum size of the layout area */
     private Dimension maxLayoutSize = new Dimension(500, 500);
     
+    /** whether to automatically recompute layout size based on the window size */
+    private boolean autoRecomputeLayoutSize = true;
+    
     public synchronized void addDrawable(Drawable d) {
         super.addDrawable(d);
         
@@ -131,5 +134,62 @@ public class PZLayoutManager extends org.pzgui.PZManager {
     /** Set the maximum size the layout engine will use for laying out elements. */
     public void setLayoutSize(int width, int height) {
         maxLayoutSize.setSize(width, height);
+        if(layout != null)
+            layout.setSize(maxLayoutSize);
+    }
+
+    /** 
+     * Sets the layout size to the size of the visible area.  It determines the
+     * area to layout in based on the minimum and maximum x and y coordinates 
+     * visible in all windows.  
+     */
+    public void setLayoutSizeBasedOnVisibleArea() {
+        int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
+        int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
+        synchronized(windows) {
+            for(PZWindow w : windows) {
+                minX = Math.min(minX, w.getX());
+                minY = Math.min(minY, w.getY());
+                
+                maxX = Math.max(maxX, w.getX() + w.getWidth());
+                maxY = Math.max(maxY, w.getY() + w.getHeight());
+            }
+        }
+        
+        this.setLayoutSize(maxX-minX, maxY-minY);
+    }
+    
+    public void attachWindow(final PZWindow w) {
+        super.attachWindow(w);
+        if(isAutoRecomputeLayoutSize())
+            setLayoutSizeBasedOnVisibleArea();
+    }
+
+    public void closeWindow(PZWindow w) {
+        super.closeWindow(w);
+        if(isAutoRecomputeLayoutSize())
+            setLayoutSizeBasedOnVisibleArea();
+    }
+    
+    /** Recomputes the layout size if isAutoRecomputeLayoutSize() is true */
+    public void windowResized(PZWindow window) {
+        super.windowResized(window);
+        if(isAutoRecomputeLayoutSize())
+            setLayoutSizeBasedOnVisibleArea();
+    }
+
+    /** Sets whether to automatically recompute layout size based on the window size */
+    public void setAutoRecomputeLayoutSize(boolean autoRecomputeLayoutSize) {
+        this.autoRecomputeLayoutSize = autoRecomputeLayoutSize;
+    }
+
+    /**
+     * If true, then the layout size will be recomputed when a window is added,
+     * removed, or resized.
+     * 
+     * @return whether to automatically recompute layout size based on the window size
+     */
+    public boolean isAutoRecomputeLayoutSize() {
+        return autoRecomputeLayoutSize;
     }
 }

@@ -324,6 +324,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     public void componentResized(ComponentEvent e) {
         // handle the window being resized
         setMySize(getWidth(), getHeight());
+        manager.windowResized(this);
     }
 
     public void componentMoved(ComponentEvent e)  {

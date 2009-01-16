@@ -21,7 +21,7 @@ public class PZManager extends Thread {
     // ********************************************** //
 
     /** windows which are displaying the scene */
-    private final Vector<PZWindow> windows = new Vector<PZWindow>();
+    protected final Vector<PZWindow> windows = new Vector<PZWindow>();
 
     /** closing event listeners */
     private final LinkedList<PZClosing> closingListeners = new LinkedList<PZClosing>();
@@ -84,6 +84,12 @@ public class PZManager extends Thread {
             }
         }
     }
+    
+    /**
+     * This is called when a window is resized.  This implementation does 
+     * nothing but is here for subclasses to override.
+     */ 
+    public void windowResized(PZWindow window) {}
     
     /** adds a listener to be notified when the manager is terminating */
     public void addClosingListener(PZClosing c) {

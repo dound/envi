@@ -66,6 +66,9 @@ public class PZLayoutManager extends org.pzgui.PZManager {
             if(v.hasPositionChanged()) {
                 layout.setLocation(v, v.getPos());
                 v.unsetPositionChanged();
+                
+                // allow the layout to react to user-induced changes
+                layout.reset();
             }
             else {
                 // update each vertex based on the layout's update coordinates

@@ -29,6 +29,9 @@ public class PZLayoutManager extends org.pzgui.PZManager {
     /** whether to automatically recompute layout size based on the window size */
     private boolean autoRecomputeLayoutSize = true;
     
+    /** whether to relayout when a node is dragged */
+    private boolean relayoutAfterManualChange = true;
+    
     public synchronized void addDrawable(Drawable d) {
         super.addDrawable(d);
         
@@ -77,7 +80,8 @@ public class PZLayoutManager extends org.pzgui.PZManager {
                 v.unsetPositionChanged();
                 
                 // allow the layout to react to user-induced changes
-                layout.reset();
+                if(isRelayoutAfterManualChange())
+                    layout.reset();
             }
             else {
                 // update each vertex based on the layout's update coordinates
@@ -191,5 +195,15 @@ public class PZLayoutManager extends org.pzgui.PZManager {
      */
     public boolean isAutoRecomputeLayoutSize() {
         return autoRecomputeLayoutSize;
+    }
+
+    /** Gets whether to relayout when a node is dragged */
+    public boolean isRelayoutAfterManualChange() {
+        return relayoutAfterManualChange;
+    }
+    
+    /** Sets whether to relayout when a node is dragged */
+    public void setRelayoutAfterManualChange(boolean b) {
+        this.relayoutAfterManualChange = b;
     }
 }

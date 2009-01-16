@@ -40,6 +40,12 @@ public enum LAVIMessageType {
 
     /** Reply with list of links deleted.  Body is array of book_link_spec. */
     LINKS_DELETE((byte)0x15),
+    
+    /** Request to change whether the one is subscribed to have switch changes pushed */ 
+    SWITCHES_SUBSCRIBE((byte)0x16),
+    
+    /** Request to change whether the one is subscribed to have link changes pushed */
+    LINKS_SUBSCRIBE((byte)0x17),
 
     /**
      * Statistics request.  Body is book_stat_message, with osr_body as defined 

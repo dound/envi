@@ -161,6 +161,12 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             System.err.println("Warning: unable to get switches for switch + " + DPIDUtil.toString(dpid));
         }
         
+        try {
+            conn.sendLAVIMessage(new SwitchDescriptionRequest(dpid));
+        } catch (IOException e) {
+            System.err.println("Warning: unable to get switch desc for switch + " + DPIDUtil.toString(dpid));
+        }
+        
         return s;
     }
     

@@ -24,10 +24,13 @@ public abstract class LinksList extends LAVIMessage {
     public LinksList(final int len, final LAVIMessageType t, final int xid, final DataInput in) throws IOException {
         super(t, xid);
         
+        // read the source DPID associated with all links in this missage
+        long srcDPID = in.readLong();
+        
         // make sure the number of bytes leftover makes sense
-        int left = len - super.length();
-        if(left % Link.SIZEOF != 0) {
-            throw new IOException("Body of links list is not a multiple of " + Link.SIZEOF + " (length of body is " + left + " bytes)");
+        int left = len - super.length() - 8;
+        if(left % (Link.SIZEOF-8) != 0) {
+            throw new IOException("Body of links list is not a multiple of " + (Link.SIZEOF-8) + " (length of body is " + left + " bytes)");
         }
         
         // read in the DPIDs
@@ -35,7 +38,7 @@ public abstract class LinksList extends LAVIMessage {
         links = new Link[left / Link.SIZEOF];
         while(left >= Link.SIZEOF) {
             left -= Link.SIZEOF;
-            links[index++] = new Link(in.readLong(), in.readShort(), in.readLong(), in.readShort());
+            links[index++] = new Link(srcDPID, in.readShort(), in.readLong(), in.readShort());
         }
     }
     

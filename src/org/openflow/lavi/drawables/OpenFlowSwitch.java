@@ -62,9 +62,11 @@ public class OpenFlowSwitch extends NodeWithPorts {
             gfx.setPaint(Constants.PAINT_DEFAULT);
         }
         
-        gfx.drawOval(getX(), getY(), SIZE.width, SIZE.height);
+        int x = getX() - SIZE.width / 2;
+        int y = getY() - SIZE.height / 2;
+        gfx.drawOval(x, y, SIZE.width, SIZE.height);
         gfx.setPaint(FILL_COLOR);
-        gfx.fillOval(getX(), getY(), SIZE.width, SIZE.height);
+        gfx.fillOval(x, y, SIZE.width, SIZE.height);
         
         gfx.setPaint(NAME_COLOR);
         int textYOffset = -SIZE.height / 2 + 2;

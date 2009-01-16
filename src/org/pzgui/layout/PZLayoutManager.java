@@ -182,11 +182,6 @@ public class PZLayoutManager extends org.pzgui.PZManager {
             setLayoutSizeBasedOnVisibleArea();
     }
 
-    /** Sets whether to automatically recompute layout size based on the window size */
-    public void setAutoRecomputeLayoutSize(boolean autoRecomputeLayoutSize) {
-        this.autoRecomputeLayoutSize = autoRecomputeLayoutSize;
-    }
-
     /**
      * If true, then the layout size will be recomputed when a window is added,
      * removed, or resized.
@@ -195,6 +190,11 @@ public class PZLayoutManager extends org.pzgui.PZManager {
      */
     public boolean isAutoRecomputeLayoutSize() {
         return autoRecomputeLayoutSize;
+    }
+    
+    /** Sets whether to automatically recompute layout size based on the window size */
+    public void setAutoRecomputeLayoutSize(boolean autoRecomputeLayoutSize) {
+        this.autoRecomputeLayoutSize = autoRecomputeLayoutSize;
     }
 
     /** Gets whether to relayout when a node is dragged */

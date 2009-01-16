@@ -174,16 +174,6 @@ public class LAVIConnection extends Thread {
         
         connect();
 
-        // ask the backend for a list of switches and links
-        try {
-            new LAVIMessage(LAVIMessageType.SWITCHES_REQUEST, 0).write(getStream());
-            new LAVIMessage(LAVIMessageType.LINKS_REQUEST, 0).write(conn);
-        }
-        catch(IOException e) {
-            System.err.println("Error: unable to perform initial topology request");
-            System.exit(0);
-        }
-
         while(!done) {
             try {
                 msgProcessor.process(recvLAVIMessage());

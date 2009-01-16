@@ -86,7 +86,16 @@ public class PZLayoutManager extends org.pzgui.PZManager {
             else {
                 // update each vertex based on the layout's update coordinates
                 pt = layout.transform(v);
-                v.setPos((int)pt.getX(), (int)pt.getY());
+                
+                // if an error occurs in the layout algorithm, try to recover 
+                if(Double.isNaN(pt.getX())) {
+                    if(Double.isNaN(v.getPos().getX()))
+                        v.setPos((int)(Math.random()*500), (int)(Math.random()*500));
+                    
+                    layout.setLocation(v, v.getPos());
+                }
+                else
+                    v.setPos((int)pt.getX(), (int)pt.getY());
             }
         }
     }

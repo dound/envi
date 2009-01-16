@@ -22,7 +22,7 @@ public class LinksRequest extends LAVIMessage {
         return super.length() + 8;
     }
     
-    /** Writes the header (via super.write()) and a byte representing the subscription state */
+    /** Writes the header (via super.write()) and a long representing the switch to get link info for */
     public void write(DataOutput out) throws IOException {
         super.write(out);
         out.writeLong(srcDPID);

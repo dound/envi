@@ -62,6 +62,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
                 try { Thread.sleep(100); } catch(InterruptedException e) {}
             }
             new SwitchesSubscribe(true).write(conn.getStream());
+            new LinksSubscribe(true).write(conn.getStream());
         }
         catch(IOException e) {
             System.err.println("Error: unable to perform initial topology request");

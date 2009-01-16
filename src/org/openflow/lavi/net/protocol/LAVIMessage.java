@@ -51,4 +51,14 @@ public class LAVIMessage {
     public long timeCreated() {
         return timeCreated;
     }
+    
+    /** 
+     * String representation of the message including the date and type.  Also
+     * includes the transaction ID if it is non-zero.
+     */
+    public String toString() {
+        return new java.util.Date(timeCreated).toString()     + " " +
+               (type == null ? "null-type" : type.toString()) + " " +
+               (xid == 0 ? "" : xid);
+    }
 }

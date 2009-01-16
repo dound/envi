@@ -3,6 +3,8 @@ package org.openflow.lavi.net.protocol;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.openflow.util.string.DPIDUtil;
+
 /**
  * Structure to specify a link.
  * 
@@ -35,5 +37,10 @@ public class Link {
         out.writeShort(srcPort);
         out.writeLong(dstDPID);
         out.writeShort(dstPort);
+    }
+    
+    public String toString() {
+        return "Link{" + DPIDUtil.toString(srcDPID) + "/" + srcPort  + " --> " + 
+                         DPIDUtil.toString(dstDPID) + "/" + dstPort + "}";
     }
 }

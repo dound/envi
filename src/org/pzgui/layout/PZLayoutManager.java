@@ -160,7 +160,7 @@ public class PZLayoutManager extends org.pzgui.PZManager {
             }
         }
         
-        this.setLayoutSize(maxX-minX, maxY-minY);
+        this.setLayoutSize(maxX-minX, maxY-minY-25);
     }
     
     public void attachWindow(final PZWindow w) {

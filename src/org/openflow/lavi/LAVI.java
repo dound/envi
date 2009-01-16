@@ -172,9 +172,20 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
 
     /** remove former switches from the topology */
     private void processSwitchesDel(SwitchesDel msg) {
-        for(long dpid : msg.dpids)
-            if(switches.containsKey(dpid))
-                manager.removeDrawable(switches.remove(dpid));
+        OpenFlowSwitch s;
+        for(long dpid : msg.dpids) {
+            s = switches.get(dpid);
+            if(s != null) {
+                manager.removeDrawable(switches.remove(dpid)); 
+                
+                // disconnect all links associated with the switch too
+                while(s.getLinks().size() > 0) {
+                    Link l = s.getLinks().firstElement();
+                    l.disconnect();
+                    links.remove(l);
+                }
+            }
+        }
     }
     
     /** links in the topology */

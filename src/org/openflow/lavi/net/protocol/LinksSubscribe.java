@@ -8,11 +8,11 @@ import java.io.IOException;
  *
  * @author David Underhill
  */
-public class LinkSubscribe extends LAVIMessage {
+public class LinksSubscribe extends LAVIMessage {
     /** what the state of the subscription should be set to */
     public final boolean subscribe;
     
-    public LinkSubscribe(boolean newSubscriptionState) {
+    public LinksSubscribe(boolean newSubscriptionState) {
         super(LAVIMessageType.LINKS_SUBSCRIBE, 0);
         subscribe = newSubscriptionState;
     }

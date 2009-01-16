@@ -224,8 +224,11 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     
     private void processLinksDel(LinksDel msg) {
         for(org.openflow.lavi.net.protocol.Link x : msg.links) {
-            OpenFlowSwitch dstSwitch = handleLinkToSwitch(x.dstDPID);
-            OpenFlowSwitch srcSwitch = handleLinkToSwitch(x.srcDPID);
+            OpenFlowSwitch dstSwitch = switches.get(x.dstDPID);
+            if(dstSwitch == null) continue;
+            
+            OpenFlowSwitch srcSwitch = switches.get(x.srcDPID);
+            if(srcSwitch == null) continue;
             
             Link existingLink = dstSwitch.getLinkTo(x.dstPort, srcSwitch, x.srcPort);
             if(existingLink != null) {

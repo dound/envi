@@ -135,7 +135,16 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     private OpenFlowSwitch addSwitch(long dpid) {
         OpenFlowSwitch s = new OpenFlowSwitch(dpid);
         switches.put(dpid, s);
+        s.setPos((int)Math.random()*500, (int)Math.random()*500);
         manager.addDrawable(s);
+        
+        // get the links associated with this switch
+        try {
+            new LinksRequest(dpid).write(conn.getStream());
+        } catch (IOException e) {
+            System.err.println("Warning: unable to get switches for switch + " + DPIDUtil.toString(dpid));
+        }
+        
         return s;
     }
     

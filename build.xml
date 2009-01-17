@@ -3,8 +3,16 @@
   <property environment="env"/>
   <property name="ECLIPSE_HOME" value="../../eclipse"/>
   <property name="debuglevel" value="source,lines,vars"/>
-  <property name="target" value="1.6"/>
-  <property name="source" value="1.6"/>
+  <property name="target"     value="1.6"/>
+  <property name="source"     value="1.6"/>
+  <property name="bin.dir"    value="bin"/>
+  <property name="lib.dir"    value="lib"/>
+  <property name="jarfile"    value="lavi_gui.jar"/>
+  <property name="main-class" value="org.openflow.lavi.LAVI"/>
+
+  <path id="classpath">
+    <fileset dir="${lib.dir}" includes="*.jar"/>
+  </path>
   <path id="lavi_gui.classpath">
     <pathelement location="bin"/>
   </path>
@@ -14,10 +22,14 @@
     <copy includeemptydirs="false" todir="bin">
       <fileset dir="src" excludes="**/*.launch, **/*.java"/>
     </copy>
+    <unzip dest="${bin.dir}">
+      <fileset dir="${lib.dir}" excludes="src/*.jar" includes="**/*.jar"/>
+    </unzip>
+    <delete dir="${bin.dir}/META-INF"/>
   </target>
 
   <target name="clean">
-    <delete dir="bin"/>
+    <delete dir="${bin.dir}"/>
     <delete dir="nbdist"/>
     <delete dir="nb_project/build"/>
   </target>
@@ -60,12 +72,21 @@
   </target>
 
   <target name="jar" depends="build">
-    <jar destfile="bin/lavi_gui.jar" filesetmanifest="mergewithoutmain">
+    <jar destfile="${bin.dir}/${jarfile}" filesetmanifest="mergewithoutmain">
       <manifest>
-        <attribute name="Main-Class" value="org.openflow.lavi.LAVI"/>
+        <attribute name="Main-Class" value="${main-class}"/>
         <attribute name="Class-Path" value="."/>
       </manifest>
       <fileset dir="bin/org"/>
     </jar>
+  </target>
+
+  <target name="run" depends="jar">
+    <java fork="true" classname="${main-class}">
+      <classpath>
+        <path refid="classpath"/>
+        <path location="${bin.dir}/${jarfile}"/>
+      </classpath>
+    </java>
   </target>
 </project>

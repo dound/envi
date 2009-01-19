@@ -8,7 +8,11 @@ import java.io.*;
  * @author David Underhill
  */
 public class LAVIMessage {
+    /** size in bytes of a LAVIMessage (when serialized) */
     public static final int SIZEOF = 7;
+    
+    /** separator between two toString() operators */
+    protected static final String TSSEP = " // "; 
     
     /** total length of this message in bytes */
     public int length() {

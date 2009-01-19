@@ -36,4 +36,8 @@ public abstract class AuthHeader extends LAVIMessage {
         super.write(out);
         out.writeByte(authType.getAuthTypeID());
     }
+    
+    public String toString() {
+        return super.toString() + TSSEP + authType.toString();
+    }
 }

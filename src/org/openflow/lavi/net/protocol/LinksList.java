@@ -52,4 +52,17 @@ public abstract class LinksList extends LAVIMessage {
         for(Link l : links)
             l.write(out);
     }
+    
+    public String toString() {
+        String strLinks;
+        if(links.length > 0)
+            strLinks = links[0].toString();
+        else
+            strLinks = "";
+        
+        for(int i=1; i<links.length; i++)
+            strLinks += ", " + links[i].toString();
+        
+        return super.toString() + TSSEP + strLinks;
+    }
 }

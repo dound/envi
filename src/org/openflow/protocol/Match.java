@@ -4,6 +4,8 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.openflow.util.string.IPUtil;
+
 /**
  * Fields to match against flows.  Equivalent to ofp_match.
  * 
@@ -80,5 +82,25 @@ public class Match {
         out.writeInt(nw_dst);
         out.writeShort(tp_src);
         out.writeShort(tp_dst);
+    }
+    
+    public String toString() {
+        String ret = "{";
+        
+        if(wildcards.isWildcardAll())
+            return "{all fields wilcarded}";
+        
+        ret =  "inputPort=" + (wildcards.isWildcardInputPort()    ? "*" : in_port);
+        ret += ", VLAN="    + (wildcards.isWildcardVLAN()         ? "*" : dl_vlan);
+        ret += ", EthSrc="  + (wildcards.isWildcardEthernetSrc()  ? "*" : dl_src);
+        ret += ", EthDst="  + (wildcards.isWildcardEthernetDst()  ? "*" : dl_dst);
+        ret += ", EthType=" + (wildcards.isWildcardEthernetType() ? "*" : dl_type);
+        ret += ", IPSrc="   + (IPUtil.maskedIPToString(nw_src, wildcards.getWildcardIPSrcBitsMasked()));
+        ret += ", IPDst="   + (IPUtil.maskedIPToString(nw_dst, wildcards.getWildcardIPDstBitsMasked()));
+        ret += ", IPProto=" + (wildcards.isWildcardIPProtocol()   ? "*" : nw_proto);
+        ret += ", PortSrc=" + (wildcards.isWildcardPortSrc()      ? "*" : tp_src);
+        ret += ", PortDst=" + (wildcards.isWildcardPortDst()      ? "*" : tp_dst);
+        
+        return ret + "}";
     }
 }

@@ -61,4 +61,10 @@ public class AggregateStatsReply extends StatsHeader {
         out.writeInt(flow_count);
         out.writeInt(0); // pad
     }
+    
+    public String toString() {
+        return super.toString() + TSSEP + "#packets=" + packet_count 
+                                        + " #bytes=" + byte_count
+                                        + " #flows=" + flow_count;
+    }
 }

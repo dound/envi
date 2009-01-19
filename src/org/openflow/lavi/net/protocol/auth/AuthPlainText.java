@@ -63,4 +63,8 @@ public class AuthPlainText extends AuthHeader {
         for(int i=0; i<MAX_PW_LEN-strBytes.length; i++)
             out.writeByte(0);
     }
+
+    public String toString() {
+        return super.toString() + TSSEP + "username=" + uname + " pw=" + pw;
+    }
 }

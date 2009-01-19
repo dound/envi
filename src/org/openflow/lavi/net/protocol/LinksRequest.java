@@ -3,6 +3,8 @@ package org.openflow.lavi.net.protocol;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.openflow.util.string.DPIDUtil;
+
 /**
  * Request for links from a specific switch.
  *
@@ -26,5 +28,9 @@ public class LinksRequest extends LAVIMessage {
     public void write(DataOutput out) throws IOException {
         super.write(out);
         out.writeLong(srcDPID);
+    }
+    
+    public String toString() {
+        return super.toString() + TSSEP + "links from " + DPIDUtil.toString(srcDPID);
     }
 }

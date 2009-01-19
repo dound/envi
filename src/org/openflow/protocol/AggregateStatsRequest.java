@@ -83,4 +83,10 @@ public class AggregateStatsRequest extends StatsHeader {
         out.writeByte(0); // pad
         out.writeShort(outPort);
     }
+    
+    public String toString() {
+        return super.toString() + TSSEP + "table=" + tableID
+                                        + " port=" + outPort
+                                        + " match=" + match.toString();
+    }
 }

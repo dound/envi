@@ -1,5 +1,9 @@
 package org.openflow.protocol;
 
+import java.util.LinkedList;
+
+import org.openflow.util.string.IPUtil;
+
 /**
  * Flow wildcards.  Equivalent to ofp_flow_wildcards.
  * 
@@ -96,10 +100,15 @@ public class FlowWildcards {
      */
     private boolean isBitsSet(int start, int len) {
         for(int i=start; i<start+len; i++)
-            if((bitfield & (1 << i)) != 0)
+            if(isBitSet(i))
                 return true;
         
         return false;
+    }
+    
+    /** Returns true if the specified bit offset is set */
+    private boolean isBitSet(int bitOffset) {
+        return (bitfield & (1 << bitOffset)) != 0;
     }
     
     /**
@@ -222,6 +231,17 @@ public class FlowWildcards {
             bitfield |= bits;
         }
     }
+    
+    /** Gets the number of bits in the IP source address which are wildcarded */
+    public int getWildcardIPSrcBitsMasked() {
+        int cur = 1;
+        int total = 0;
+        for(int i=8; i<8+6; i++) {
+            total += (isBitSet(i) ? cur : 0);
+            cur *= 2;
+        }
+        return total;
+    }
 
     /** Whether to wildcard on destination IP address */
     public boolean isWildcardIPDst() {
@@ -237,6 +257,17 @@ public class FlowWildcards {
         }
     }
     
+    /** Gets the number of bits in the IP destination address which are wildcarded */
+    public int getWildcardIPDstBitsMasked() {
+        int cur = 1;
+        int total = 0;
+        for(int i=14; i<14+6; i++) {
+            total += (isBitSet(i) ? cur : 0);
+            cur *= 2;
+        }
+        return total;
+    }
+    
     /** Whether to wildcard on everything */
     public boolean isWildcardAll() {
         return isSet(Wildcard.OFPFW_ALL);
@@ -245,5 +276,47 @@ public class FlowWildcards {
     /** Enables all wildcards */
     public void setWildcardAll() {
         bitfield = Wildcard.OFPFW_ALL.bitfield;
+    }
+
+    /** Returns the netmask with the specified number of bits masked */ 
+    public static String bitCountToString(int numBitsMasked) {
+        int ip = 0;
+        int cur = 1;
+        while(numBitsMasked > 0) {
+            ip += cur;
+            cur *= 2;
+            numBitsMasked -= 1;
+        }
+        return IPUtil.toString(ip);
+    }
+
+    public String toString() {
+        if(isWildcardAll())
+            return "wildcard{all}";
+        
+        LinkedList<String> wildcards = new LinkedList<String>();
+        if(isWildcardInputPort())    wildcards.add("input port");
+        if(isWildcardVLAN())         wildcards.add("VLAN");
+        if(isWildcardEthernetSrc())  wildcards.add("MAC Src");
+        if(isWildcardEthernetDst())  wildcards.add("MAC Dst");
+        if(isWildcardEthernetType()) wildcards.add("MAC Type");
+        if(isWildcardIPSrc())        wildcards.add("IP Src(" + bitCountToString(getWildcardIPSrcBitsMasked()) + ")");
+        if(isWildcardIPDst())        wildcards.add("IP Dst(" + bitCountToString(getWildcardIPDstBitsMasked()) + ")");
+        if(isWildcardIPProtocol())   wildcards.add("IP Proto");
+        if(isWildcardPortSrc())      wildcards.add("Port Src");
+        if(isWildcardPortDst())      wildcards.add("Port Dst");
+        
+        if(wildcards.size() == 0)
+            return "wildcard{none}";
+        
+        boolean first = true;
+        String strWildcards = "wildcard{";
+        for(String s : wildcards) {
+            if(first)
+                strWildcards += s;
+            else
+                strWildcards += ", " + s;
+        }
+        return strWildcards + "}";
     }
 }

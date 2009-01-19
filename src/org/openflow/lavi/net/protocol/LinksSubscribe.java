@@ -27,4 +27,8 @@ public class LinksSubscribe extends LAVIMessage {
         super.write(out);
         out.writeBoolean(subscribe);
     }
+    
+    public String toString() {
+        return super.toString() + TSSEP + (subscribe ? "subscribe" : "unsubscribe");
+    }
 }

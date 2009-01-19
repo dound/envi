@@ -4,6 +4,8 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.openflow.util.string.DPIDUtil;
+
 /**
  * A list of switches.
  * 
@@ -47,5 +49,18 @@ public abstract class SwitchList extends LAVIMessage {
         super.write(out);
         for(long dpid : dpids)
             out.writeLong(dpid);
+    }
+    
+    public String toString() {
+        String strDPIDs;
+        if(dpids.length > 0)
+            strDPIDs = DPIDUtil.toString(dpids[0]);
+        else
+            strDPIDs = "";
+        
+        for(int i=1; i<dpids.length; i++)
+            strDPIDs += ", " + dpids[i];
+        
+        return super.toString() + TSSEP + strDPIDs;
     }
 }

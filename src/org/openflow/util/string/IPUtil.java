@@ -44,6 +44,27 @@ public class IPUtil {
             return null;
         }
     }
+    
+    /**
+     * Converts a masked IP to a string.
+     * @param ip          IP address
+     * @param maskedBits  number of bits to mask
+     * @return string version of the masked IP address
+     */
+    public static String maskedIPToString(int ip, int maskedBits) {
+        if(maskedBits == 0)
+            return IPUtil.toString(ip);
+        
+        int v = 0;
+        int c = 1;
+        for(int i=0; i<maskedBits; i++) {
+            v += c;
+            c *= 2;
+        }
+        
+        int bitmask = v << (32 - maskedBits);
+        return IPUtil.toString(ip & bitmask) + "/" + maskedBits;
+    }
 
     /**
      * toString -- convert an integer IP address into a string

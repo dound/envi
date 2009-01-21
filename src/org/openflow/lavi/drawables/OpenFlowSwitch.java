@@ -70,8 +70,38 @@ public class OpenFlowSwitch extends NodeWithPorts {
         
         gfx.setPaint(NAME_COLOR);
         int textYOffset = -SIZE.height / 2 + 2;
-        drawName(gfx, getX(), getY() - textYOffset, getY() + textYOffset);
+        if(isStringSet(getName()))
+            drawName(gfx, getX(), getY() - textYOffset, getY() + textYOffset);
+        else
+            gfx.drawString(DPIDUtil.toShortString(datapathID), x, y);
+        y += gfx.getFontMetrics().getHeight();
         gfx.setPaint(Constants.PAINT_DEFAULT);
+        
+        // display switch description stats on mouse over
+        if(this.isHovered() || this.isSelected()) {
+            if(isStringSet(manufacturer)) {
+                gfx.drawString(manufacturer, x, y);
+                y += gfx.getFontMetrics().getHeight();
+            }
+            
+            if(isStringSet(hw_desc)) {
+                gfx.drawString(hw_desc, x, y);
+                y += gfx.getFontMetrics().getHeight();
+            }
+            
+            if(isStringSet(sw_desc)) {
+                gfx.drawString(sw_desc, x, y);
+                y += gfx.getFontMetrics().getHeight();
+            }
+            
+            if(isStringSet(serial_num))
+                gfx.drawString(serial_num, x, y);
+        }
+    }
+    
+    /** Returns true if s is not null, non-zero length, and not "None" or "?" */
+    private boolean isStringSet(String s) {
+        return s!=null && s.length()>0 && !s.equals("None") && !s.equals("?");
     }
     
     public java.awt.Dimension getSize() {

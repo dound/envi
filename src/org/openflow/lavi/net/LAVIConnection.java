@@ -311,10 +311,9 @@ public class LAVIConnection extends Thread {
     
     /** tries to send a LAVI message */
     public void sendLAVIMessage(LAVIMessage m) throws IOException {
-        if(m.isStatefulRequest()) {
-            m.xid = nextXID++;
+        m.xid = nextXID++;
+        if(m.isStatefulRequest())
             outstandingStatefulRequests.put(m.xid, m);
-        }
         
         m.write(conn);
     }

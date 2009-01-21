@@ -63,6 +63,45 @@ public class SocketConnection implements DataInput, DataOutput {
         in = tmp2;
     }
 
+    /**
+     * Reads the specified number of bytes from in to form a string.  A zero
+     * byte will be interpreted as the end of the string and the remaining bytes
+     * will be ignored (still read from in, but ignored).
+     * 
+     * @param in           buffer to read from
+     * @param bytesToRead  number of bytes to read
+     * 
+     * @return the string formed from the read bytes
+     */
+    public static String readString(DataInput in, int bytesToRead) throws IOException {
+        // read the bytes which make up the string
+        byte[] buf = new byte[bytesToRead];
+        int len = 0;
+        for(int i=0; i<bytesToRead; i++) {
+            buf[i] = in.readByte();
+            if(len==0 && buf[i]==0)
+                len = i;
+        }
+        
+        // copy it into an array with no extra space so the string can be constructed
+        byte[] strBuf = new byte[len];
+        System.arraycopy(buf, 0, strBuf, 0, len);
+        return new String(strBuf);
+    }
+    
+    /**
+     * Reads the specified number of bytes to form a string.  A zero byte will 
+     * be interpreted as the end of the string and the remaining bytes will be 
+     * ignored (still read, but ignored).
+     * 
+     * @param bytesToRead  number of bytes to read
+     * 
+     * @return the string formed from the read bytes
+     */
+    public String readString(int bytesToRead) throws IOException {
+        return SocketConnection.readString(in, bytesToRead);
+    }
+    
     public long getBytesRead()                                           { return in.getBytesRead(); }
     public void readFully(byte b[])                   throws IOException { in.readFully(b); }
     public void readFully(byte b[], int off, int len) throws IOException { in.readFully(b, off, len); }

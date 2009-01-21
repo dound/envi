@@ -1,6 +1,5 @@
 package org.openflow.lavi;
 
-import edu.uci.ics.jung.algorithms.layout.FRLayout2;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,7 +52,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         conn.start();
         
         //manager.setLayout(new edu.uci.ics.jung.algorithms.layout.FRLayout<Vertex, Edge>(manager.getGraph(), manager.getLayoutSize()));
-        manager.setLayout(new FRLayout2<Vertex, Edge>(manager.getGraph()));
+        manager.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(manager.getGraph()));
         
         // ask the backend for a list of switches and links
         try {

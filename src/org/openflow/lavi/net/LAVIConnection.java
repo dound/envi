@@ -350,9 +350,4 @@ public class LAVIConnection extends Thread {
             }
         }
     }
-
-    /** returns the underyling socket connection */
-    public SocketConnection getStream() {
-        return conn;
-    }
 }

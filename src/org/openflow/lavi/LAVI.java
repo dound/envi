@@ -61,8 +61,8 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             while(!conn.isConnected()) {
                 try { Thread.sleep(100); } catch(InterruptedException e) {}
             }
-            new SwitchesSubscribe(true).write(conn.getStream());
-            new LinksSubscribe(true).write(conn.getStream());
+            conn.sendLAVIMessage(new SwitchesSubscribe(true));
+            conn.sendLAVIMessage(new LinksSubscribe(true));
         }
         catch(IOException e) {
             System.err.println("Error: unable to perform initial topology request");
@@ -137,7 +137,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         if(pw == null) pw = "";
         
         try {
-            new AuthPlainText(username, pw).write(conn.getStream());
+            conn.sendLAVIMessage(new AuthPlainText(username, pw));
         }
         catch(IOException e) {
             System.err.println("Failed to send plain-text authentication reply");
@@ -156,7 +156,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         
         // get the links associated with this switch
         try {
-            new LinksRequest(dpid).write(conn.getStream());
+            conn.sendLAVIMessage(new LinksRequest(dpid));
         } catch (IOException e) {
             System.err.println("Warning: unable to get switches for switch + " + DPIDUtil.toString(dpid));
         }

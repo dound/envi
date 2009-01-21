@@ -21,6 +21,8 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     /** run the LAVI front-end */
     public static void main(String args[]) {
         String server = null;
+	if( args.length > 0)
+		server = args[0];
         Short port = null;
         
         new LAVI(server, port);

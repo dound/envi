@@ -128,6 +128,19 @@ public class PZLayoutManager extends org.pzgui.PZManager {
             this.layout.setLocation(v, v.getPos());
             v.unsetPositionChanged();
         }
+        
+        // prevent vertices from occupying the same space
+        for(Vertex v1 : graph.getVertices()) {
+            for(Vertex v2 : graph.getVertices()) {
+                if(v1 != v2) {
+                    if(v1.getPos().equals(v2.getPos())) {
+                        v1.setPos((int)(Math.random()*maxLayoutSize.width), 
+                                  (int)(Math.random()*maxLayoutSize.height));
+                        break;
+                    }
+                }
+            }
+        }
     }
     
     /** Get the maximum size the layout engine will use for laying out elements. */

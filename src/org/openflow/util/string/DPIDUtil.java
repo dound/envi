@@ -46,6 +46,11 @@ public class DPIDUtil {
         
         return new PrintfFormat("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x").sprintf(dpidIntArray);
     }
+    
+    /** Returns DPIDUtil.toString() with all occurrences of "00:" removed */
+    public static String toShortString(long dpid) {
+        return DPIDUtil.toString(dpid).replaceAll("00:", "");
+    }
         
         public static String dpidToHex(long dpid) {
             String hex = Long.toHexString(dpid).toUpperCase();

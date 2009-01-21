@@ -90,7 +90,8 @@ public class PZLayoutManager extends org.pzgui.PZManager {
                 // if an error occurs in the layout algorithm, try to recover 
                 if(Double.isNaN(pt.getX())) {
                     if(Double.isNaN(v.getPos().getX()))
-                        v.setPos((int)(Math.random()*500), (int)(Math.random()*500));
+                        v.setPos((int)(Math.random()*maxLayoutSize.width), 
+                                 (int)(Math.random()*maxLayoutSize.height));
                     
                     layout.setLocation(v, v.getPos());
                 }

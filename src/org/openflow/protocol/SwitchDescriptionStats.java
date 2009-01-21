@@ -2,13 +2,15 @@ package org.openflow.protocol;
 
 import java.io.DataInput;
 import java.io.IOException;
+
+import org.openflow.lavi.net.SocketConnection;
 import org.openflow.lavi.net.protocol.StatsHeader;
 
 /**
  * Message containing information about a switch.  It is the response to
  * OFPST_DESC statistics request.
  * 
- * @author David Underhil
+ * @author David Underhill
  */
 public class SwitchDescriptionStats extends StatsHeader {
     // -1 => leave room for null terminating char
@@ -26,30 +28,20 @@ public class SwitchDescriptionStats extends StatsHeader {
               StatsType.DESC,
               flags);
         
-        byte strBuf[] = new byte[Math.max(MAX_DSEC_STR_LEN, SERIAL_NUM_LEN)];
-        
-        for(int i=0; i<MAX_DSEC_STR_LEN; i++)
-            strBuf[i] = in.readByte();
-        
-        this.manufacturer = new String(strBuf);
-                
-        for(int i=0; i<MAX_DSEC_STR_LEN; i++)
-            strBuf[i] = in.readByte();
-
-        this.hw_desc = new String(strBuf);
-
-        for(int i=0; i<MAX_DSEC_STR_LEN; i++)
-            strBuf[i] = in.readByte();
-
-        this.sw_desc = new String(strBuf);
-
-        for(int i=0; i<SERIAL_NUM_LEN; i++)
-            strBuf[i] = in.readByte();
-
-        this.serial_num = new String(strBuf);
+        this.manufacturer = SocketConnection.readString(in, MAX_DSEC_STR_LEN);
+        this.hw_desc      = SocketConnection.readString(in, MAX_DSEC_STR_LEN);
+        this.sw_desc      = SocketConnection.readString(in, MAX_DSEC_STR_LEN);
+        this.serial_num   = SocketConnection.readString(in, SERIAL_NUM_LEN);
     }
     
     public int length() {
         return super.length() + 3*MAX_DSEC_STR_LEN + SERIAL_NUM_LEN;
+    }
+    
+    public String toString() {
+        return super.toString() + TSSEP + "manf=" + manufacturer
+                                        + " hw=" + hw_desc
+                                        + " sw=" + sw_desc
+                                        + " sid=" + serial_num;
     }
 }

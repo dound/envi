@@ -1,6 +1,8 @@
 package org.openflow.lavi.net;
 
 import org.openflow.lavi.net.protocol.LAVIMessage;
+import org.openflow.lavi.net.protocol.LinksSubscribe;
+import org.openflow.lavi.net.protocol.SwitchesSubscribe;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -134,6 +136,12 @@ public class LAVIConnection extends Thread {
     /** whether the connection has been turned off */
     private boolean shutdown = false;
     
+    /** whether to subscribe to switch updates */
+    private boolean subscribeToSwitchChanges = true;
+    
+    /** whether to subscribe to link updates */
+    private boolean subscribeToLinkChanges = true;
+    
     /** 
      * Connect to the LAVI server at the specified IP on DEFAULT_PORT.
      * 
@@ -241,6 +249,23 @@ public class LAVIConnection extends Thread {
         
         System.err.println("Now connected to LAVI server");
         stats.connected();
+        
+        // ask the backend for a list of switches and links
+        try {
+            // wait until we are connected and then ask
+            while(!isConnected()) {
+                try { Thread.sleep(100); } catch(InterruptedException e) {}
+            }
+            
+            if(isSubscribeToSwitchChanges())
+                sendLAVIMessage(new SwitchesSubscribe(true));
+            
+            if(subscribeToLinkChanges)
+                sendLAVIMessage(new LinksSubscribe(true));
+        }
+        catch(IOException e) {
+            System.err.println("Error: unable to setup subscriptions");
+        }
     }
     
     /** tells the LAVI connection to disconnect and then connect again */
@@ -349,5 +374,39 @@ public class LAVIConnection extends Thread {
                 } catch(IOException e){}
             }
         }
+    }
+
+    /** Returns whether the connection is subscribed to switch changes */
+    public boolean isSubscribeToSwitchChanges() {
+        return subscribeToSwitchChanges;
+    }
+    
+    /** 
+     * Sets whether the connection is subscribed to switch changes and sends 
+     * the appropriate subscription request if this is different. 
+     */
+    public void setSubscribeToSwitchChanges(boolean b) throws IOException {
+        if(b == subscribeToSwitchChanges)
+            return;
+        
+        sendLAVIMessage(new SwitchesSubscribe(b));
+        subscribeToSwitchChanges = b;
+    }
+
+    /** Returns whether the connection is subscribed to link changes */
+    public boolean isSubscribeToLinkChanges() {
+        return subscribeToSwitchChanges;
+    }
+    
+    /** 
+     * Sets whether the connection is subscribed to link changes and sends 
+     * the appropriate subscription request if this is different. 
+     */
+    public void setSubscribeToLinkChanges(boolean b) throws IOException {
+        if(b == subscribeToLinkChanges)
+            return;
+        
+        sendLAVIMessage(new LinksSubscribe(b));
+        subscribeToLinkChanges = b;
     }
 }

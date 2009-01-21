@@ -53,20 +53,6 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         
         //manager.setLayout(new edu.uci.ics.jung.algorithms.layout.FRLayout<Vertex, Edge>(manager.getGraph(), manager.getLayoutSize()));
         manager.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(manager.getGraph()));
-        
-        // ask the backend for a list of switches and links
-        try {
-            // wait until we are connected and then ask
-            while(!conn.isConnected()) {
-                try { Thread.sleep(100); } catch(InterruptedException e) {}
-            }
-            conn.sendLAVIMessage(new SwitchesSubscribe(true));
-            conn.sendLAVIMessage(new LinksSubscribe(true));
-        }
-        catch(IOException e) {
-            System.err.println("Error: unable to perform initial topology request");
-            System.exit(0);
-        }
     }
 
     /** shutdown the connection */

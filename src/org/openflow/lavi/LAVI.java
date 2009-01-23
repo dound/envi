@@ -196,9 +196,10 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             
             // disconnect all links associated with the switch too
             while(s.getLinks().size() > 0) {
-                Link l = s.getLinks().firstElement();
-                l.disconnect();
-                links.remove(l);
+                for(Link l : s.getLinks()) {
+                    l.disconnect();
+                    links.remove(l);
+                }
             }
         }
     }

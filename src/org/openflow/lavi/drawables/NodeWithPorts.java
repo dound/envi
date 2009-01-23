@@ -1,15 +1,22 @@
 package org.openflow.lavi.drawables;
 
 import java.awt.Graphics2D;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Vector;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Information about a node with ports in the topology.
  * @author David Underhill
  */
 public abstract class NodeWithPorts extends Node {
-    private final Vector<Link> links = new Vector<Link>();
+    /**
+     * These are the links attached to this node.  The CopyOnWriteArrayList 
+     * makes accesses and traversals very quick and thread-safe at the expense
+     * of making mutations expensive.  Mutations should be rare, so this should
+     * be a very efficient data structure for our needs.
+     */
+    private final CopyOnWriteArrayList<Link> links = new CopyOnWriteArrayList<Link>();
     
     public NodeWithPorts(String name, int x, int y) {
         super(name, x, y);
@@ -72,11 +79,11 @@ public abstract class NodeWithPorts extends Node {
         return links.get(i);
     }
 
-    public Vector<Link> getEdges() {
+    public Collection<Link> getEdges() {
         return links;
     }
     
-    public Vector<Link> getLinks() {
+    public Collection<Link> getLinks() {
         return links;
     }
     

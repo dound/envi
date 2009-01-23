@@ -102,6 +102,10 @@ public abstract class NodeWithPorts extends Node {
     
     /** Returns whether the specified port is currently connected to a link. */
     public boolean isPortUsed(short portNum) {
+        // we could use a concurrent hash map to track which ports are used 
+        // rather than doing a linear search each time, but the number of ports
+        // and times this method is called is likely small enough to not benefit
+        // from a ConcurrentHashMap caching the results
         for(Link l : links)
             if(l.getMyPort(this) == portNum)
                 return true;

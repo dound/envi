@@ -66,9 +66,27 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         // wait until the connection has been torn down or 1sec has passed
         while(!conn.isShutdown() && System.currentTimeMillis()-start<1000) {}
     }
+    
+    /** Called when the LAVI backend has been disconnected or reconnected */
+    public void connectionStateChange() {
+        if(!conn.isConnected()) {
+            // remove all switches when we get disconnected
+            synchronized(switches) {
+                Long[] dpids = new Long[switches.size()];
+                int i = 0;
+                for(Long d : switches.keySet())
+                    dpids[i++] = d;
+                
+                for(Long d : dpids)
+                    disconnectSwitch(d);
+            }
+        }
+    }
 
     /** Handles messages received from the LAVI backend */
     public void process(final LAVIMessage msg) {
+        System.out.println("recv: " + msg.toString());
+        
         switch(msg.type) {
         case AUTH_REQUEST:
             processAuthRequest((AuthHeader)msg);
@@ -166,18 +184,21 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
 
     /** remove former switches from the topology */
     private void processSwitchesDel(SwitchesDel msg) {
-        OpenFlowSwitch s;
-        for(long dpid : msg.dpids) {
-            s = switches.get(dpid);
-            if(s != null) {
-                manager.removeDrawable(switches.remove(dpid)); 
-                
-                // disconnect all links associated with the switch too
-                while(s.getLinks().size() > 0) {
-                    Link l = s.getLinks().firstElement();
-                    l.disconnect();
-                    links.remove(l);
-                }
+        for(long dpid : msg.dpids)
+            disconnectSwitch(dpid);
+    }
+    
+    /** remove a switch from the topology */
+    private void disconnectSwitch(long dpid) {
+        OpenFlowSwitch s = switches.get(dpid);
+        if(s != null) {
+            manager.removeDrawable(switches.remove(dpid)); 
+            
+            // disconnect all links associated with the switch too
+            while(s.getLinks().size() > 0) {
+                Link l = s.getLinks().firstElement();
+                l.disconnect();
+                links.remove(l);
             }
         }
     }
@@ -216,18 +237,22 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     }
     
     private void processLinksDel(LinksDel msg) {
-        for(org.openflow.lavi.net.protocol.Link x : msg.links) {
-            OpenFlowSwitch dstSwitch = switches.get(x.dstDPID);
-            if(dstSwitch == null) continue;
-            
-            OpenFlowSwitch srcSwitch = switches.get(x.srcDPID);
-            if(srcSwitch == null) continue;
-            
-            Link existingLink = dstSwitch.getLinkTo(x.dstPort, srcSwitch, x.srcPort);
-            if(existingLink != null) {
-                existingLink.disconnect();
-                links.remove(existingLink);
-            }
+        for(org.openflow.lavi.net.protocol.Link x : msg.links)
+            disconnectLink(x.dstDPID, x.dstPort, x.srcDPID, x.srcPort);
+    }
+    
+    /** remove a link from the topology */
+    private void disconnectLink(long dstDPID, short dstPort, long srcDPID, short srcPort) {
+        OpenFlowSwitch dstSwitch = switches.get(dstDPID);
+        if(dstSwitch == null) return;
+        
+        OpenFlowSwitch srcSwitch = switches.get(srcDPID);
+        if(srcSwitch == null) return;
+        
+        Link existingLink = dstSwitch.getLinkTo(dstPort, srcSwitch, srcPort);
+        if(existingLink != null) {
+            existingLink.disconnect();
+            links.remove(existingLink);
         }
     }
 

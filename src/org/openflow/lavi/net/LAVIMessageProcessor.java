@@ -8,6 +8,9 @@ import org.openflow.lavi.net.protocol.LAVIMessage;
  * @author David Underhill
  */
 public interface LAVIMessageProcessor {
+    /** Process a change in the connection status */
+    public void connectionStateChange();
+    
     /** Process a LAVI protocol message */
     public void process(LAVIMessage msg);
 }

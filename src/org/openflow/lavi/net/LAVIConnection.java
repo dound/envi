@@ -249,14 +249,10 @@ public class LAVIConnection extends Thread {
         
         System.err.println("Now connected to LAVI server");
         stats.connected();
+        msgProcessor.connectionStateChange();
         
         // ask the backend for a list of switches and links
         try {
-            // wait until we are connected and then ask
-            while(!isConnected()) {
-                try { Thread.sleep(100); } catch(InterruptedException e) {}
-            }
-            
             if(isSubscribeToSwitchChanges())
                 sendLAVIMessage(new SwitchesSubscribe(true));
             
@@ -316,6 +312,8 @@ public class LAVIConnection extends Thread {
             outstandingStatefulRequests.put(m.xid, m);
         
         m.write(conn);
+        
+        System.out.println("sent: " + m.toString());
     }
     
     /** 
@@ -353,6 +351,7 @@ public class LAVIConnection extends Thread {
         conn = null;
         stats.disconnected();
         outstandingStatefulRequests.clear();
+        msgProcessor.connectionStateChange();
     }
     
     /** try to close the connection to the server */

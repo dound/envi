@@ -6,6 +6,8 @@ import java.awt.Paint;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Stroke;
+
+import org.openflow.lavi.drawables.NodeWithPorts.PortUsedException;
 import org.pzgui.Constants;
 import org.pzgui.AbstractDrawable;
 import org.pzgui.layout.Edge;
@@ -31,13 +33,35 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     private boolean hovering = false;
     
     /**
+     * This exception is thrown if a link which already exists is tried to be 
+     * re-created.
+     */
+    public static class LinkExistsException extends Exception {
+        /** default constructor */
+        public LinkExistsException() {
+            super();
+        }
+        
+        /** set the message associated with the exception */
+        public LinkExistsException(String msg) {
+            super(msg);
+        }
+    }
+    
+    /**
      * Constructs a new uni-directional link between src and dst.
+     * 
      * @param src                The source of data on this link.
      * @param dst                The endpoint of this link.
+     * 
+     * @throws LinkExistsException  thrown if the link already exists
+     * @throws PortUsedException    thrown if the link is new but the port 
+     *                              either dstPort or srcPort are already used 
      */
-    public Link(NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) {
-        if(src == dst)
-            throw new Error("Error: src == dst in Link constructor (" + src.toString() + ")");
+    public Link(NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException, PortUsedException {
+        // do not re-create existing links
+        if(src.getLinkTo(srcPort, dst, dstPort) != null)
+            throw new LinkExistsException("Link construction error: link already exists");
         
         this.src = src;
         this.dst = dst;
@@ -45,7 +69,16 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         this.dstPort = dstPort;
         
         src.addLink(this);
-        dst.addLink(this);
+        try {
+            dst.addLink(this);
+        }
+        catch(PortUsedException e) {
+            // undo the addition to src's set of links
+            src.getLinks().remove(this);
+            
+            // re-throw the exception
+            throw e;
+        }
     }
     
     private static final Color computeGradient(int type, float goodness) {

@@ -2,9 +2,10 @@ package org.openflow.lavi;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import org.openflow.lavi.drawables.*;
 import org.openflow.lavi.drawables.Link;
+import org.openflow.lavi.drawables.Link.LinkExistsException;
+import org.openflow.lavi.drawables.NodeWithPorts.PortUsedException;
 import org.openflow.lavi.net.*;
 import org.openflow.lavi.net.protocol.*;
 import org.openflow.lavi.net.protocol.auth.*;
@@ -151,7 +152,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     }
 
     /** switches in the topology */
-    private HashMap<Long, OpenFlowSwitch> switches = new HashMap<Long, OpenFlowSwitch>(); 
+    private HashMap<Long, OpenFlowSwitch> switches = new HashMap<Long, OpenFlowSwitch>();
     
     private OpenFlowSwitch addSwitch(long dpid) {
         OpenFlowSwitch s = new OpenFlowSwitch(dpid);
@@ -195,17 +196,10 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             manager.removeDrawable(switches.remove(dpid)); 
             
             // disconnect all links associated with the switch too
-            while(s.getLinks().size() > 0) {
-                for(Link l : s.getLinks()) {
-                    l.disconnect();
-                    links.remove(l);
-                }
-            }
+            for(Link l : s.getLinks())
+                l.disconnect();
         }
     }
-    
-    /** links in the topology */
-    private HashSet<Link> links = new HashSet<Link>();
     
     /** 
      * Makes sure a switch with the specified exists and creates one if not.  
@@ -229,11 +223,15 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         for(org.openflow.lavi.net.protocol.Link x : msg.links) {
             OpenFlowSwitch dstSwitch = handleLinkToSwitch(x.dstDPID);
             OpenFlowSwitch srcSwitch = handleLinkToSwitch(x.srcDPID);
-            Link newLink = new Link(dstSwitch, x.dstPort, srcSwitch, x.srcPort);
-            if(!links.contains(newLink))
-                links.add(newLink);
-            else
-                newLink.disconnect(); // already existed
+            try {
+                new Link(dstSwitch, x.dstPort, srcSwitch, x.srcPort);
+            }
+            catch(LinkExistsException e) {
+                // ignore 
+            }
+            catch(PortUsedException e) {
+                System.err.println("Could not add link: " + e.getMessage());
+            }
         }
     }
     
@@ -251,10 +249,8 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         if(srcSwitch == null) return;
         
         Link existingLink = dstSwitch.getLinkTo(dstPort, srcSwitch, srcPort);
-        if(existingLink != null) {
+        if(existingLink != null)
             existingLink.disconnect();
-            links.remove(existingLink);
-        }
     }
 
     private void processStatReply(StatsHeader msg) {

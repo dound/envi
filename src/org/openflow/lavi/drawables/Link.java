@@ -2,7 +2,6 @@ package org.openflow.lavi.drawables;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Paint;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Stroke;
@@ -81,17 +80,6 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         }
     }
     
-    private static final Color computeGradient(int type, float goodness) {
-        if(goodness < 0)
-            goodness = 0;
-        else if (goodness > 1)
-            goodness = 1;
-        
-        return new Color((type % 3 == 0) ? goodness : 0f,
-                          (type % 3 == 1) ? goodness : 0f, 
-                          (type % 3 == 2) ? goodness : 0f);
-    }
-    
     public void drawObject(Graphics2D gfx) {
         Stroke s = gfx.getStroke();
         
@@ -105,10 +93,6 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         updateBoundingBox(src.getX()+offsetX, src.getY()+offsetY, 
                           dst.getX()+offsetX, dst.getY()+offsetY);
         
-        Paint c = Constants.PAINT_DEFAULT;
-        if(numOtherLinks > 0)
-            c = computeGradient(numOtherLinks, numOtherLinks / 24.0f + 0.25f);
-        
         // outline the link if it is being hovered over
         if(isHovered()) {
             gfx.draw(boundingBox);
@@ -118,11 +102,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         
         // draw the simple link as a line
         gfx.setStroke(LINE_DEFAULT_STROKE);
-        gfx.setPaint(c);
+        gfx.setPaint(curDrawColor);
         gfx.drawLine(src.getX()+offsetX, src.getY()+offsetY, 
                      dst.getX()+offsetX, dst.getY()+offsetY);
         
-        // restroe the defaults
+        // restore the defaults
         gfx.setStroke(s);
         gfx.setPaint(Constants.PAINT_DEFAULT);
     }
@@ -226,6 +210,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** maximum capacity of the link */
     private double maxDataRate_bps = 1 * 1000 * 1000 * 1000; 
     
+    /** the color to draw the link */
+    private Color curDrawColor = Color.BLACK;
+    
     /** returns the current bandwidth being sent through the link in ps */
     public double getCurrentDataRate() {
         return currentDataRate_bps;
@@ -250,5 +237,17 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         lastByteCount = reply.byte_count;
         
         currentDataRate_bps = (8.0 * diffByteCount) / diffTime;
+        setColor();
+    }
+    
+    /** sets the color this link will be drawn based on the current utilization */
+    private void setColor() {
+        float usage = (float)getCurrentUtilization();
+        if(usage < 0)
+            usage = 0;
+        else if (usage > 1)
+            usage = 1;
+        
+        this.curDrawColor = new Color(usage, 0f, 0f); 
     }
 }

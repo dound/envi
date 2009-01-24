@@ -186,11 +186,12 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     /** remove former switches from the topology */
     private void processSwitchesDel(SwitchesDel msg) {
         for(long dpid : msg.dpids)
-            disconnectSwitch(dpid);
+            if(!disconnectSwitch(dpid))
+                System.err.println("Ignoring switch delete message for non-existant switch: " + DPIDUtil.toString(dpid));
     }
     
     /** remove a switch from the topology */
-    private void disconnectSwitch(long dpid) {
+    private boolean disconnectSwitch(long dpid) {
         OpenFlowSwitch s = switches.get(dpid);
         if(s != null) {
             manager.removeDrawable(switches.remove(dpid)); 
@@ -198,7 +199,10 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             // disconnect all links associated with the switch too
             for(Link l : s.getLinks())
                 l.disconnect();
+            
+            return true;
         }
+        return false;
     }
     
     /** 
@@ -242,15 +246,30 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     
     /** remove a link from the topology */
     private void disconnectLink(long dstDPID, short dstPort, long srcDPID, short srcPort) {
-        OpenFlowSwitch dstSwitch = switches.get(dstDPID);
-        if(dstSwitch == null) return;
-        
         OpenFlowSwitch srcSwitch = switches.get(srcDPID);
-        if(srcSwitch == null) return;
+        if(srcSwitch == null) {
+            logLinkMissing("src switch", dstDPID, dstPort, srcDPID, srcPort);
+            return;
+        }
+        
+        OpenFlowSwitch dstSwitch = switches.get(dstDPID);
+        if(dstSwitch == null) {
+            logLinkMissing("dst switch", dstDPID, dstPort, srcDPID, srcPort);
+            return;
+        }
         
         Link existingLink = dstSwitch.getLinkTo(dstPort, srcSwitch, srcPort);
         if(existingLink != null)
             existingLink.disconnect();
+        else
+            logLinkMissing("link", dstDPID, dstPort, srcDPID, srcPort);
+    }
+    
+    /** Prints an error message about a missing link. */
+    private void logLinkMissing(String why, long dstDPID, short dstPort, long srcDPID, short srcPort) {
+        System.err.println("Ignoring link delete message for non-existant " + why + ": " + 
+                DPIDUtil.toString(srcDPID) + ", port " + srcPort + " to " +
+                DPIDUtil.toString(dstDPID) + ", port " + dstPort);
     }
 
     private void processStatReply(StatsHeader msg) {

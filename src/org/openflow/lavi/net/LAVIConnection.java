@@ -225,6 +225,8 @@ public class LAVIConnection extends Thread {
         
         int tries = 0;
         do {
+            if(done) return;
+            
             if(tries++ > 0) {
                 System.err.println("Retrying to establish connection to LAVI server (try #" + tries + ")...");
                 tryToClose(conn);
@@ -245,7 +247,7 @@ public class LAVIConnection extends Thread {
                 }
             }
         }
-        while(conn.s==null);
+        while(conn==null && conn.s==null);
         
         System.err.println("Now connected to LAVI server");
         stats.connected();

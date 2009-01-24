@@ -2,6 +2,7 @@ package org.openflow.lavi;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.openflow.lavi.drawables.*;
 import org.openflow.lavi.drawables.Link;
 import org.openflow.lavi.drawables.Link.LinkExistsException;
@@ -72,15 +73,8 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     public void connectionStateChange() {
         if(!conn.isConnected()) {
             // remove all switches when we get disconnected
-            synchronized(switches) {
-                Long[] dpids = new Long[switches.size()];
-                int i = 0;
-                for(Long d : switches.keySet())
-                    dpids[i++] = d;
-                
-                for(Long d : dpids)
-                    disconnectSwitch(d);
-            }
+            for(Long d : switchesList)
+                disconnectSwitch(d);
         }
     }
 
@@ -152,11 +146,13 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     }
 
     /** switches in the topology */
-    private ConcurrentHashMap<Long, OpenFlowSwitch> switches = new ConcurrentHashMap<Long, OpenFlowSwitch>();
+    private final ConcurrentHashMap<Long, OpenFlowSwitch> switchesMap = new ConcurrentHashMap<Long, OpenFlowSwitch>();
+    private final CopyOnWriteArrayList<Long> switchesList = new CopyOnWriteArrayList<Long>();
     
     private OpenFlowSwitch addSwitch(long dpid) {
         OpenFlowSwitch s = new OpenFlowSwitch(dpid);
-        switches.put(dpid, s);
+        switchesMap.put(dpid, s);
+        switchesList.add(dpid);
         s.setPos((int)Math.random()*500, (int)Math.random()*500);
         manager.addDrawable(s);
         
@@ -179,7 +175,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     /** add new switches to the topology */
     private void processSwitchesAdd(SwitchesAdd msg) {
         for(long dpid : msg.dpids)
-            if(!switches.containsKey(dpid))
+            if(!switchesMap.containsKey(dpid))
                 addSwitch(dpid);
     }
 
@@ -191,10 +187,11 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     }
     
     /** remove a switch from the topology */
-    private boolean disconnectSwitch(long dpid) {
-        OpenFlowSwitch s = switches.get(dpid);
+    private boolean disconnectSwitch(Long dpid) {
+        OpenFlowSwitch s = switchesMap.get(dpid);
         if(s != null) {
-            manager.removeDrawable(switches.remove(dpid)); 
+            manager.removeDrawable(switchesMap.remove(dpid)); 
+            switchesList.remove(dpid);
             
             // disconnect all links associated with the switch too
             for(Link l : s.getLinks())
@@ -212,7 +209,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
      * @return the switch associated with dpid
      */
     private OpenFlowSwitch handleLinkToSwitch(long dpid) {
-        OpenFlowSwitch s = switches.get(dpid);
+        OpenFlowSwitch s = switchesMap.get(dpid);
         if(s != null)
             return s;
         
@@ -246,13 +243,13 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     
     /** remove a link from the topology */
     private void disconnectLink(long dstDPID, short dstPort, long srcDPID, short srcPort) {
-        OpenFlowSwitch srcSwitch = switches.get(srcDPID);
+        OpenFlowSwitch srcSwitch = switchesMap.get(srcDPID);
         if(srcSwitch == null) {
             logLinkMissing("src switch", dstDPID, dstPort, srcDPID, srcPort);
             return;
         }
         
-        OpenFlowSwitch dstSwitch = switches.get(dstDPID);
+        OpenFlowSwitch dstSwitch = switchesMap.get(dstDPID);
         if(dstSwitch == null) {
             logLinkMissing("dst switch", dstDPID, dstPort, srcDPID, srcPort);
             return;
@@ -298,7 +295,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         req = (AggregateStatsRequest)msg;
         
         // get the switch associated with these stats
-        OpenFlowSwitch s = switches.get(req.dpid);
+        OpenFlowSwitch s = switchesMap.get(req.dpid);
         if(s == null)
             System.err.println("Warning: received aggregate stats reply for unknown switch " + DPIDUtil.toString(req.dpid));
         
@@ -310,7 +307,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     }
 
     private void processStatReplyDesc(SwitchDescriptionStats msg) {
-        OpenFlowSwitch s = switches.get(msg.dpid);
+        OpenFlowSwitch s = switchesMap.get(msg.dpid);
         if(s != null)
             s.setSwitchDescription(msg);
         else

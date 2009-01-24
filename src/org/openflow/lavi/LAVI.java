@@ -1,7 +1,7 @@
 package org.openflow.lavi;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import org.openflow.lavi.drawables.*;
 import org.openflow.lavi.drawables.Link;
 import org.openflow.lavi.drawables.Link.LinkExistsException;
@@ -152,7 +152,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     }
 
     /** switches in the topology */
-    private HashMap<Long, OpenFlowSwitch> switches = new HashMap<Long, OpenFlowSwitch>();
+    private ConcurrentHashMap<Long, OpenFlowSwitch> switches = new ConcurrentHashMap<Long, OpenFlowSwitch>();
     
     private OpenFlowSwitch addSwitch(long dpid) {
         OpenFlowSwitch s = new OpenFlowSwitch(dpid);

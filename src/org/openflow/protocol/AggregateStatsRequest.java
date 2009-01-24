@@ -25,21 +25,21 @@ public class AggregateStatsRequest extends StatsHeader {
     
     /** Create an aggregate stats request from the switch with this DPID. */
     public AggregateStatsRequest(long dpid) {
-        this(dpid, new Match());
+        this(dpid, OFPP_NONE);
     }
     
-    /** Create an aggregate stats request from the switch with this DPID and match. */
-    public AggregateStatsRequest(long dpid, Match m) {
-        this(dpid, m, ALL_TABLES);
+    /** Create an aggregate stats request from the switch with this DPID and port. */
+    public AggregateStatsRequest(long dpid, short outPort) {
+        this(dpid, outPort, new Match());
     }
     
-    /** Create an aggregate stats request from the switch with this DPID, match, and table ID. */
-    public AggregateStatsRequest(long dpid, Match m, byte tableID) {
-        this(dpid, m, tableID, OFPP_NONE);
+    /** Create an aggregate stats request from the switch with this DPID, port, and match. */
+    public AggregateStatsRequest(long dpid, short outPort, Match m) {
+        this(dpid, outPort, m, ALL_TABLES);
     }
     
-    /** Create an aggregate stats request from the switch with this DPID, match, table ID, and port. */
-    public AggregateStatsRequest(long dpid, Match m, byte tableID, short outPort) {
+    /** Create an aggregate stats request from the switch with this DPID, port, match, and table ID. */
+    public AggregateStatsRequest(long dpid, short outPort, Match m, byte tableID) {
         super(StatsHeader.REQUEST,
               dpid,
               StatsType.AGGREGATE,

@@ -273,19 +273,23 @@ public class LAVIConnection extends Thread {
     
     /** returns the next LAVI message received on the connection */
     private LAVIMessage recvLAVIMessage() throws IOException {
-        long bytesReadBefore = conn.getBytesRead();
+        final CountingDataInputStream in = conn.in;
+        if(in == null)
+            throw new IOException("connection is disconnected");
+        
+        long bytesReadBefore = in.getBytesRead();
 
         // determine how long the message is
-        int len = conn.readShort();
+        int len = in.readShort();
 
         // decode the message
-        LAVIMessage msg = LAVIMessageType.decode(len, conn);
+        LAVIMessage msg = LAVIMessageType.decode(len, in);
 
         // make sure we consume exactly the specified number of bytes or problems have
-        long bytesRead = conn.getBytesRead() - bytesReadBefore;
+        long bytesRead = in.getBytesRead() - bytesReadBefore;
         if(bytesRead < len) {
             int bytesLeftover = (int)(len - bytesRead);
-            if(conn.skipBytes(bytesLeftover) != bytesLeftover)
+            if(in.skipBytes(bytesLeftover) != bytesLeftover)
                 throw new IOException("unable to skip leftover bytes (" + bytesLeftover + "B)");
             else
                 System.err.println("Warning: " + bytesLeftover + "B leftover for message type " + msg.type.toString());

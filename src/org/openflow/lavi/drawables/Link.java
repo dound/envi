@@ -8,6 +8,7 @@ import java.awt.Polygon;
 import java.awt.Stroke;
 
 import org.openflow.lavi.drawables.NodeWithPorts.PortUsedException;
+import org.openflow.protocol.AggregateStatsReply;
 import org.pzgui.Constants;
 import org.pzgui.AbstractDrawable;
 import org.pzgui.layout.Edge;
@@ -220,5 +221,43 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     public void setHovered(boolean b) {
         hovering = b;
+    }
+
+    /** time the last stats reply received by this link */
+    private long lastUpdate = 0;
+    
+    /** bytes counted as of the last stats reply received by this link */
+    private long lastByteCount = 0;
+    
+    /** current bandwidth being sent through the link */
+    private double currentDataRate_bps = 0.0;
+    
+    /** maximum capacity of the link */
+    private double maxDataRate_bps = 1 * 1000 * 1000 * 1000; 
+    
+    /** returns the current bandwidth being sent through the link in ps */
+    public double getCurrentDataRate() {
+        return currentDataRate_bps;
+    }
+    
+    /** returns the maximum bandwidth which can be sent through the link in bps */
+    public double getMaximumDataRate() {
+        return maxDataRate_bps;
+    }
+    
+    /** returns the current utilization of the link in the range [0, 1] */
+    public double getCurrentUtilization() {
+        return currentDataRate_bps / maxDataRate_bps;
+    }
+    
+    /** update this links with the latest stats reply about this link */
+    public void updateStats(AggregateStatsReply reply) {
+        long diffTime = reply.timeCreated - lastUpdate;
+        lastUpdate = reply.timeCreated;
+        
+        long diffByteCount = reply.byte_count - lastByteCount;
+        lastByteCount = reply.byte_count;
+        
+        currentDataRate_bps = (8.0 * diffByteCount) / diffTime;
     }
 }

@@ -300,9 +300,13 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         // get the switch associated with these stats
         OpenFlowSwitch s = switches.get(req.dpid);
         if(s == null)
-            System.err.println("Warning: received switch description for unknown switch " + DPIDUtil.toString(req.dpid));
+            System.err.println("Warning: received aggregate stats reply for unknown switch " + DPIDUtil.toString(req.dpid));
         
-        // TODO: do something with the received stats reply
+        Link l = s.getLinkFrom(req.outPort);
+        if(l == null)
+            System.err.println("Warning: received aggregate stats reply for disconnect port " + req.outPort + " for switch " + DPIDUtil.toString(req.dpid));
+        
+        l.updateStats(reply);
     }
 
     private void processStatReplyDesc(SwitchDescriptionStats msg) {

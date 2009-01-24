@@ -129,6 +129,14 @@ public abstract class NodeWithPorts extends Node {
     public int getNumLinks() {
         return links.size();
     }
+
+    public Link getLinkFrom(short outPort) {
+        for(Link l : links)
+            if(l.getMyPort(this) == outPort)
+                return l;
+        
+        return null;
+    }
     
     /** Returns a link from this node to the requested node if such a link exists */
     public Link getLinkTo(NodeWithPorts n) {

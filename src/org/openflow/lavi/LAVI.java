@@ -36,6 +36,9 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     /** the GUI window manager */
     private final PZLayoutManager manager;
     
+    /** how often to refresh basic port statistics */
+    private long statsRefreshRate_msec = 2000;
+    
     /** start the LAVI front-end */
     public LAVI(String server, Short port) {
         // ask the user for the NOX controller's IP if it wasn't already given
@@ -55,10 +58,41 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         // try to connect to the backend
         conn.start();
         
-        //manager.setLayout(new edu.uci.ics.jung.algorithms.layout.FRLayout<Vertex, Edge>(manager.getGraph(), manager.getLayoutSize()));
+        // layout the nodes with the spring algorithm by default
         manager.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(manager.getGraph()));
+        
+        // TODO: add some sort of Event thread like swing has to process timed reqs? 
+        new Thread() {
+            public void run() {
+                while(true) {
+                    // only run periodically
+                    try {
+                        Thread.sleep(statsRefreshRate_msec);
+                    }
+                    catch(InterruptedException e) {}
+                
+                    try {
+                        if(conn.isConnected())
+                            for(Long dpid : switchesList)
+                                updateStatsForSwitch(dpid);
+                    }
+                    catch(IOException e) {
+                        System.err.println("Unable to request stats: " + e.getMessage());
+                    }
+                }
+            }
+        }.start();
     }
 
+    /** sends an AggregateStatsRequest for each port on the switch at this dpid */
+    public void updateStatsForSwitch(Long dpid) throws IOException { 
+        OpenFlowSwitch o = switchesMap.get(dpid);
+        if(o == null) return;
+        
+        for(Link l : o.getLinks())
+            conn.sendLAVIMessage(new AggregateStatsRequest(dpid, l.getMyPort(o)));
+    }
+    
     /** shutdown the connection */
     public void pzClosing(PZManager manager) {
         long start = System.currentTimeMillis();

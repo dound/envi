@@ -31,7 +31,6 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     private int numOtherLinks = 0;
     private Polygon boundingBox = null;
-    private boolean hovering = false;
     
     /**
      * This exception is thrown if a link which already exists is tried to be 
@@ -111,7 +110,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
             c = computeGradient(numOtherLinks, numOtherLinks / 24.0f + 0.25f);
         
         // outline the link if it is being hovered over
-        if(hovering) {
+        if(isHovered()) {
             gfx.draw(boundingBox);
             gfx.setPaint(Constants.COLOR_HOVERING);
             gfx.fill(boundingBox);
@@ -213,14 +212,6 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
 
     void setOffset(int numOtherLinks) {
         this.numOtherLinks = numOtherLinks;
-    }
-
-    public boolean isHovered() {
-        return hovering;
-    }
-    
-    public void setHovered(boolean b) {
-        hovering = b;
     }
 
     /** time the last stats reply received by this link */

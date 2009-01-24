@@ -307,11 +307,19 @@ public class LAVIConnection extends Thread {
     
     /** tries to send a LAVI message */
     public void sendLAVIMessage(LAVIMessage m) throws IOException {
+        // get the current connection
+        java.io.DataOutput out = this.conn.out;
+        
+        // bail out if we are not connected - TODO: could try to mask this and 
+        // buffer calls to this method and send them when we get reconnected
+        if(out == null)
+            throw new IOException("connection is down");
+        
         m.xid = nextXID++;
         if(m.isStatefulRequest())
             outstandingStatefulRequests.put(m.xid, m);
         
-        m.write(conn);
+        m.write(out);
         
         System.out.println("sent: " + m.toString());
     }

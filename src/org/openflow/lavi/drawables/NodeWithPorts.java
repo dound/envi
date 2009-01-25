@@ -151,7 +151,7 @@ public abstract class NodeWithPorts extends Node {
     public Link getLinkTo(short myPort, NodeWithPorts n, short nPort) {
         for(Link l : links)
             if(l.getOther(this) == n)
-                if(l.getMyPort(this)==myPort && l.getOtherPort(n)==nPort)
+                if(l.getMyPort(this)==myPort && l.getMyPort(n)==nPort)
                     return l;
             
         return null;

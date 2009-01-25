@@ -295,11 +295,12 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
 
     /** set the height and width of this window */
     public void setMySize(int w, int h) {
-        if(getWidth()!=w || h!=getHeight()) {
-            float mw = 1920;
-            float mh = 1080;
-            float oldMinZoomFactor = Math.min(getWidth()/mw, getHeight()/mh);
-            float newMinZoomFactor = Math.min(w/mw, h/mh);
+        int oldW = img.getWidth();
+        int oldH = img.getHeight();
+        
+        if(w!=oldW || h!=oldH) {
+            float oldMinZoomFactor = Math.min(oldW, oldH);
+            float newMinZoomFactor = Math.min(w, h);
             setMySize(w, h, zoom * newMinZoomFactor / oldMinZoomFactor);
         }
     }

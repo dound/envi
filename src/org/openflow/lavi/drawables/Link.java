@@ -18,7 +18,7 @@ import org.pzgui.math.Vector2f;
  * @author David Underhill
  */
 public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
-    public static final int LINE_WIDTH = 1;
+    public static final int LINE_WIDTH = 2;
     public static final BasicStroke LINE_DEFAULT_STROKE = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     public static final BasicStroke LINE_OUTLINE_STROKE = new BasicStroke(LINE_WIDTH+1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     

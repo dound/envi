@@ -2,6 +2,7 @@ package org.openflow.lavi.net;
 
 import org.openflow.lavi.net.protocol.LAVIMessage;
 import org.openflow.lavi.net.protocol.LinksSubscribe;
+import org.openflow.lavi.net.protocol.PollRequest;
 import org.openflow.lavi.net.protocol.SwitchesSubscribe;
 
 import java.io.IOException;
@@ -311,7 +312,14 @@ public class LAVIConnection extends Thread {
     /** messages which are expecting a stateful response */
     protected ConcurrentHashMap<Integer, LAVIMessage> outstandingStatefulRequests = new ConcurrentHashMap<Integer, LAVIMessage>();
     
-    /** tries to send a LAVI message */
+    /** stateful messages which are being polled by the backend for us */
+    protected ConcurrentHashMap<Integer, LAVIMessage> outstandingStatefulPollRequests = new ConcurrentHashMap<Integer, LAVIMessage>();
+    
+    /** 
+     * Tries to send a LAVI message and sets the transaction ID of the message
+     * to the next available transaction ID.  If m is a POLL_REQUEST message, 
+     * then the internal message's transaction ID is also set.
+     */
     public void sendLAVIMessage(LAVIMessage m) throws IOException {
         // get the current connection
         java.io.DataOutput out = this.conn.out;
@@ -324,6 +332,19 @@ public class LAVIConnection extends Thread {
         m.xid = nextXID++;
         if(m.isStatefulRequest())
             outstandingStatefulRequests.put(m.xid, m);
+        else if(m.type == LAVIMessageType.POLL_REQUEST) {
+            // store stateful poll requests in a different map since they do 
+            // not expire when a reply comes in
+            PollRequest pollMsg = (PollRequest)m;
+            if(pollMsg.msg.isStatefulRequest()) {
+                if(pollMsg.pollInterval != 0) {
+                    pollMsg.msg.xid = nextXID++;
+                    outstandingStatefulPollRequests.put(pollMsg.msg.xid, pollMsg.msg);
+                }
+                else
+                    outstandingStatefulPollRequests.remove(pollMsg.msg.xid);
+            }
+        }
         
         m.write(out);
         
@@ -335,7 +356,10 @@ public class LAVIConnection extends Thread {
      * stateful request returned will no longer be remembered. 
      */
     public LAVIMessage popAssociatedStatefulRequest(int xid) {
-        return outstandingStatefulRequests.remove(xid);
+        // check the poll requests map first (more efficient if we assume must 
+        // stateful replies come from poll requests)
+        LAVIMessage m = outstandingStatefulPollRequests.remove(xid);
+        return (m != null) ? m : outstandingStatefulRequests.get(xid);
     }
     
     /** Gets the number of milliseconds a stateful request will be stored */
@@ -365,6 +389,7 @@ public class LAVIConnection extends Thread {
         conn = null;
         stats.disconnected();
         outstandingStatefulRequests.clear();
+        outstandingStatefulPollRequests.clear();
         msgProcessor.connectionStateChange();
     }
     

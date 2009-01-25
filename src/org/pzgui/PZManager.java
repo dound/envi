@@ -462,7 +462,11 @@ public class PZManager extends Thread {
         if(!dragging) {
             mouseStartPos.set(x, y);
             mouseStartTime = System.currentTimeMillis();
+            
+            hover(selectFrom(x, y));
         }
+        else if(hoveredEntity != null)
+            dehover();
     }
 
     /** Get whether the last click was of a double-click */

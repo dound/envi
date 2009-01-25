@@ -99,7 +99,18 @@ public enum LAVIMessageType {
             throw new IOException("Unknown type ID: " + typeByte);
         
         int xid = in.readInt();
-        
+        LAVIMessage msg = decode(len, t, xid, in);
+        msg.xid = xid;
+        return msg;
+    }
+     
+    /** 
+     * Constructs the object representing the received message.  The message is 
+     * known to be of length len.  The header of the message (length, type,
+     * and transaction ID) have been read, but the remainder is still on the 
+     * input stream.
+     */
+    private static LAVIMessage decode(int len, LAVIMessageType t, int xid, DataInput in) throws IOException {
         // parse the rest of the message
         switch(t) {
             case AUTH_REQUEST:

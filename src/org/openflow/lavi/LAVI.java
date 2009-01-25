@@ -323,19 +323,24 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         LAVIMessage msg = conn.popAssociatedStatefulRequest(reply.xid);
         AggregateStatsRequest req;
         if(msg==null || !(msg instanceof AggregateStatsRequest)) {
-            System.err.println("Warning: matching stateful request for AggregateStatsReply is not an AggregateStatsRequest");
+            System.err.println("Warning: matching stateful request for " +
+            		"AggregateStatsReply is not an AggregateStatsRequest (got " + msg + ")");
             return;
         }
         req = (AggregateStatsRequest)msg;
         
         // get the switch associated with these stats
         OpenFlowSwitch s = switchesMap.get(req.dpid);
-        if(s == null)
+        if(s == null) {
             System.err.println("Warning: received aggregate stats reply for unknown switch " + DPIDUtil.toString(req.dpid));
+            return;
+        }
         
         Link l = s.getLinkFrom(req.outPort);
-        if(l == null)
+        if(l == null) {
             System.err.println("Warning: received aggregate stats reply for disconnect port " + req.outPort + " for switch " + DPIDUtil.toString(req.dpid));
+            return;
+        }
         
         l.updateStats(reply);
     }

@@ -48,6 +48,9 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     private void initEventListeners() {
         final PZWindow me = this;
 
+        // handle resize and move events itself
+        addComponentListener(this);
+        
         // notify the manager when the window is closed
         addWindowListener(new WindowAdapter() {
            public void windowClosed(WindowEvent evt) {

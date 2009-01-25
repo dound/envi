@@ -8,7 +8,7 @@ import java.io.IOException;
  * 
  * @author David Underhill
  */
-public class Poll extends LAVIMessage {
+public class PollRequest extends LAVIMessage {
     /** 
      * time between copies of this message being sent out (in units of 100ms, 
      * e.g. pollInterval=5 => poll every 500ms) 
@@ -18,8 +18,8 @@ public class Poll extends LAVIMessage {
     /** the message to poll */
     public final LAVIMessage msg;
     
-    public Poll(short pollInterval, LAVIMessage msg) {
-        super(LAVIMessageType.POLL, 0);
+    public PollRequest(short pollInterval, LAVIMessage msg) {
+        super(LAVIMessageType.POLL_REQUEST, 0);
         this.pollInterval = pollInterval;
         this.msg = msg;
     }

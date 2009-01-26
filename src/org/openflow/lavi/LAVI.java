@@ -47,6 +47,11 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         if(server == null || server.length()==0)
             server = DialogHelper.getInput("What is the IP or hostname of the NOX server?", "mvm-nox2.stanford.edu");
 
+        if(server == null) {
+            System.out.println("Goodbye");
+            System.exit(0);
+        }
+        
         if(port == null)
             conn = new LAVIConnection(this, server);
         else

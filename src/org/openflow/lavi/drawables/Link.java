@@ -5,9 +5,16 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Stroke;
-
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 import org.openflow.lavi.drawables.NodeWithPorts.PortUsedException;
+import org.openflow.lavi.net.LAVIConnection;
+import org.openflow.lavi.net.protocol.PollStart;
+import org.openflow.lavi.net.protocol.PollStop;
+import org.openflow.lavi.stats.PortStatsRates;
 import org.openflow.protocol.AggregateStatsReply;
+import org.openflow.protocol.AggregateStatsRequest;
+import org.openflow.protocol.Match;
 import org.pzgui.Constants;
 import org.pzgui.AbstractDrawable;
 import org.pzgui.layout.Edge;
@@ -125,10 +132,16 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         boundingBox = new Polygon(bx, by, bx.length);
     }
 
-    /** Disconnects this link from its attached ports */
-    public void disconnect() {
+    /** 
+     * Disconnects this link from its attached ports and stops tracking all 
+     * statistics associated with this link.  stopTrackingAllStats() is called
+     * by this method.   
+     */
+    public void disconnect(LAVIConnection conn) throws IOException {
         src.getLinks().remove(this);
         dst.getLinks().remove(this);
+        
+        stopTrackingAllStats(conn);
     }
     
     public NodeWithPorts getSource() {
@@ -198,53 +211,159 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         this.numOtherLinks = numOtherLinks;
     }
 
-    /** time the last stats reply received by this link */
-    private long lastUpdate = 0;
-    
-    /** bytes counted as of the last stats reply received by this link */
-    private long lastByteCount = 0;
-    
-    /** current bandwidth being sent through the link */
-    private double currentDataRate_bps = 0.0;
-    
     /** maximum capacity of the link */
     private double maxDataRate_bps = 1 * 1000 * 1000 * 1000; 
-    
-    /** the color to draw the link */
-    private Color curDrawColor = Color.BLACK;
-    
-    /** returns the current bandwidth being sent through the link in ps */
-    public double getCurrentDataRate() {
-        return currentDataRate_bps;
-    }
-    
+
     /** returns the maximum bandwidth which can be sent through the link in bps */
     public double getMaximumDataRate() {
         return maxDataRate_bps;
     }
     
-    /** returns the current utilization of the link in the range [0, 1] */
+
+    /** pairs a message transaction ID with the stats it is collecting */
+    private class LinkStatsInfo {
+        /** transaction ID which will be used to update these statistics */
+        public final int xid;
+        
+        /** whether these statistics are being polled by the backend for us */
+        public final boolean isPolling;
+        
+        /** the statistics */
+        public final PortStatsRates stats;
+        
+        public LinkStatsInfo(int xid, boolean isPolling, PortStatsRates stats) {
+            this.xid = xid;
+            this.isPolling = isPolling;
+            this.stats = stats;
+        }
+    }
+    
+    /** statistics being gathered for this link */
+    private final ConcurrentHashMap<Match, LinkStatsInfo> stats = new ConcurrentHashMap<Match, LinkStatsInfo>();
+    
+    /** Gets the stats associated with the specified Match, if any */
+    public PortStatsRates getStats(Match m) {
+        LinkStatsInfo lsi = stats.get(m);
+        if(lsi != null)
+            return lsi.stats;
+        else
+            return null;
+    }
+    
+    /** 
+     * Tells the link to acquire the specified stats (once).
+     * 
+     * @param m                  what statistics to get
+     * @param conn               connection to talk to the backend over
+     * @throws IOException       thrown if the connection fails
+     */
+    public void trackStats(Match m, LAVIConnection conn) throws IOException {
+        trackStats(0, m, conn);
+    }
+    
+    /** 
+     * Tells the link to acquire the specified stats.
+     * 
+     * @param pollInterval_msec  how often to refresh the stats (0 = only once)
+     * @param m                  what statistics to get
+     * @param conn               connection to talk to the backend over
+     * @throws IOException       thrown if the connection fails
+     */
+    public void trackStats(int pollInterval_msec, Match m, LAVIConnection conn) throws IOException {
+        short pollInterval = (short)(( pollInterval_msec % 100 == 0)
+                                     ? pollInterval_msec / 100
+                                     : pollInterval_msec % 100 + 1);
+        
+        // build and send the message to get the stats
+        AggregateStatsRequest req = new AggregateStatsRequest(src.getDatapathID(), srcPort, m);
+        boolean isPolling = (pollInterval != 0);
+        if(isPolling)
+            conn.sendLAVIMessage(new PollStart(pollInterval, req));
+        else
+            conn.sendLAVIMessage(req);
+        
+        // remember that we are interested in these stats
+        LinkStatsInfo lsi = new LinkStatsInfo(req.xid, isPolling, new PortStatsRates(m));
+        stats.put(m, lsi);
+    }
+    
+    /**
+     * Tells the link to stop tracking stats for the specified Match m.  If m 
+     * was being polled, then a message will be sent to the backend to terminate
+     * the polling of the message.
+     * 
+     * @param m  the match to stop collecting statistics for
+     * @param conn  the connection over which to tell the backend to stop polling
+     * @throws IOException  thrown if the connection fails
+     */
+    public void stopTrackingStats(Match m, LAVIConnection conn) throws IOException {
+        LinkStatsInfo lsi = stats.remove(m);
+        if(lsi != null && lsi.isPolling)
+            conn.sendLAVIMessage(new PollStop(lsi.xid));
+    }
+    
+    /**
+     * Stop tracking and clear all statistics associated with this link.
+     *  
+     * @param conn  the connection to send POLL_STOP messages over
+     * @throws IOException  thrown if the connection fails
+     */
+    public void stopTrackingAllStats(LAVIConnection conn) throws IOException {
+        for(LinkStatsInfo lsi : stats.values())
+            if(lsi.isPolling)
+                conn.sendLAVIMessage(new PollStop(lsi.xid));
+        
+        stats.clear();
+    }
+    
+    /** the color to draw the link */
+    private Color curDrawColor = Color.BLACK;
+    
+    /** 
+     * Returns the current bandwidth being sent through the link in ps or a 
+     * value <0 if those stats are not currently being tracked. 
+     */
+    public double getCurrentDataRate() {
+        PortStatsRates psr = getStats(Match.MATCH_ALL);
+        if(psr == null)
+            return -1;
+        else
+            return psr.getBitsPerSec();            
+    }
+    
+    /** 
+     * returns the current utilization of the link in the range [0, 1] or -1 if
+     * stats are not currently being tracked for this
+     */
     public double getCurrentUtilization() {
-        return currentDataRate_bps / maxDataRate_bps;
+        double rate = getCurrentDataRate();
+        if(rate < 0)
+            return -1;
+        else
+            return rate / maxDataRate_bps;
     }
     
     /** update this links with the latest stats reply about this link */
-    public void updateStats(AggregateStatsReply reply) {
-        long diffTime = reply.timeCreated - lastUpdate;
-        lastUpdate = reply.timeCreated;
-        
-        long diffByteCount = reply.byte_count - lastByteCount;
-        lastByteCount = reply.byte_count;
-        
-        currentDataRate_bps = (8.0 * diffByteCount) / diffTime;
-        setColor();
+    public void updateStats(Match m, AggregateStatsReply reply) {
+        LinkStatsInfo lsi = stats.get(m);
+        if(lsi == null)
+            System.err.println(this.toString() + " received stats it is not tracking: " + m.toString());
+        else {
+            lsi.stats.update(reply);
+            
+            // update the color whenever the (unfiltered) link utilization stats are updated
+            if(m.wildcards.isWildcardAll())
+                setColor();
+        }
     }
     
     /** sets the color this link will be drawn based on the current utilization */
     private void setColor() {
         float usage = (float)getCurrentUtilization();
-        if(usage < 0)
-            usage = 0;
+        if(usage < 0) {
+            this.curDrawColor = Color.BLUE; // indicate that we don't know the util
+            return;
+        }
         else if (usage > 1)
             usage = 1;
         

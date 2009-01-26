@@ -37,7 +37,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     private final PZLayoutManager manager;
     
     /** how often to refresh basic port statistics */
-    private long statsRefreshRate_msec = 2000;
+    private int statsRefreshRate_msec = 2000;
     
     /** start the LAVI front-end */
     public LAVI(String server, Short port) {
@@ -228,8 +228,14 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             switchesList.remove(dpid);
             
             // disconnect all links associated with the switch too
-            for(Link l : s.getLinks())
-                l.disconnect();
+            for(Link l : s.getLinks()) {
+                try {
+                    l.disconnect(conn);
+                } 
+                catch(IOException e) {
+                    // ignore: connection down => polling messages cleared on the backend already
+                }
+            }
             
             return true;
         }
@@ -290,8 +296,14 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         }
         
         Link existingLink = dstSwitch.getLinkTo(dstPort, srcSwitch, srcPort);
-        if(existingLink != null)
-            existingLink.disconnect();
+        if(existingLink != null) {
+            try {
+                existingLink.disconnect(conn);
+            } 
+            catch(IOException e) {
+                // ignore: connection down => polling messages cleared on the backend already
+            }
+        }
         else
             logLinkMissing("link", dstDPID, dstPort, srcDPID, srcPort);
     }
@@ -342,7 +354,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             return;
         }
         
-        l.updateStats(reply);
+        l.updateStats(req.match, reply);
     }
 
     private void processStatReplyDesc(SwitchDescriptionStats msg) {

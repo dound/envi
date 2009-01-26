@@ -295,8 +295,8 @@ public class FlowWildcards {
     }
 
     public boolean equals(Object o) {
-        if(o!=null && o instanceof Wildcard) {
-            Wildcard w = (Wildcard)o;
+        if(o!=null && o instanceof FlowWildcards) {
+            FlowWildcards w = (FlowWildcards)o;
             return w.bitfield == bitfield;
         }
         return false;

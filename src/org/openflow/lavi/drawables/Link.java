@@ -63,7 +63,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      */
     public Link(NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
         // do not re-create existing links
-        if(src.getLinkTo(srcPort, dst, dstPort) != null)
+        if(src.getDirectedLinkTo(srcPort, dst, dstPort, true) != null)
             throw new LinkExistsException("Link construction error: link already exists");
         
         this.src = src;

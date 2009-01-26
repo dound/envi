@@ -86,7 +86,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
                                 if(o == null) return;
                                 
                                 for(Link l : o.getLinks())
-                                    conn.sendLAVIMessage(new AggregateStatsRequest(dpid, l.getMyPort(o)));
+                                    l.trackStats(new Match(), conn);
                             }
                     }
                     catch(IOException e) {

@@ -44,7 +44,7 @@ public class PollStart extends LAVIMessage {
     }
     
     public String toString() {
-        return super.toString() + TSSEP + (pollInterval==0 ? "Stop Polling" 
-                : "Start Polling every " + (pollInterval*100) + "ms: " + msg);
+        return super.toString() + TSSEP +  
+                "Start Polling every " + (pollInterval*100) + "ms: " + msg;
     }
 }

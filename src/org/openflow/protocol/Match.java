@@ -3,7 +3,6 @@ package org.openflow.protocol;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
 import org.openflow.util.string.IPUtil;
 
 /**
@@ -47,7 +46,7 @@ public class Match {
 
     /** TCP/UDP destination port */
     public short tp_dst;
-
+    
     /** Constructs fully wildcarded match. */
     public Match() {
         wildcards.setWildcardAll();
@@ -82,6 +81,52 @@ public class Match {
         out.writeInt(nw_dst);
         out.writeShort(tp_src);
         out.writeShort(tp_dst);
+    }
+    
+    public int hashCode() {
+        int ret = 7;
+        ret = ret + wildcards.hashCode();
+        ret = (15 * ret) + in_port;
+        for(int i=0; i<6; i++) {
+            ret = (7 * ret) + dl_src[i];
+            ret = (7 * ret) + dl_dst[i];
+        }
+        ret = (15 * ret) + dl_vlan;
+        ret = (15 * ret) + dl_type;
+        ret = (7 * ret) + nw_proto;
+        ret = (31 * ret) + nw_src;
+        ret = (31 * ret) + nw_dst;
+        ret = (15 * ret) + tp_src;
+        ret = (15 * ret) + tp_dst;
+        return ret;
+    }
+    
+    public boolean equals(Object o) {
+        if(o!=null && o instanceof Match) {
+            Match m = (Match)o;
+            return wildcards.equals(m.wildcards) &&
+                   in_port   == m.in_port &&
+                   dl_src[0] == m.dl_src[0] &&
+                   dl_src[1] == m.dl_src[1] &&
+                   dl_src[2] == m.dl_src[2] &&
+                   dl_src[3] == m.dl_src[3] &&
+                   dl_src[4] == m.dl_src[4] &&
+                   dl_src[5] == m.dl_src[5] &&
+                   dl_dst[0] == m.dl_dst[0] &&
+                   dl_dst[1] == m.dl_dst[1] &&
+                   dl_dst[2] == m.dl_dst[2] &&
+                   dl_dst[3] == m.dl_dst[3] &&
+                   dl_dst[4] == m.dl_dst[4] &&
+                   dl_dst[5] == m.dl_dst[5] &&
+                   dl_vlan   == m.dl_vlan &&
+                   dl_type   == m.dl_type &&
+                   nw_proto  == m.nw_proto &&
+                   nw_src    == m.nw_src &&
+                   nw_dst    == m.nw_dst &&
+                   tp_src    == m.tp_src &&
+                   tp_dst    == m.tp_dst;
+        }
+        return false;
     }
     
     public String toString() {

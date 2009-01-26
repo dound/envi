@@ -290,6 +290,18 @@ public class FlowWildcards {
         return IPUtil.toString(ip);
     }
 
+    public int hashCode() {
+        return bitfield;
+    }
+
+    public boolean equals(Object o) {
+        if(o!=null && o instanceof Wildcard) {
+            Wildcard w = (Wildcard)o;
+            return w.bitfield == bitfield;
+        }
+        return false;
+    }
+    
     public String toString() {
         if(isWildcardAll())
             return "wildcard{all}";

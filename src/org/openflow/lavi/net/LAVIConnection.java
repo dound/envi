@@ -359,8 +359,8 @@ public class LAVIConnection extends Thread {
     public LAVIMessage popAssociatedStatefulRequest(int xid) {
         // check the poll requests map first (more efficient if we assume must 
         // stateful replies come from poll requests)
-        LAVIMessage m = outstandingStatefulPollRequests.remove(xid);
-        return (m != null) ? m : outstandingStatefulRequests.get(xid);
+        LAVIMessage m = outstandingStatefulPollRequests.get(xid);
+        return (m != null) ? m : outstandingStatefulRequests.remove(xid);
     }
     
     /** Gets the number of milliseconds a stateful request will be stored */

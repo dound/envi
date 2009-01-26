@@ -14,6 +14,9 @@ public class Match {
     /** size of the data contained in this object in bytes */
     public static int SIZEOF = 36;
     
+    /** a Match which matches all fields */
+    public static final Match MATCH_ALL = new Match();
+    
     /** Wildcard fields */
     public FlowWildcards wildcards = new FlowWildcards();
 

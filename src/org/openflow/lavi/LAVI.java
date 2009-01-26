@@ -265,7 +265,16 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             OpenFlowSwitch dstSwitch = handleLinkToSwitch(x.dstDPID);
             OpenFlowSwitch srcSwitch = handleLinkToSwitch(x.srcDPID);
             try {
-                new Link(dstSwitch, x.dstPort, srcSwitch, x.srcPort);
+                Link l = new Link(dstSwitch, x.dstPort, srcSwitch, x.srcPort);
+                
+                // tell the backend to keep us updated on the link's utilization
+                try {
+                    l.trackStats(statsRefreshRate_msec, Match.MATCH_ALL, conn);
+                }
+                catch (IOException e) {
+                    System.err.println("Warning: unable to setup link utilization polling for switch " + 
+                            DPIDUtil.toString(x.dstDPID) + " port " + l.getMyPort(dstSwitch));
+                }
             }
             catch(LinkExistsException e) {
                 // ignore 

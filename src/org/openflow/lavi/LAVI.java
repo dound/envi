@@ -19,9 +19,6 @@ import org.pzgui.layout.PZLayoutManager;
 import org.pzgui.layout.Vertex;
 
 public class LAVI implements LAVIMessageProcessor, PZClosing {
-    /** temporary until the backend is ready */
-    public static final boolean BACKEND_READY_FOR_POLLING = false;
-    
     /** run the LAVI front-end */
     public static void main(String args[]) {
         String server = null;
@@ -67,34 +64,6 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         
         // layout the nodes with the spring algorithm by default
         manager.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(manager.getGraph()));
-        
-        // remove this and the Thread once the backend supports polling
-        if(BACKEND_READY_FOR_POLLING) return;
-        new Thread() {
-            public void run() {
-                while(true) {
-                    // only run periodically
-                    try {
-                        Thread.sleep(statsRefreshRate_msec);
-                    }
-                    catch(InterruptedException e) {}
-                
-                    try {
-                        if(conn.isConnected())
-                            for(Long dpid : switchesList) {
-                                OpenFlowSwitch o = switchesMap.get(dpid);
-                                if(o == null) return;
-                                
-                                for(Link l : o.getLinks())
-                                    l.trackStats(new Match(), conn);
-                            }
-                    }
-                    catch(IOException e) {
-                        System.err.println("Unable to request stats: " + e.getMessage());
-                    }
-                }
-            }
-        }.start();
     }
     
     /** shutdown the connection */
@@ -270,8 +239,6 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             OpenFlowSwitch srcSwitch = handleLinkToSwitch(x.srcDPID);
             try {
                 Link l = new Link(dstSwitch, x.dstPort, srcSwitch, x.srcPort);
-                if(!BACKEND_READY_FOR_POLLING)
-                    return;
                 
                 // tell the backend to keep us updated on the link's utilization
                 try {

@@ -2,7 +2,7 @@ package org.openflow.lavi.net;
 
 import org.openflow.lavi.net.protocol.LAVIMessage;
 import org.openflow.lavi.net.protocol.LinksSubscribe;
-import org.openflow.lavi.net.protocol.PollRequest;
+import org.openflow.lavi.net.protocol.PollStart;
 import org.openflow.lavi.net.protocol.SwitchesSubscribe;
 
 import java.io.IOException;
@@ -332,10 +332,10 @@ public class LAVIConnection extends Thread {
         m.xid = nextXID++;
         if(m.isStatefulRequest())
             outstandingStatefulRequests.put(m.xid, m);
-        else if(m.type == LAVIMessageType.POLL_REQUEST) {
+        else if(m.type == LAVIMessageType.POLL_START) {
             // store stateful poll requests in a different map since they do 
             // not expire when a reply comes in
-            PollRequest pollMsg = (PollRequest)m;
+            PollStart pollMsg = (PollStart)m;
             if(pollMsg.msg.isStatefulRequest()) {
                 if(pollMsg.pollInterval != 0) {
                     pollMsg.msg.xid = nextXID++;

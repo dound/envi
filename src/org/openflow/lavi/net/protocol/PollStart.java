@@ -4,11 +4,11 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * Message which sets up or stops the polling of a particular message.
+ * Message which tells the backend to periodically send a message for us.
  * 
  * @author David Underhill
  */
-public class PollRequest extends LAVIMessage {
+public class PollStart extends LAVIMessage {
     /** 
      * time between copies of this message being sent out (in units of 100ms, 
      * e.g. pollInterval=5 => poll every 500ms) 
@@ -18,8 +18,15 @@ public class PollRequest extends LAVIMessage {
     /** the message to poll */
     public final LAVIMessage msg;
     
-    public PollRequest(short pollInterval, LAVIMessage msg) {
-        super(LAVIMessageType.POLL_REQUEST, 0);
+    /**
+     * Construct a PollStart message.
+     * 
+     * @param pollInterval  how often (in 100ms units) for the backend to send 
+     *                      this message; if 0, then it will be sent only once 
+     * @param msg           the message to send
+     */
+    public PollStart(short pollInterval, LAVIMessage msg) {
+        super(LAVIMessageType.POLL_START, 0);
         this.pollInterval = pollInterval;
         this.msg = msg;
     }

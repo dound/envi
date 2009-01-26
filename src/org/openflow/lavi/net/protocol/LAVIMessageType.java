@@ -23,8 +23,11 @@ public enum LAVIMessageType {
     /** Authentication reply */
     AUTH_REPLY((byte)0x03),
     
-    /** Poll registration */
-    POLL_REQUEST((byte)0x0F),
+    /** Tell the backend to start polling a message */
+    POLL_START((byte)0x0E),
+    
+    /** Tell the backend to stop polling a message */
+    POLL_STOP((byte)0x0F),
 
     /** Query for list of switches.  Switch datapath id is ignored. */
     SWITCHES_REQUEST((byte)0x10),
@@ -133,7 +136,8 @@ public enum LAVIMessageType {
 
             case DISCONNECT:
             case AUTH_REPLY:
-            case POLL_REQUEST:
+            case POLL_START:
+            case POLL_STOP:
             case SWITCHES_REQUEST:
             case LINKS_REQUEST:
             case STAT_REQUEST:

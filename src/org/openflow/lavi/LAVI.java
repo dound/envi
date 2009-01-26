@@ -6,7 +6,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.openflow.lavi.drawables.*;
 import org.openflow.lavi.drawables.Link;
 import org.openflow.lavi.drawables.Link.LinkExistsException;
-import org.openflow.lavi.drawables.NodeWithPorts.PortUsedException;
 import org.openflow.lavi.net.*;
 import org.openflow.lavi.net.protocol.*;
 import org.openflow.lavi.net.protocol.auth.*;
@@ -280,9 +279,6 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             }
             catch(LinkExistsException e) {
                 // ignore 
-            }
-            catch(PortUsedException e) {
-                System.err.println("Could not add link: " + e.getMessage());
             }
         }
     }

@@ -7,7 +7,6 @@ import java.awt.Polygon;
 import java.awt.Stroke;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
-import org.openflow.lavi.drawables.NodeWithPorts.PortUsedException;
 import org.openflow.lavi.net.LAVIConnection;
 import org.openflow.lavi.net.protocol.PollStart;
 import org.openflow.lavi.net.protocol.PollStop;
@@ -61,10 +60,8 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      * @param dst                The endpoint of this link.
      * 
      * @throws LinkExistsException  thrown if the link already exists
-     * @throws PortUsedException    thrown if the link is new but the port 
-     *                              either dstPort or srcPort are already used 
      */
-    public Link(NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException, PortUsedException {
+    public Link(NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
         // do not re-create existing links
         if(src.getLinkTo(srcPort, dst, dstPort) != null)
             throw new LinkExistsException("Link construction error: link already exists");
@@ -75,16 +72,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         this.dstPort = dstPort;
         
         src.addLink(this);
-        try {
-            dst.addLink(this);
-        }
-        catch(PortUsedException e) {
-            // undo the addition to src's set of links
-            src.getLinks().remove(this);
-            
-            // re-throw the exception
-            throw e;
-        }
+        dst.addLink(this);
     }
     
     public void drawObject(Graphics2D gfx) {

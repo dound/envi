@@ -72,31 +72,10 @@ public abstract class NodeWithPorts extends Node {
     }
     
     /**
-     * This exception is thrown if more than one link is tried to be 
-     * simultaneously hooked into a single port.
-     */
-    public static class PortUsedException extends Exception {
-        /** default constructor */
-        public PortUsedException() {
-            super();
-        }
-        
-        /** set the message associated with the exception */
-        public PortUsedException(String msg) {
-            super(msg);
-        }
-    }
-    
-    /**
-     * Adds the link to this node if the port is not already used.
+     * Adds the link to this node
      * @param l  the link to add
-     * @throws PortUsedException  thrown if the port link wants to use is already used
      */
-    void addLink(Link l) throws PortUsedException {
-        short p = l.getMyPort(this);
-        if(isPortUsed(p))
-            throw new PortUsedException("port " + p + " is already used on " + this);
-            
+    void addLink(Link l) {
         links.add(l);
     }
     

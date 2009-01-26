@@ -322,7 +322,8 @@ public class LAVIConnection extends Thread {
      */
     public void sendLAVIMessage(LAVIMessage m) throws IOException {
         // get the current connection
-        java.io.DataOutput out = this.conn.out;
+        SocketConnection myConn = this.conn;
+        java.io.DataOutput out = (myConn == null) ? null : myConn.out;
         
         // bail out if we are not connected - TODO: could try to mask this and 
         // buffer calls to this method and send them when we get reconnected

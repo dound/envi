@@ -63,13 +63,14 @@ public class PortStatsRates extends PortStats {
         double pDiff = packetCount - numPackets;
         double bDiff = 8 * (byteCount - numBytes);
         double fDiff = flowCount - numFlows;
-        double tDiff = updateTime - when;
+        double tDiff = when - updateTime;
         
-        double weightOfOld = 1.0 - weightOfNew;
-        
-        packetsPerSec = weightOfNew*(pDiff / tDiff) + weightOfOld*packetsPerSec;
-        bitsPerSec    = weightOfNew*(bDiff / tDiff) + weightOfOld*bitsPerSec;
-        flowsPerSec   = weightOfNew*(fDiff / tDiff) + weightOfOld*flowsPerSec;
+        if(tDiff > 0) {
+            double weightOfOld = 1.0 - weightOfNew;
+            packetsPerSec = weightOfNew*(pDiff / tDiff) + weightOfOld*packetsPerSec;
+            bitsPerSec    = weightOfNew*(bDiff / tDiff) + weightOfOld*bitsPerSec;
+            flowsPerSec   = weightOfNew*(fDiff / tDiff) + weightOfOld*flowsPerSec;
+        }
         
         super.update(packetCount, byteCount, flowCount, when);
     }

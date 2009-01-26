@@ -20,6 +20,9 @@ import org.pzgui.layout.PZLayoutManager;
 import org.pzgui.layout.Vertex;
 
 public class LAVI implements LAVIMessageProcessor, PZClosing {
+    /** temporary until the backend is ready */
+    public static final boolean BACKEND_READY_FOR_POLLING = false;
+    
     /** run the LAVI front-end */
     public static void main(String args[]) {
         String server = null;
@@ -61,7 +64,8 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         // layout the nodes with the spring algorithm by default
         manager.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(manager.getGraph()));
         
-        // TODO: add some sort of Event thread like swing has to process timed reqs? 
+        // remove this and the Thread once the backend supports polling
+        if(BACKEND_READY_FOR_POLLING) return;
         new Thread() {
             public void run() {
                 while(true) {
@@ -73,8 +77,13 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
                 
                     try {
                         if(conn.isConnected())
-                            for(Long dpid : switchesList)
-                                updateStatsForSwitch(dpid);
+                            for(Long dpid : switchesList) {
+                                OpenFlowSwitch o = switchesMap.get(dpid);
+                                if(o == null) return;
+                                
+                                for(Link l : o.getLinks())
+                                    conn.sendLAVIMessage(new AggregateStatsRequest(dpid, l.getMyPort(o)));
+                            }
                     }
                     catch(IOException e) {
                         System.err.println("Unable to request stats: " + e.getMessage());
@@ -82,15 +91,6 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
                 }
             }
         }.start();
-    }
-
-    /** sends an AggregateStatsRequest for each port on the switch at this dpid */
-    public void updateStatsForSwitch(Long dpid) throws IOException { 
-        OpenFlowSwitch o = switchesMap.get(dpid);
-        if(o == null) return;
-        
-        for(Link l : o.getLinks())
-            conn.sendLAVIMessage(new AggregateStatsRequest(dpid, l.getMyPort(o)));
     }
     
     /** shutdown the connection */
@@ -266,6 +266,8 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             OpenFlowSwitch srcSwitch = handleLinkToSwitch(x.srcDPID);
             try {
                 Link l = new Link(dstSwitch, x.dstPort, srcSwitch, x.srcPort);
+                if(!BACKEND_READY_FOR_POLLING)
+                    return;
                 
                 // tell the backend to keep us updated on the link's utilization
                 try {

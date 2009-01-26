@@ -83,6 +83,10 @@ public class SocketConnection implements DataInput, DataOutput {
                 len = i;
         }
         
+        // handle the empty string case
+        if(len == 0)
+            return new String();
+        
         // copy it into an array with no extra space so the string can be constructed
         byte[] strBuf = new byte[len];
         System.arraycopy(buf, 0, strBuf, 0, len);

@@ -229,16 +229,16 @@ public class LAVIConnection extends Thread {
             if(done) return;
             
             if(tries++ > 0) {
-                System.err.println("Retrying to establish connection to LAVI server (try #" + tries + ")...");
+                System.out.println("Retrying to establish connection to LAVI server (try #" + tries + ")...");
                 tryToClose(conn);
             }
             else
-                System.err.println("Trying to establish connection to LAVI server ...");
+                System.out.println("Trying to establish connection to LAVI server ...");
 
             conn = new SocketConnection(serverIP, serverPort);
 
             if(conn.s == null) {
-                System.err.println("Failed to establish connections to LAVI server! (will retry in " + retry_ms/1000.0f  + " seconds)");
+                System.out.println("Failed to establish connections to LAVI server! (will retry in " + retry_ms/1000.0f  + " seconds)");
                 try {
                     Thread.sleep(retry_ms);
                     retry_ms = Math.min(retry_ms*2, RETRY_WAIT_MSEC_MAX);
@@ -248,7 +248,7 @@ public class LAVIConnection extends Thread {
                 }
             }
         }
-        while(conn==null && conn.s==null);
+        while(conn==null || conn.s==null);
         
         System.out.println("Now connected to LAVI server");
         stats.connected();

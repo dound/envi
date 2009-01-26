@@ -136,6 +136,16 @@ public abstract class NodeWithPorts extends Node {
         return null;
     }
     
+    /** Returns a link from this node to the requested node if such a link exists */
+    public Link getDirectedLinkTo(short myPort, NodeWithPorts n, short nPort, boolean nIsDestination) {
+        for(Link l : links)
+            if((nIsDestination && l.getDestination()==n) || (!nIsDestination && l.getSource()==n))
+                if(l.getMyPort(this)==myPort && l.getMyPort(n)==nPort)
+                    return l;
+            
+        return null;
+    }
+    
     /** Gets a link to a neighboring OpenFlowNode with the specified datapath ID. */
     public Link getLinkTo(long dpid) {
         for(Link l : links) {

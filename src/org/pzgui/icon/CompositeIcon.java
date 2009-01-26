@@ -69,8 +69,6 @@ public class CompositeIcon extends Icon {
             cy += cy / 2;
             
             ((Icon)c).draw(gfx, cx, cy, cw, ch);
-            
-            System.err.println(c.getName() + " => " + c.getX()+"," + c.getY() + "::" + c.getWidth() + "x" + c.getHeight() + " ... " + cx + "," + cy + "," + cw + "x" + ch);
         }
     }
     

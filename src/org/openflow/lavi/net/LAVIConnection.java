@@ -250,7 +250,7 @@ public class LAVIConnection extends Thread {
         }
         while(conn==null && conn.s==null);
         
-        System.err.println("Now connected to LAVI server");
+        System.out.println("Now connected to LAVI server");
         stats.connected();
         msgProcessor.connectionStateChange();
         
@@ -384,7 +384,7 @@ public class LAVIConnection extends Thread {
     
     /** closes the connection to the LAVI server */
     private void disconnect() {
-        System.err.println("Disconnecting from the LAVI server");
+        System.out.println("Disconnecting from the LAVI server");
         tryToClose(conn);
         conn = null;
         stats.disconnected();

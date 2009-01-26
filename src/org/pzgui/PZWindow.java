@@ -162,7 +162,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
                     manager.displayIcon("<V> Reset View!", 2000);
                 }
                 else if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    System.err.println("Goodbye");
+                    System.out.println("Goodbye");
                     System.exit(0);
                 }
                 else if(e.getKeyCode() == KeyEvent.VK_PAGE_UP) {

@@ -271,7 +271,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     public void trackStats(int pollInterval_msec, Match m, LAVIConnection conn) throws IOException {
         short pollInterval = (short)(( pollInterval_msec % 100 == 0)
                                      ? pollInterval_msec / 100
-                                     : pollInterval_msec % 100 + 1);
+                                     : pollInterval_msec / 100 + 1);
         
         // build and send the message to get the stats
         AggregateStatsRequest req = new AggregateStatsRequest(src.getDatapathID(), srcPort, m);

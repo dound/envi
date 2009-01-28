@@ -101,6 +101,17 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         gfx.drawLine(src.getX()+offsetX, src.getY()+offsetY, 
                      dst.getX()+offsetX, dst.getY()+offsetY);
         
+        // draw the port numbers
+        double alpha = 0.9;
+        gfx.setPaint(Color.RED);
+        int srcPortX = (int)(alpha*src.getX() + (1.0-alpha)*dst.getX() + offsetX);
+        int srcPortY = (int)(alpha*src.getY() + (1.0-alpha)*dst.getY() + offsetY);
+        gfx.drawString(Short.toString(this.srcPort), srcPortX, srcPortY);
+        gfx.setPaint(Color.GREEN.darker());
+        int dstPortX = (int)(alpha*dst.getX() + (1.0-alpha)*src.getX() + offsetX);
+        int dstPortY = (int)(alpha*dst.getY() + (1.0-alpha)*src.getY() + offsetY);
+        gfx.drawString(Short.toString(this.dstPort), dstPortX, dstPortY);
+        
         // restore the defaults
         gfx.setStroke(s);
         gfx.setPaint(Constants.PAINT_DEFAULT);

@@ -35,23 +35,8 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     /** the GUI window manager */
     private final PZLayoutManager manager;
     
-    
-    
     /** how often to refresh basic port statistics */
-    private static final int statsRefreshRate_msec = 390;
-    
-    // TEMPORARY for qps testing
-    private static final boolean DO_POLLS_PER_PORT = false;
-    private static final int QPS = 100;
-    private static final int NUM_PORTS = 19;
-    private static final int POLLS_PER_PORT = Math.max(1, (int)(QPS / (NUM_PORTS / (statsRefreshRate_msec / 1000.0))));
-    static {
-        if(DO_POLLS_PER_PORT) {
-            System.err.println("POLLS_PER_PORT == " + POLLS_PER_PORT);
-            System.err.println(NUM_PORTS * POLLS_PER_PORT * (1000.0 / statsRefreshRate_msec));
-        }
-    }
-    
+    private int statsRefreshRate_msec = 2000;
     
     /** start the LAVI front-end */
     public LAVI(String server, Short port) {
@@ -257,10 +242,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
                 
                 // tell the backend to keep us updated on the link's utilization
                 try {
-                    if(false) {
-                    for(int i=0; i<(DO_POLLS_PER_PORT ? POLLS_PER_PORT : 1); i++) // TEMPORARY for qps testing
                     l.trackStats(statsRefreshRate_msec, Match.MATCH_ALL, conn);
-                    }
                 }
                 catch (IOException e) {
                     System.err.println("Warning: unable to setup link utilization polling for switch " + 
@@ -360,15 +342,5 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             s.setSwitchDescription(msg);
         else
             System.err.println("Warning: received switch description for unknown switch " + DPIDUtil.toString(msg.dpid));
-    }
-
-    public void pzSpew() {
-        for(Long dpid : this.switchesList) {
-            OpenFlowSwitch o = this.switchesMap.get(dpid);
-            
-            String hw = o.getHWDescription() + "/" + o.getSWDescription();
-            System.err.println(hw);
-            
-        }
     }
 }

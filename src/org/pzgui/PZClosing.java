@@ -7,5 +7,4 @@ package org.pzgui;
  */
 public interface PZClosing {
     public void pzClosing(PZManager manager);
-    public void pzSpew();
 }

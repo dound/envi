@@ -168,6 +168,9 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
                 else if(e.getKeyCode() == KeyEvent.VK_PAGE_UP) {
                     screenshot();
                 }
+                else if(e.getKeyCode() == KeyEvent.VK_PAGE_DOWN) {
+                    manager.spewSwitchInfo();
+                }
                 else if(e.getKeyCode() == KeyEvent.VK_H || e.getKeyChar()=='?') {
                     System.out.println(baseTitle + "\n" +
                                        "    right-click + drag = move a switch\n" +

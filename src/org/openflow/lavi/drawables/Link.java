@@ -71,6 +71,8 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         this.srcPort = srcPort;
         this.dstPort = dstPort;
         
+        System.err.println("src +1 for " + src.toString());
+        
         src.addLink(this);
         dst.addLink(this);
     }
@@ -82,8 +84,8 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         if(ocount == numOtherLinks)
             ocount = -ocount;
         
-        int offsetX = (LINE_WIDTH+2) * ocount;
-        int offsetY = (LINE_WIDTH+2) * ocount;
+        int offsetX = (LINE_WIDTH+2) * ocount * 0;
+        int offsetY = (LINE_WIDTH+2) * ocount * 0;
         
         updateBoundingBox(src.getX()+offsetX, src.getY()+offsetY, 
                           dst.getX()+offsetX, dst.getY()+offsetY);
@@ -106,11 +108,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         gfx.setPaint(Color.RED);
         int srcPortX = (int)(alpha*src.getX() + (1.0-alpha)*dst.getX() + offsetX);
         int srcPortY = (int)(alpha*src.getY() + (1.0-alpha)*dst.getY() + offsetY);
-        gfx.drawString(Short.toString(this.srcPort), srcPortX, srcPortY);
+        //gfx.drawString(Short.toString(this.srcPort), srcPortX, srcPortY);
         gfx.setPaint(Color.GREEN.darker());
         int dstPortX = (int)(alpha*dst.getX() + (1.0-alpha)*src.getX() + offsetX);
         int dstPortY = (int)(alpha*dst.getY() + (1.0-alpha)*src.getY() + offsetY);
-        gfx.drawString(Short.toString(this.dstPort), dstPortX, dstPortY);
+        //gfx.drawString(Short.toString(this.dstPort), dstPortX, dstPortY);
         
         // restore the defaults
         gfx.setStroke(s);
@@ -367,5 +369,10 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
             usage = 1;
         
         this.curDrawColor = new Color(usage, 0f, 0f); 
+        
+        if(usage != 0) {
+            System.err.println("usage => " + usage);
+            System.err.println(getCurrentUtilization() + " !!!");
+        }
     }
 }

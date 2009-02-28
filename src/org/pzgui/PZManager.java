@@ -571,4 +571,10 @@ public class PZManager extends Thread {
                 d.setHovered(true);
         }
     }
+
+    // garbage temp
+    public void spewSwitchInfo() {
+        for(PZClosing x : closingListeners)
+            x.pzSpew();
+    }
 }

@@ -156,12 +156,59 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     private final ConcurrentHashMap<Long, OpenFlowSwitch> switchesMap = new ConcurrentHashMap<Long, OpenFlowSwitch>();
     private final CopyOnWriteArrayList<Long> switchesList = new CopyOnWriteArrayList<Long>();
     
+    /** list of switches which should be displayed as one or more virtual switches */
+    private final ConcurrentHashMap<Long, VirtualSwitchSpecification> virtualSwitches = new ConcurrentHashMap<Long, VirtualSwitchSpecification>();
+    
+    /** add a new display virtualization scheme for a switch */
+    public void addVirtualizedSwitchDisplay(VirtualSwitchSpecification v) {
+        OpenFlowSwitch s = switchesMap.get(v.getParentDPID());
+        if(s != null)
+            removeSwitchDrawable(s);
+        
+        virtualSwitches.put(v.getParentDPID(), v);
+        if(s != null)
+            addSwitchDrawable(s);
+    }
+    
+    /** remove an existing display virtualization scheme for a switch; returns true if such a scheme existed */
+    public boolean removeVirtualizedSwitchDisplay(Long dpid) {
+        OpenFlowSwitch s = switchesMap.get(dpid);
+        if(s != null)
+            removeSwitchDrawable(s);
+        
+        return virtualSwitches.remove(dpid) != null;
+    }
+    
+    /** Tells the manager to draw a switch (or its virtualized switches if it is virtualized). */
+    private void addSwitchDrawable(OpenFlowSwitch s) {
+        VirtualSwitchSpecification v = virtualSwitches.get(s.getDatapathID());
+        if(v == null) {
+            manager.addDrawable(s);
+        }
+        else {
+            for(int i=0; i<v.getNumVirtualSwitches(); i++)
+                manager.addDrawable(v.getVirtualSwitch(i).v);
+        }
+    }
+    
+    /** Tells the manager to stop drawing a switch (or its virtualized switches if it is virtualized). */
+    private void removeSwitchDrawable(OpenFlowSwitch s) {
+        VirtualSwitchSpecification v = virtualSwitches.get(s.getDatapathID());
+        if(v == null) {
+            manager.removeDrawable(s);
+        }
+        else {
+            for(int i=0; i<v.getNumVirtualSwitches(); i++)
+                manager.removeDrawable(v.getVirtualSwitch(i).v);
+        }
+    }
+    
     private OpenFlowSwitch addSwitch(long dpid) {
         OpenFlowSwitch s = new OpenFlowSwitch(dpid);
         switchesMap.put(dpid, s);
         switchesList.add(dpid);
         s.setPos((int)Math.random()*500, (int)Math.random()*500);
-        manager.addDrawable(s);
+        addSwitchDrawable(s);
         
         // get the links associated with this switch
         try {
@@ -197,7 +244,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     private boolean disconnectSwitch(Long dpid) {
         OpenFlowSwitch s = switchesMap.get(dpid);
         if(s != null) {
-            manager.removeDrawable(switchesMap.remove(dpid)); 
+            removeSwitchDrawable(switchesMap.remove(dpid)); 
             switchesList.remove(dpid);
             
             // disconnect all links associated with the switch too
@@ -233,12 +280,33 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         return addSwitch(dpid);
     }
     
+    public Link addLink(NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
+        VirtualSwitchSpecification vDst = virtualSwitches.get(dst.getDatapathID());
+        if(vDst != null) {
+            dst = vDst.getVirtualSwitchByPort(dstPort);
+            if(dst == null)
+                return null; /* ignore unvirtualized ports on a display virtualized switch */
+        }
+        
+        VirtualSwitchSpecification vSrc = virtualSwitches.get(src.getDatapathID());
+        if(vSrc != null) {
+            src = vSrc.getVirtualSwitchByPort(srcPort);
+            if(src == null)
+                return null; /* ignore unvirtualized ports on a display virtualized switch */
+        }
+        
+        Link l = new Link(dst, dstPort, src, srcPort);
+        return l;
+    }
+    
     private void processLinksAdd(LinksAdd msg) {
         for(org.openflow.lavi.net.protocol.Link x : msg.links) {
             OpenFlowSwitch dstSwitch = handleLinkToSwitch(x.dstDPID);
             OpenFlowSwitch srcSwitch = handleLinkToSwitch(x.srcDPID);
             try {
-                Link l = new Link(dstSwitch, x.dstPort, srcSwitch, x.srcPort);
+                Link l = addLink(dstSwitch, x.dstPort, srcSwitch, x.srcPort);
+                if(l == null)
+                    continue;
                 
                 // tell the backend to keep us updated on the link's utilization
                 try {

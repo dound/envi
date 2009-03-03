@@ -2,3 +2,4 @@ bin
 *.class
 .settings
 nbdist
+doc

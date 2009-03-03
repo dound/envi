@@ -87,7 +87,8 @@ public class FlowWildcards {
     /**
      * Returns true if any bits in the bitmask are also set in bitfield.
      * @param bitmask  which bits to check to see if they are set
-     * @return
+     * 
+     * @return true if any of the bits are set
      */
     private boolean isBitsSet(int bitmask) {
         return (bitfield & bitmask) != 0;

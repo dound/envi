@@ -53,4 +53,8 @@
       </classpath>
     </java>
   </target>
+
+  <target name="javadoc">
+    <javadoc access="private" author="true" classpath="lib/jung2-layout-min.jar" destdir="doc" doctitle="of_gui" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" source="1.6" sourcepath="src" splitindex="true" use="true" version="true"/>
+  </target>
 </project>

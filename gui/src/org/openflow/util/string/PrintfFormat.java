@@ -2736,7 +2736,6 @@ public class PrintfFormat {
     /**
      * Check for a conversion character.  If it is
      * there, store it.
-     * @param x the String to format.
      * @return <code>true</code> if the conversion
      *     character is there, and
      *     <code>false</code> otherwise.

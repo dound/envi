@@ -15,14 +15,21 @@ import org.pzgui.Constants;
  */
 public class OpenFlowSwitch extends NodeWithPorts {
     java.awt.Dimension SIZE = new java.awt.Dimension(25, 25);
+    java.awt.Dimension SIZE_BIG = new java.awt.Dimension(40, 40);
     public static final Paint NAME_COLOR = new Color(128, 128, 255);
-    public static final Paint FILL_COLOR = new Color(128, 128, 255);
+    public static final Paint FILL_COLOR_G = new Color(128, 255, 128);
+    public static final Paint FILL_COLOR_B = new Color(128, 128, 255);
     
     private long datapathID;
     private static final double OUTLINE_RATIO = 4.0 / 3.0;
     
     private String manufacturer="?", hw_desc="?", sw_desc="?", serial_num="?";
     private long descUpdateTime = 0;
+    
+    // drawing-specific
+    private java.awt.Dimension size = SIZE;
+    private Paint fillColor = FILL_COLOR_B;
+    
     
     public OpenFlowSwitch(long dpid) {
         this("", 0, 0, dpid);
@@ -52,8 +59,8 @@ public class OpenFlowSwitch extends NodeWithPorts {
             outlineColor = null;
         
         if(outlineColor != null) {
-            double w = SIZE.width * OUTLINE_RATIO;
-            double h = SIZE.height * OUTLINE_RATIO;
+            double w = size.width * OUTLINE_RATIO;
+            double h = size.height * OUTLINE_RATIO;
             Ellipse2D.Double outline = new Ellipse2D.Double(getX()-w/2, getY()-h/2, w, h);
             
             gfx.draw(outline);
@@ -62,14 +69,14 @@ public class OpenFlowSwitch extends NodeWithPorts {
             gfx.setPaint(Constants.PAINT_DEFAULT);
         }
         
-        int x = getX() - SIZE.width / 2;
-        int y = getY() - SIZE.height / 2;
-        gfx.drawOval(x, y, SIZE.width, SIZE.height);
-        gfx.setPaint(FILL_COLOR);
-        gfx.fillOval(x, y, SIZE.width, SIZE.height);
+        int x = getX() - size.width / 2;
+        int y = getY() - size.height / 2;
+        gfx.drawOval(x, y, size.width, size.height);
+        gfx.setPaint(fillColor);
+        gfx.fillOval(x, y, size.width, size.height);
         
         gfx.setPaint(NAME_COLOR);
-        int textYOffset = -SIZE.height / 2 + 2;
+        int textYOffset = -size.height / 2 + 2;
         if(isStringSet(getName()))
             drawName(gfx, getX(), getY() - textYOffset, getY() + textYOffset);
         else
@@ -105,7 +112,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
     }
     
     public java.awt.Dimension getSize() {
-        return SIZE;
+        return size;
     }
     
     public String getDebugName() {
@@ -144,6 +151,15 @@ public class OpenFlowSwitch extends NodeWithPorts {
         sw_desc = stats.sw_desc;
         serial_num = stats.serial_num;
         descUpdateTime = System.currentTimeMillis();
+        
+        if(manufacturer.contains("Nicira")) {
+            fillColor = FILL_COLOR_G;
+            size = SIZE;
+        }
+        else {
+            fillColor = FILL_COLOR_B;
+            size = SIZE_BIG;
+        }
     }
     
     public boolean isWithin(int x, int y) {

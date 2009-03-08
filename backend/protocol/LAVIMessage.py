@@ -294,11 +294,115 @@ class LinksSubscribe(Subscribe):
     def __str__(self):
         return 'LINKS_' + Subscribe.__str__(self)
 
+class ETTrafficMatrix(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0xF0
+
+    def __init__(self, xid, demand, edge, agg, plen):
+        LAVIMessage.__init__(self, xid)
+        self.demand = int(demand)
+        self.edge   = int(edge)
+        self.agg    = int(agg)
+        self.plen   = int(plen)
+
+    def length(self):
+        return LAVIMessage.SIZE + 16
+
+    def pack(self):
+        return LAVIMessage.pack(self) + struct.pack('> 4I', self.demand, self.edge, self.agg, self.plen)
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        t = struct.unpack('> 4I', body[:4])
+        return ETTrafficMatrix(xid, t[0], t[1], t[2], t[3])
+
+    def __str__(self):
+        fmt = 'ET_TRAFFIC_MATRIX: ' + LAVIMessage.__str__(self) + " demand=%u edge=%u agg=%u plen=%u"
+        return fmt % (self.demand, self.edge, self.agg, self.plen)
+
+class ETLinkUtil(Link):
+    SIZE = Link.SIZE + 4
+
+    def __init__(self, src_dpid, src_port, dst_dpid, dst_port, util):
+        Link.__init__(self, src_dpid, src_port, dst_dpid, dst_port)
+        self.util = float(util)
+
+    def pack(self):
+        return struct.pack('> QSQSf', self.src_dpid, self.src_port, self.dst_dpid, self.dst_port, self.util)
+
+    @staticmethod
+    def unpack(buf):
+        t = struct.unpack('> QSQS', buf[:20])
+        return Link(t[0], t[1], t[2], t[3])
+
+class ETLinkUtils(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0xF1
+
+    def __init__(self, xid, utils):
+        LAVIMessage.__init__(self, xid)
+        self.utils = utils
+
+    def length(self):
+        return LAVIMessage.SIZE + self.utils * ETLinkUtil.SIZE
+
+    def pack(self):
+        hdr = LAVIMessage.pack(self)
+        return hdr + ''.join([util.pack() for util in self.utils])
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        num_utils = len(body) / ETLinkUtil.SIZE
+        utils = []
+        for _ in range(num_utils):
+            utils.append(Link.unpack(body[:ETLinkUtil.SIZE]))
+            body = body[ETLinkUtil.SIZE:]
+        return ETLinkUtils(xid, utils)
+
+    def __str__(self):
+        return 'ET_LINK_UTILS: ' + LAVIMessage.__str__(self) + ' utils=' % str(self.utils)
+
+class ETPowerUsage(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0xF2
+
+    def __init__(self, xid, volts_current, volts_max):
+        LAVIMessage.__init__(self, xid)
+        self.volts_current = int(volts_current)
+        self.volts_max = int(volts_max)
+
+    def length(self):
+        return LAVIMessage.SIZE + 8
+
+    def pack(self):
+        return LAVIMessage.pack(self) + struct.pack('> 2I', self.volts_current, self.volts_max)
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        volts_current = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        volts_max = struct.unpack('> I', body[:4])[0]
+        return ETPowerUsage(xid, volts_current, volts_max)
+
+    def __str__(self):
+        fmt = 'ET_POWER_USAGE: ' + LAVIMessage.__str__(self) + " cur=%u max=%u"
+        return fmt % (self.volts_current, self.volts_max)
+
 LAVI_PROTOCOL = LTProtocol([Disconnect,
                             PollStart, PollStop,
                             SwitchesRequest, SwitchesAdd, SwitchesDel,
                             LinksRequest, LinksAdd, LinksDel,
-                            SwitchesSubscribe, LinksSubscribe],
+                            SwitchesSubscribe, LinksSubscribe,
+                            ETTrafficMatrix, ETLinkUtils, ETPowerUsage],
                            'H', 'B')
 
 if __name__ == "__main__":

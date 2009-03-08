@@ -114,10 +114,19 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             processStatReply((StatsHeader)msg);
             break;
             
+        case ET_LINK_UTILS:
+            System.err.println("not yet implemented: ignoring ET_LINK_UTILS: " + msg.toString());
+            break;
+            
+        case ET_POWER_USAGE:
+            System.err.println("not yet implemented: ignoring ET_POWER_USAGE: " + msg.toString());
+            break;
+            
         case AUTH_REPLY:
         case SWITCHES_REQUEST:
         case LINKS_REQUEST:
         case STAT_REQUEST:
+        case ET_TRAFFIX_MATRIX:
             System.err.println("Received unexpected message type: " + msg.type.toString());
             
         default:

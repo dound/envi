@@ -300,3 +300,14 @@ LAVI_PROTOCOL = LTProtocol([Disconnect,
                             LinksRequest, LinksAdd, LinksDel,
                             SwitchesSubscribe, LinksSubscribe],
                            'H', 'B')
+
+if __name__ == "__main__":
+    # test: simply print out all received messages
+    def print_ltm(ltm):
+        print 'recv: %s' % str(ltm)
+
+    from ltprotocol.ltprotocol import LTTwistedServer
+    from twisted.internet import reactor
+    server = LTTwistedServer(LAVI_PROTOCOL, lambda m : print_ltm(m))
+    server.listen(2503)
+    reactor.run()

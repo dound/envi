@@ -38,6 +38,10 @@ public class ETTrafficMatrix extends LAVIMessage {
     }
     
     public String toString() {
-        return super.toString() + TSSEP + "demand=" + demand + " edge=" + edge + "agg=" + agg + " plen=" + plen;
+        return super.toString() + TSSEP + toStringShort();
+    }
+
+    public String toStringShort() {
+        return "demand=" + demand + " edge=" + edge + "agg=" + agg + " plen=" + plen;
     }
 }

@@ -259,14 +259,14 @@ class Subscribe(LAVIMessage):
         return LAVIMessage.SIZE + 1
 
     def pack(self):
-        return LAVIMessage.pack(self) + struct.pack('> ?', self.subscribe)
+        return LAVIMessage.pack(self) + struct.pack('> B', (1 if self.subscribe else 0))
 
     @staticmethod
     def unpack(body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        subscribe = struct.unpack('> ?', body[:1])[0]
-        return SwitchesSubscribe(xid, subscribe)
+        subscribe = struct.unpack('> B', body[:1])[0]
+        return SwitchesSubscribe(xid, True if subscribe==1 else False)
 
     def __str__(self):
         what = '' if self.subscribe else 'un'

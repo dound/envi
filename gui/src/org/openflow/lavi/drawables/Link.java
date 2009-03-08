@@ -284,9 +284,28 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         else
             conn.sendLAVIMessage(req);
         
+        trackStats(m, req.xid, isPolling);
+    }
+    
+    /**
+     * Tells the link to setup stats for specified Match but do not acquire them automatically.
+     * @param m  the match to setup stats for
+     */
+    public PortStatsRates trackStats(Match m) {
+        return trackStats(m, 0, false);
+    }
+    
+    /**
+     * Tells the link to setup stats for specified Match but do not acquire them automatically.
+     * @param m  the match to setup stats for
+     * @param xid  the xid of the request which is acquiring stats for m
+     * @param isPolling  whether the stats are being polled with xid
+     */
+    public PortStatsRates trackStats(Match m, int xid, boolean isPolling) {
         // remember that we are interested in these stats
-        LinkStatsInfo lsi = new LinkStatsInfo(req.xid, isPolling, new PortStatsRates(m));
+        LinkStatsInfo lsi = new LinkStatsInfo(xid, isPolling, new PortStatsRates(m));
         stats.put(m, lsi);
+        return lsi.stats;
     }
     
     /**

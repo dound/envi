@@ -299,4 +299,4 @@ LAVI_PROTOCOL = LTProtocol([Disconnect,
                             SwitchesRequest, SwitchesAdd, SwitchesDel,
                             LinksRequest, LinksAdd, LinksDel,
                             SwitchesSubscribe, LinksSubscribe],
-                           'S', 'B')
+                           'H', 'B')

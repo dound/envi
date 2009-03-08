@@ -27,6 +27,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     public static final int LINE_WIDTH = 2;
     public static final BasicStroke LINE_DEFAULT_STROKE = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     public static final BasicStroke LINE_OUTLINE_STROKE = new BasicStroke(LINE_WIDTH+1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    public static boolean DRAW_PORT_NUMBERS = false;
     
     /** link endpoints */
     protected NodeWithPorts src;
@@ -102,15 +103,17 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
                      dst.getX()+offsetX, dst.getY()+offsetY);
         
         // draw the port numbers
-        double alpha = 0.9;
-        gfx.setPaint(Color.RED);
-        int srcPortX = (int)(alpha*src.getX() + (1.0-alpha)*dst.getX() + offsetX);
-        int srcPortY = (int)(alpha*src.getY() + (1.0-alpha)*dst.getY() + offsetY);
-        gfx.drawString(Short.toString(this.srcPort), srcPortX, srcPortY);
-        gfx.setPaint(Color.GREEN.darker());
-        int dstPortX = (int)(alpha*dst.getX() + (1.0-alpha)*src.getX() + offsetX);
-        int dstPortY = (int)(alpha*dst.getY() + (1.0-alpha)*src.getY() + offsetY);
-        gfx.drawString(Short.toString(this.dstPort), dstPortX, dstPortY);
+        if(DRAW_PORT_NUMBERS) {
+            double alpha = 0.9;
+            gfx.setPaint(Color.RED);
+            int srcPortX = (int)(alpha*src.getX() + (1.0-alpha)*dst.getX() + offsetX);
+            int srcPortY = (int)(alpha*src.getY() + (1.0-alpha)*dst.getY() + offsetY);
+            gfx.drawString(Short.toString(this.srcPort), srcPortX, srcPortY);
+            gfx.setPaint(Color.GREEN.darker());
+            int dstPortX = (int)(alpha*dst.getX() + (1.0-alpha)*src.getX() + offsetX);
+            int dstPortY = (int)(alpha*dst.getY() + (1.0-alpha)*src.getY() + offsetY);
+            gfx.drawString(Short.toString(this.dstPort), dstPortX, dstPortY);
+        }
         
         // restore the defaults
         gfx.setStroke(s);

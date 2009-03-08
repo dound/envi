@@ -5,7 +5,7 @@ class LAVIMessage(LTMessage):
     SIZE = 4
 
     def __init__(self, xid):
-        LTMessage.__init__(self, xid)
+        LTMessage.__init__(self)
         self.xid = xid
 
     def length(self):
@@ -27,7 +27,7 @@ class Disconnect(LAVIMessage):
         return 0x00
 
     def __init__(self, xid):
-        LAVIMessage.__init__(xid)
+        LAVIMessage.__init__(self, xid)
 
     def __str__(self):
         return 'DISCONNECT: ' + LAVIMessage.__str__(self)
@@ -38,7 +38,7 @@ class PollStart(LAVIMessage):
         return 0x0E
 
     def __init__(self, xid, interval_in_100ms_units, lm):
-        LAVIMessage.__init__(xid)
+        LAVIMessage.__init__(self, xid)
         self.interval = interval_in_100ms_units
         self.lm = lm
 
@@ -73,7 +73,7 @@ class PollStop(LAVIMessage):
         return 0x0F
 
     def __init__(self, xid, xid_to_stop_polling):
-        LAVIMessage.__init__(xid)
+        LAVIMessage.__init__(self, xid)
         self.xid_to_stop_polling = xid_to_stop_polling
 
     def length(self):
@@ -98,7 +98,7 @@ class SwitchesRequest(LAVIMessage):
         return 0x10
 
     def __init__(self, xid):
-        LAVIMessage.__init__(xid)
+        LAVIMessage.__init__(self, xid)
 
     def __str__(self):
         return 'SWITCHES_REQUEST: ' + LAVIMessage.__str__(self)
@@ -154,7 +154,7 @@ class LinksRequest(LAVIMessage):
         return 0x13
 
     def __init__(self, xid, src_dpid):
-        LAVIMessage.__init__(xid)
+        LAVIMessage.__init__(self, xid)
         self.src_dpid = src_dpid
 
     def length(self):
@@ -252,7 +252,7 @@ class Subscribe(LAVIMessage):
         return 0x16
 
     def __init__(self, xid, subscribe):
-        LAVIMessage.__init__(xid)
+        LAVIMessage.__init__(self, xid)
         self.subscribe = subscribe
 
     def length(self):
@@ -278,7 +278,7 @@ class SwitchesSubscribe(Subscribe):
         return 0x17
 
     def __init__(self, xid, subscribe):
-        Subscribe.__init__(xid, subscribe)
+        Subscribe.__init__(self, xid, subscribe)
 
     def __str__(self):
         return 'SWITCHES_' + Subscribe.__str__(self)
@@ -289,7 +289,7 @@ class LinksSubscribe(Subscribe):
         return 0x17
 
     def __init__(self, xid, subscribe):
-        Subscribe.__init__(xid, subscribe)
+        Subscribe.__init__(self, xid, subscribe)
 
     def __str__(self):
         return 'LINKS_' + Subscribe.__str__(self)

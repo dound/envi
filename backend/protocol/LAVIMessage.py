@@ -21,6 +21,17 @@ class LAVIMessage(LTMessage):
     def __str__(self):
         return "xid=%u" % str(self.xid)
 
+class Disconnect(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0x00
+
+    def __init__(self, xid):
+        LAVIMessage.__init__(xid)
+
+    def __str__(self):
+        return 'DISCONNECT: ' + LAVIMessage.__str__(self)
+
 class SwitchesRequest(LAVIMessage):
     @staticmethod
     def get_type():
@@ -175,6 +186,7 @@ class LinksDel(LinksList):
     def __str__(self):
         return 'LINKS_DEL: ' + LinksList.__str__(self)
 
-LAVI_PROTOCOL = LTProtocol([SwitchesRequest, SwitchesAdd, SwitchesDel,
+LAVI_PROTOCOL = LTProtocol([Disconnect,
+                            SwitchesRequest, SwitchesAdd, SwitchesDel,
                             LinksRequest, LinksAdd, LinksDel],
                            'S', 'B')

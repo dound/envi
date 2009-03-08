@@ -275,7 +275,7 @@ class Subscribe(LAVIMessage):
 class SwitchesSubscribe(Subscribe):
     @staticmethod
     def get_type():
-        return 0x17
+        return 0x16
 
     def __init__(self, xid, subscribe):
         Subscribe.__init__(self, xid, subscribe)

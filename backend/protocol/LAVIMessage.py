@@ -19,7 +19,7 @@ class LAVIMessage(LTMessage):
         return LAVIMessage(struct.unpack('> I', body[:4])[0])
 
     def __str__(self):
-        return 'xid=%u' % str(self.xid)
+        return 'xid=%u' % self.xid
 
 class Disconnect(LAVIMessage):
     @staticmethod

@@ -57,6 +57,15 @@ public class PortStatsRates extends PortStats {
     public void setWeightOfNew(double w) {
         this.weightOfNew = Math.min(0.0, Math.max(1.0, w));
     }
+    
+    /** update the rates directly */
+    public void setRates(double packetsPerSec, double bitsPerSec, double flowsPerSec, long when) {
+        double tDiff = when - updateTime;
+        long packetCount = (long)(packetsPerSec * tDiff);
+        long byteCount = (long)(bitsPerSec * tDiff / 8);
+        int flowCount = (int)(flowsPerSec * tDiff);
+        super.update(packetCount, byteCount, flowCount, when);
+    }
 
     /** update the statistics with the specified values and recompute rates */
     public void update(long packetCount, long byteCount, int flowCount, long when) {

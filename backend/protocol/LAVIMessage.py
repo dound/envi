@@ -247,10 +247,6 @@ class LinksDel(LinksList):
         return 'LINKS_DEL: ' + LinksList.__str__(self)
 
 class Subscribe(LAVIMessage):
-    @staticmethod
-    def get_type():
-        return 0x16
-
     def __init__(self, xid, subscribe):
         LAVIMessage.__init__(self, xid)
         self.subscribe = subscribe
@@ -266,11 +262,11 @@ class Subscribe(LAVIMessage):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
         subscribe = struct.unpack('> B', body[:1])[0]
-        return SwitchesSubscribe(xid, True if subscribe==1 else False)
+        return (xid, True if subscribe==1 else False)
 
     def __str__(self):
-        what = '' if self.subscribe else 'un'
-        return 'SUBSCRIBE: ' + LAVIMessage.__str__(self) + what + 'subscribe'
+        what = ' ' if self.subscribe else ' un'
+        return 'SUBSCRIBE: ' + LAVIMessage.__str__(self) + what + 'subscribe' + ' ' + str(self.get_type())
 
 class SwitchesSubscribe(Subscribe):
     @staticmethod
@@ -279,6 +275,11 @@ class SwitchesSubscribe(Subscribe):
 
     def __init__(self, xid, subscribe):
         Subscribe.__init__(self, xid, subscribe)
+
+    @staticmethod
+    def unpack(body):
+        t = Subscribe.unpack(body)
+        return SwitchesSubscribe(t[0], t[1])
 
     def __str__(self):
         return 'SWITCHES_' + Subscribe.__str__(self)
@@ -290,6 +291,11 @@ class LinksSubscribe(Subscribe):
 
     def __init__(self, xid, subscribe):
         Subscribe.__init__(self, xid, subscribe)
+
+    @staticmethod
+    def unpack(body):
+        t = Subscribe.unpack(body)
+        return LinksSubscribe(t[0], t[1])
 
     def __str__(self):
         return 'LINKS_' + Subscribe.__str__(self)

@@ -37,6 +37,21 @@ public class ETTrafficMatrix extends LAVIMessage {
         out.writeInt(plen);
     }
     
+    public boolean equals(Object o) {
+        if(o == null) return false;
+        if(!(o instanceof ETTrafficMatrix)) return false;
+        ETTrafficMatrix em = (ETTrafficMatrix)o;
+        return(demand==em.demand && edge==em.edge && agg==em.agg && plen==em.plen);
+    }
+    
+    public int hashCode() {
+        int hash = 29;
+        hash *= demand;
+        hash = hash * 32 + edge;
+        hash = hash * 32 + agg;
+        return hash * 32 + plen;
+    }
+    
     public String toString() {
         return super.toString() + TSSEP + toStringShort();
     }

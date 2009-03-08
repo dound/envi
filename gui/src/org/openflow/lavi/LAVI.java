@@ -14,11 +14,10 @@ import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
 import org.pzgui.PZClosing;
 import org.pzgui.PZManager;
-import org.pzgui.layout.Edge;
-import org.pzgui.layout.PZLayoutManager;
-import org.pzgui.layout.Vertex;
+import org.pzgui.layout.ElasticTreeManager;
+import org.pzgui.layout.TrafficMatrixChangeListener;
 
-public class LAVI implements LAVIMessageProcessor, PZClosing {
+public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChangeListener {
     /** run the LAVI front-end */
     public static void main(String args[]) {
         String server = null;
@@ -33,7 +32,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     private final LAVIConnection conn;
     
     /** the GUI window manager */
-    private final PZLayoutManager manager;
+    private final ElasticTreeManager manager;
     
     /** how often to refresh basic port statistics */
     private int statsRefreshRate_msec = 2000;
@@ -55,15 +54,16 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             conn = new LAVIConnection(this, server, port);
 
         // fire up the GUI
-        manager = new PZLayoutManager();
+        manager = new ElasticTreeManager(6);
         manager.addClosingListener(this);
+        manager.addTrafficMatrixChangeListener(this);
         manager.start();
         
         // try to connect to the backend
         conn.start();
         
-        // layout the nodes with the spring algorithm by default
-        manager.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(manager.getGraph()));
+        // start the update sender
+        tmSender.start();
     }
     
     /** shutdown the connection */
@@ -419,5 +419,69 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             s.setSwitchDescription(msg);
         else
             System.err.println("Warning: received switch description for unknown switch " + DPIDUtil.toString(msg.dpid));
+    }
+
+    
+    /**
+     * Periodically sends any update to the traffic matrix.
+     */
+    private class TrafficMatrixUpdateSender extends Thread {
+        private static final int MIN_DELAY_BTWN_UPDATES_MS = 3000;
+        private ETTrafficMatrix tmNext = null;
+        private ETTrafficMatrix tmLastSent = null;
+        private long lastSentTime = 0;
+        
+        
+        public synchronized void setTrafficMatrix(ETTrafficMatrix tm) {
+            this.tmNext = tm;
+            manager.setNextTrafficMatrixText(tm);
+        }
+        
+        public void run() {
+            while(true) {
+                // wait until it is appropriate to send another update
+                long now = System.currentTimeMillis();
+                while(lastSentTime + MIN_DELAY_BTWN_UPDATES_MS > now) {
+                    try {
+                        Thread.sleep(now - lastSentTime - MIN_DELAY_BTWN_UPDATES_MS);
+                    }
+                    catch(InterruptedException e) {}
+                    now = System.currentTimeMillis();
+                }
+                
+                if(!send())
+                    System.err.println("unable to send the change");
+                else
+                    lastSentTime = System.currentTimeMillis();
+            }
+        }
+    
+        private synchronized boolean send() {
+            ETTrafficMatrix tm;
+            if(tmNext == null)
+                return true;
+            else if(tmNext.equals(tmLastSent))
+                return true;
+            else
+                tm = tmNext;
+            
+            try {
+                conn.sendLAVIMessage(tm);
+            } catch (IOException e) {
+                System.err.println("Warning: unable to send traffix matrix update: " + tm);
+                return false;
+            }
+            manager.setCurrentTrafficMatrixText(tm);
+            manager.setNextTrafficMatrixText(null);
+            tmNext = null;
+            tmLastSent = tm;
+            return true;
+        }
+    }
+    
+    private final TrafficMatrixUpdateSender tmSender = new TrafficMatrixUpdateSender();
+    
+    public void trafficMatrixChanged(ETTrafficMatrix tm) {
+        tmSender.setTrafficMatrix(tm);
     }
 }

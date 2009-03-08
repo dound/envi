@@ -32,6 +32,66 @@ class Disconnect(LAVIMessage):
     def __str__(self):
         return 'DISCONNECT: ' + LAVIMessage.__str__(self)
 
+class PollStart(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0x0E
+
+    def __init__(self, xid, interval_in_100ms_units, lm):
+        LAVIMessage.__init__(xid)
+        self.interval = interval_in_100ms_units
+        self.lm = lm
+
+    def length(self):
+        return LAVIMessage.SIZE + 2 + self.lm.length()
+
+    def pack(self):
+        return LAVIMessage.pack(self) + struct.pack('> S', self.interval) + self.lm.pack()
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        interval = struct.unpack('> S', body[:2])[0]
+        body = body[2:]
+
+        _ = struct.unpack('> S', body[:2])[0]  # inner message length
+        body = body[2:]
+        type_val = struct.unpack('> B', body[1:])[0]
+        body = body[1:]
+        lm = LAVI_PROTOCOL.unpck_received_msg(type_val, body)
+
+        return PollStart(xid, interval, lm)
+
+    def __str__(self):
+        fmt = 'POLL_START: ' + LAVIMessage.__str__(self) + ' interval=%s msg=%s'
+        return fmt % (self.interval, str(self.lm))
+
+class PollStop(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0x0F
+
+    def __init__(self, xid, xid_to_stop_polling):
+        LAVIMessage.__init__(xid)
+        self.xid_to_stop_polling = xid_to_stop_polling
+
+    def length(self):
+        return LAVIMessage.SIZE + 4
+
+    def pack(self):
+        return LAVIMessage.pack(self) + struct.pack('> I', self.xid_to_stop_polling)
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        xid_to_stop_polling = struct.unpack('> I', body[:4])[0]
+        return PollStop(xid, xid_to_stop_polling)
+
+    def __str__(self):
+        return 'POLL_STOP: ' + LAVIMessage.__str__(self) + ' xid_to_stop_polling=' + self.xid_to_stop_polling
+
 class SwitchesRequest(LAVIMessage):
     @staticmethod
     def get_type():
@@ -235,6 +295,7 @@ class LinksSubscribe(Subscribe):
         return 'LINKS_' + Subscribe.__str__(self)
 
 LAVI_PROTOCOL = LTProtocol([Disconnect,
+                            PollStart, PollStop,
                             SwitchesRequest, SwitchesAdd, SwitchesDel,
                             LinksRequest, LinksAdd, LinksDel,
                             SwitchesSubscribe, LinksSubscribe],

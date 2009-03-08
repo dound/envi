@@ -9,6 +9,7 @@ import org.openflow.lavi.drawables.Link.LinkExistsException;
 import org.openflow.lavi.net.*;
 import org.openflow.lavi.net.protocol.*;
 import org.openflow.lavi.net.protocol.auth.*;
+import org.openflow.lavi.stats.PortStatsRates;
 import org.openflow.protocol.*;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
@@ -115,7 +116,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             break;
             
         case ET_LINK_UTILS:
-            System.err.println("not yet implemented: ignoring ET_LINK_UTILS: " + msg.toString());
+            processLinkUtils((ETLinkUtilsList)msg);
             break;
             
         case ET_POWER_USAGE:
@@ -483,6 +484,38 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     
     public void trafficMatrixChanged(ETTrafficMatrix tm) {
         tmSender.setTrafficMatrix(tm);
+    }
+
+    private void processLinkUtils(ETLinkUtilsList msg) {
+        for(org.openflow.lavi.net.protocol.ETLinkUtil x : msg.utils)
+            processLinkUtil(x.srcDPID, x.srcPort, x.dstDPID, x.dstPort, x.util, msg.timeCreated);
+    }
+    
+    private void processLinkUtil(long dstDPID, short dstPort, long srcDPID, short srcPort, float util, long when) {
+        OpenFlowSwitch srcSwitch = switchesMap.get(srcDPID);
+        if(srcSwitch == null) {
+            logLinkMissing("src switch", dstDPID, dstPort, srcDPID, srcPort);
+            return;
+        }
+        
+        OpenFlowSwitch dstSwitch = switchesMap.get(dstDPID);
+        if(dstSwitch == null) {
+            logLinkMissing("dst switch", dstDPID, dstPort, srcDPID, srcPort);
+            return;
+        }
+        
+        Link existingLink = dstSwitch.getLinkTo(dstPort, srcSwitch, srcPort);
+        if(existingLink != null) {
+            PortStatsRates psr = existingLink.getStats(Match.MATCH_ALL);
+            if(psr == null)
+                psr = existingLink.trackStats(Match.MATCH_ALL);
+            
+            double bps = util * existingLink.getMaximumDataRate();
+            double pps = bps / (1500*8); // assumes 1500B packets
+            psr.setRates(pps, bps, 0, when);
+        }
+        else
+            logLinkMissing("link", dstDPID, dstPort, srcDPID, srcPort);
     }
 
     private void processPowerUsage(ETPowerUsage msg) {

@@ -91,8 +91,12 @@ public class ElasticTreeManager extends PZLayoutManager {
         lblPLenVal.setBounds(x, LBL_Y+LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
         
         x += SL_WIDTH + GAP_X;
-        lblTrafficMatrixCurrent.setBounds(x, LBL_Y, LBL_WIDTH, LBL_HEIGHT);
-        lblTrafficMatrixNext.setBounds(x, LBL_Y+LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
+        y = LBL_Y;
+        lblTrafficMatrixCurrent.setBounds(x, y, LBL_WIDTH, LBL_HEIGHT);
+        y += LBL_HEIGHT;
+        lblTrafficMatrixNext.setBounds(x, y, LBL_WIDTH, LBL_HEIGHT);
+        y += LBL_HEIGHT;
+        lblPower.setBounds(x, y, LBL_WIDTH, LBL_HEIGHT);
     }
     
     /**
@@ -120,6 +124,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         lblPLenVal.repaint();
         lblTrafficMatrixCurrent.repaint();
         lblTrafficMatrixNext.repaint();
+        lblPower.repaint();
     }
 
     
@@ -163,6 +168,16 @@ public class ElasticTreeManager extends PZLayoutManager {
     public void setNextTrafficMatrixText(ETTrafficMatrix tm) {
         String s = (tm == null) ? "n/a" : tm.toStringShort();
         lblTrafficMatrixNext.setText("Next Traffic Matrix: " + s);
+    }
+
+    private int current_volts;
+    private int max_volts;
+    private JLabel lblPower = new JLabel("0V / 0V");
+
+    public void setPowerData(int currentV, int maxV) {
+        current_volts = currentV;
+        max_volts = maxV;
+        lblPower.setText(current_volts + "V / " + max_volts + "V");
     }
     
     // --- Traffic Matrix Change Handling --- //

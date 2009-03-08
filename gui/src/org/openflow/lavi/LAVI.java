@@ -119,7 +119,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             break;
             
         case ET_POWER_USAGE:
-            System.err.println("not yet implemented: ignoring ET_POWER_USAGE: " + msg.toString());
+            processPowerUsage((ETPowerUsage)msg);
             break;
             
         case AUTH_REPLY:
@@ -483,5 +483,9 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     
     public void trafficMatrixChanged(ETTrafficMatrix tm) {
         tmSender.setTrafficMatrix(tm);
+    }
+
+    private void processPowerUsage(ETPowerUsage msg) {
+        manager.setPowerData(msg.volts_current, msg.volts_max);
     }
 }

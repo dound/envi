@@ -12,14 +12,14 @@ class LAVIMessage(LTMessage):
         return self.SIZE
 
     def pack(self):
-        return struct.pack("> I", self.xid)
+        return struct.pack('> I', self.xid)
 
     @staticmethod
     def unpack(body):
-        return LAVIMessage(struct.unpack("> I", body)[0])
+        return LAVIMessage(struct.unpack('> I', body[:4])[0])
 
     def __str__(self):
-        return "xid=%u" % str(self.xid)
+        return 'xid=%u' % str(self.xid)
 
 class Disconnect(LAVIMessage):
     @staticmethod
@@ -52,11 +52,11 @@ class SwitchesList(LAVIMessage):
         return LAVIMessage.SIZE + self.dpids * 8
 
     def pack(self):
-        return LAVIMessage.pack(self) + ''.join([struct.pack("> Q", dpid) for dpid in self.dpids])
+        return LAVIMessage.pack(self) + ''.join([struct.pack('> Q', dpid) for dpid in self.dpids])
 
     @staticmethod
     def unpack(body):
-        xid = struct.unpack("> I", body)[0]
+        xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
         num_dpids = len(body) / 8
         fmt = '> %uQ' % num_dpids
@@ -64,7 +64,7 @@ class SwitchesList(LAVIMessage):
         return SwitchesList(xid, dpids)
 
     def __str__(self):
-        return LAVIMessage.__str__(self) + " dpids=" % str(self.dpids)
+        return LAVIMessage.__str__(self) + ' dpids=' % str(self.dpids)
 
 class SwitchesAdd(SwitchesList):
     @staticmethod
@@ -105,13 +105,13 @@ class LinksRequest(LAVIMessage):
 
     @staticmethod
     def unpack(body):
-        xid = struct.unpack('> I', body)[0]
+        xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        src_dpid = struct.unpack('> Q', body)[0]
+        src_dpid = struct.unpack('> Q', body[:8])[0]
         return LinksRequest(xid, src_dpid)
 
     def __str__(self):
-        return 'LINKS_REQUEST: ' + LAVIMessage.__str__(self) + " src_dpid=" + self.src_dpid
+        return 'LINKS_REQUEST: ' + LAVIMessage.__str__(self) + ' src_dpid=' + self.src_dpid
 
 class Link:
     SIZE = 20
@@ -127,7 +127,7 @@ class Link:
 
     @staticmethod
     def unpack(src_dpid, buf):
-        t = struct.unpack('> SQS', buf)
+        t = struct.unpack('> SQS', buf[:12])
         return Link(src_dpid, t[1], t[2], t[3])
 
 class LinksList(LAVIMessage):
@@ -144,25 +144,25 @@ class LinksList(LAVIMessage):
             src_dpid = self.links[0].src_dpid
             for dpid in self.links:
                 if src_dpid != dpid:
-                    raise AssertionError("not all dpids match in LinksList.links: " + str(self.links))
+                    raise AssertionError('not all dpids match in LinksList.links: ' + str(self.links))
         hdr = LAVIMessage.pack(self) + struct.pack('> Q', src_dpid)
         return hdr + ''.join([link.pack() for link in self.links])
 
     @staticmethod
     def unpack(body):
-        xid = struct.unpack('> I', body)[0]
+        xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        src_dpid = struct.unpack('> Q', body)[0]
+        src_dpid = struct.unpack('> Q', body[:8])[0]
         body = body[8:]
         num_links = len(body) / 12
         links = []
         for _ in range(num_links):
-            links.append(Link.unpack(src_dpid, body))
+            links.append(Link.unpack(src_dpid, body[:12]))
             body = body[12:]
         return LinksList(xid, links)
 
     def __str__(self):
-        return LAVIMessage.__str__(self) + " links=" % str(self.links)
+        return LAVIMessage.__str__(self) + ' links=' % str(self.links)
 
 class LinksAdd(LinksList):
     @staticmethod
@@ -203,9 +203,9 @@ class Subscribe(LAVIMessage):
 
     @staticmethod
     def unpack(body):
-        xid = struct.unpack('> I', body)[0]
+        xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        subscribe = struct.unpack('> ?', body)[0]
+        subscribe = struct.unpack('> ?', body[:1])[0]
         return SwitchesSubscribe(xid, subscribe)
 
     def __str__(self):

@@ -186,7 +186,56 @@ class LinksDel(LinksList):
     def __str__(self):
         return 'LINKS_DEL: ' + LinksList.__str__(self)
 
+class Subscribe(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0x16
+
+    def __init__(self, xid, subscribe):
+        LAVIMessage.__init__(xid)
+        self.subscribe = subscribe
+
+    def length(self):
+        return LAVIMessage.SIZE + 1
+
+    def pack(self):
+        return LAVIMessage.pack(self) + struct.pack('> ?', self.subscribe)
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body)[0]
+        body = body[4:]
+        subscribe = struct.unpack('> ?', body)[0]
+        return SwitchesSubscribe(xid, subscribe)
+
+    def __str__(self):
+        what = '' if self.subscribe else 'un'
+        return 'SUBSCRIBE: ' + LAVIMessage.__str__(self) + what + 'subscribe'
+
+class SwitchesSubscribe(Subscribe):
+    @staticmethod
+    def get_type():
+        return 0x17
+
+    def __init__(self, xid, subscribe):
+        Subscribe.__init__(xid, subscribe)
+
+    def __str__(self):
+        return 'SWITCHES_' + Subscribe.__str__(self)
+
+class LinksSubscribe(Subscribe):
+    @staticmethod
+    def get_type():
+        return 0x17
+
+    def __init__(self, xid, subscribe):
+        Subscribe.__init__(xid, subscribe)
+
+    def __str__(self):
+        return 'LINKS_' + Subscribe.__str__(self)
+
 LAVI_PROTOCOL = LTProtocol([Disconnect,
                             SwitchesRequest, SwitchesAdd, SwitchesDel,
-                            LinksRequest, LinksAdd, LinksDel],
+                            LinksRequest, LinksAdd, LinksDel,
+                            SwitchesSubscribe, LinksSubscribe],
                            'S', 'B')

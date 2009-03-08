@@ -21,6 +21,17 @@ class LAVIMessage(LTMessage):
     def __str__(self):
         return "xid=%u" % str(self.xid)
 
+class SwitchesRequest(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0x10
+
+    def __init__(self, xid):
+        LAVIMessage.__init__(xid)
+
+    def __str__(self):
+        return 'SWITCHES_REQUEST: ' + LAVIMessage.__str__(self)
+
 class SwitchesList(LAVIMessage):
     def __init__(self, xid, dpids):
         LAVIMessage.__init__(self, xid)
@@ -30,7 +41,7 @@ class SwitchesList(LAVIMessage):
         return LAVIMessage.SIZE + self.dpids * 8
 
     def pack(self):
-        return ''.join([struct.pack("> Q", dpid) for dpid in self.dpids])
+        return LAVIMessage.pack(self) + ''.join([struct.pack("> Q", dpid) for dpid in self.dpids])
 
     @staticmethod
     def unpack(body):
@@ -52,6 +63,9 @@ class SwitchesAdd(SwitchesList):
     def __init__(self, xid, dpids):
         SwitchesList.__init__(self, xid, dpids)
 
+    def __str__(self):
+        return 'SWITCHES_ADD: ' + SwitchesList.__str__(self)
+
 class SwitchesDel(SwitchesList):
     @staticmethod
     def get_type():
@@ -59,6 +73,34 @@ class SwitchesDel(SwitchesList):
 
     def __init__(self, xid, dpids):
         SwitchesList.__init__(self, xid, dpids)
+
+    def __str__(self):
+        return 'SWITCHES_DEL: ' + SwitchesList.__str__(self)
+
+class LinksRequest(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0x13
+
+    def __init__(self, xid, src_dpid):
+        LAVIMessage.__init__(xid)
+        self.src_dpid = src_dpid
+
+    def length(self):
+        return LAVIMessage.SIZE + 8
+
+    def pack(self):
+        return LAVIMessage.pack(self) + struct.pack('> Q', self.src_dpid)
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body)[0]
+        body = body[4:]
+        src_dpid = struct.unpack('> Q', body)[0]
+        return LinksRequest(xid, src_dpid)
+
+    def __str__(self):
+        return 'LINKS_REQUEST: ' + LAVIMessage.__str__(self) + " src_dpid=" + self.src_dpid
 
 class Link:
     SIZE = 20
@@ -92,7 +134,8 @@ class LinksList(LAVIMessage):
             for dpid in self.links:
                 if src_dpid != dpid:
                     raise AssertionError("not all dpids match in LinksList.links: " + str(self.links))
-        return src_dpid + ''.join([link.pack() for link in self.links])
+        hdr = LAVIMessage.pack(self) + struct.pack('> Q', src_dpid)
+        return hdr + ''.join([link.pack() for link in self.links])
 
     @staticmethod
     def unpack(body):
@@ -118,6 +161,9 @@ class LinksAdd(LinksList):
     def __init__(self, xid, links):
         LinksList.__init__(self, xid, links)
 
+    def __str__(self):
+        return 'LINKS_ADD: ' + LinksList.__str__(self)
+
 class LinksDel(LinksList):
     @staticmethod
     def get_type():
@@ -126,4 +172,9 @@ class LinksDel(LinksList):
     def __init__(self, xid, links):
         LinksList.__init__(self, xid, links)
 
-LAVI_PROTOCOL = LTProtocol([SwitchesAdd, SwitchesDel, LinksAdd, LinksDel], 'S', 'B')
+    def __str__(self):
+        return 'LINKS_DEL: ' + LinksList.__str__(self)
+
+LAVI_PROTOCOL = LTProtocol([SwitchesRequest, SwitchesAdd, SwitchesDel,
+                            LinksRequest, LinksAdd, LinksDel],
+                           'S', 'B')

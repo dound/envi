@@ -444,7 +444,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
                 long now = System.currentTimeMillis();
                 while(lastSentTime + MIN_DELAY_BTWN_UPDATES_MS > now) {
                     try {
-                        Thread.sleep(now - lastSentTime - MIN_DELAY_BTWN_UPDATES_MS);
+                        Thread.sleep(lastSentTime + MIN_DELAY_BTWN_UPDATES_MS - now);
                     }
                     catch(InterruptedException e) {}
                     now = System.currentTimeMillis();

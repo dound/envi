@@ -41,8 +41,8 @@ public class GeometricIcon extends Icon {
         int spreadX = spread(baseX);
         int spreadY = spread(baseY);
         
-        float scaleX = (w / (spreadX+1));
-        float scaleY = (h / (spreadY+1));
+        float scaleX = w / spreadX;
+        float scaleY = h / spreadY;
         
         int[] newX = new int[baseX.length];
         int[] newY = new int[baseX.length];

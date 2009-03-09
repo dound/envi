@@ -11,6 +11,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import org.openflow.lavi.drawables.Link;
 import org.openflow.lavi.drawables.OpenFlowSwitch;
 import org.pzgui.math.Vector2i;
 
@@ -72,6 +73,10 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
                         if(d instanceof OpenFlowSwitch) {
                             OpenFlowSwitch o = (OpenFlowSwitch)d;
                             o.setFailed(!o.isFailed());
+                        }
+                        else if(d instanceof Link) {
+                            Link l = (Link)d;
+                            l.setFailed(!l.isFailed());
                         }
                     }
                     

@@ -16,6 +16,7 @@ import org.openflow.protocol.AggregateStatsRequest;
 import org.openflow.protocol.Match;
 import org.pzgui.Constants;
 import org.pzgui.AbstractDrawable;
+import org.pzgui.icon.GeometricIcon;
 import org.pzgui.layout.Edge;
 import org.pzgui.math.Vector2f;
 
@@ -37,6 +38,17 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     private int numOtherLinks = 0;
     private Polygon boundingBox = null;
+    
+    /** whether the link is off because it "failed" */
+    private boolean failed = false;
+    
+    public boolean isFailed() {
+        return failed;
+    }
+    
+    public void setFailed(boolean b) {
+        failed = b;
+    }
     
     /**
      * This exception is thrown if a link which already exists is tried to be 
@@ -101,6 +113,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         gfx.setPaint(curDrawColor);
         gfx.drawLine(src.getX()+offsetX, src.getY()+offsetY, 
                      dst.getX()+offsetX, dst.getY()+offsetY);
+        
+        if(failed)
+            GeometricIcon.X.draw(gfx, (src.getX()+dst.getX())/2+offsetX, (src.getY()+dst.getY())/2+offsetY);
         
         // draw the port numbers
         if(DRAW_PORT_NUMBERS) {

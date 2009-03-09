@@ -322,7 +322,7 @@ class ETTrafficMatrix(LAVIMessage):
     def unpack(body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        t = struct.unpack('> 4I', body[:4])
+        t = struct.unpack('> 4I', body[:16])
         return ETTrafficMatrix(xid, t[0], t[1], t[2], t[3])
 
     def __str__(self):

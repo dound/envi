@@ -220,6 +220,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
 
         synchronized(imgLock) {
             // redraw the scene
+            manager.preRedraw(this);
             manager.redraw(this);
 
             // copy the image buffer into the JLabel on the JFrame

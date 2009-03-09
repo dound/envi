@@ -326,6 +326,22 @@ public class PZManager extends Thread {
             catch(InterruptedException e) { /* ignore */ }
         }
     }
+
+    /** 
+     * This method is called before each redraw.
+     */
+    protected void preRedraw(PZWindow window) {
+        // get GUI fields which affect the drawing process
+        Graphics2D gfx = window.getDisplayGfx();
+        if(gfx == null)
+            return;
+
+        // clear the drawing space
+        gfx.setBackground(Color.WHITE);
+        gfx.clearRect(0, 0, window.getWidth() - window.getReservedWidthRight(), window.getHeight());
+        gfx.setFont(Constants.FONT_DEFAULT);
+        gfx.setPaint(Constants.PAINT_DEFAULT);
+    }
     
     /** 
      * This method is called after each redraw.  This implementation is a no-op
@@ -356,12 +372,6 @@ public class PZManager extends Thread {
         Graphics2D gfx = window.getDisplayGfx();
         if(gfx == null)
             return;
-
-        // clear the drawing space
-        gfx.setBackground(Color.WHITE);
-        gfx.clearRect(0, 0, window.getWidth() - window.getReservedWidthRight(), window.getHeight());
-        gfx.setFont(Constants.FONT_DEFAULT);
-        gfx.setPaint(Constants.PAINT_DEFAULT);
 
         // setup the view based on the pan and zoom settings
         Vector2i offset = new Vector2i(window.getDrawOffsetX(), window.getDrawOffsetY());

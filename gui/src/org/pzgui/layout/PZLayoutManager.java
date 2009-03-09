@@ -116,10 +116,10 @@ public class PZLayoutManager extends org.pzgui.PZManager {
      * @param layout  the new layout, or null to turn off auto-layout
      */
     public synchronized void setLayout(Layout<Vertex, Edge> layout) {
-        if(this.layout != null)
-            this.layout.setGraph(null);
-        
         this.layout = layout;
+        if(this.layout == null)
+            return;
+        
         this.layout.setGraph(graph);
         this.layout.setSize(maxLayoutSize);
         this.layout.reset();

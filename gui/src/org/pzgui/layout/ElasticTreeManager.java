@@ -75,7 +75,11 @@ public class ElasticTreeManager extends PZLayoutManager {
     public synchronized void addDrawable(Drawable d) {
         super.addDrawable(d);
         if(d instanceof Vertex) {
-            fatTreeLayout.noteVertex((Vertex)d);
+            if(fatTreeLayout.noteVertex((Vertex)d)) {
+                // a bit of a hack: draw switches representing hosts a different color
+                if(d instanceof org.openflow.lavi.drawables.OpenFlowSwitch)
+                    ((org.openflow.lavi.drawables.OpenFlowSwitch)d).setFillColor(java.awt.Color.DARK_GRAY);
+            }
             fatTreeLayout.relayout();            
         }
     }

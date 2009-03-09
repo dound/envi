@@ -162,6 +162,10 @@ public class OpenFlowSwitch extends NodeWithPorts {
         }
     }
     
+    public void setFillColor(Color c) {
+        fillColor = c;
+    }
+    
     public boolean isWithin(int x, int y) {
         return isWithin(x, y, getSize());
     }

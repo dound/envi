@@ -37,10 +37,18 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
         return k;
     }
     
-    public synchronized void noteVertex(V v) {
+    /**
+     * Notes when vertex was added to determine where in the fat tree it goes.
+     * @param v  the vertex to tag
+     * @return  whether v is a host or not
+     */
+    public synchronized boolean noteVertex(V v) {
+        boolean isHost = nextID >= size_core() + size_agg() + size_edge(); 
         nodeIDs.put(nextID++, v);
+        return isHost;
     }
     
+    /** removes all vertex tags */
     public synchronized void clear() {
         nodeIDs.clear();
         nextID = 0;
@@ -53,30 +61,55 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
             relayout();
         }
     }
+    
+    /** returns the number of switches in the core layer */
+    public int size_core() {
+        return k;
+    }
+    
+    /** returns the number of switches in the aggregation layer */
+    public int size_agg() {
+        return k * k / 2;
+    }
+    
+    /** returns the number of switches in the edge layer */
+    public int size_edge() {
+        return k * k / 2;
+    }
+    
+    /** returns the number of hosts in the fat tree */
+    public int size_host() {
+        return k * k * k / 4;
+    }
 
     /** Layout the nodes in the graph from scratch */
     public synchronized void relayout() {
-        int core_size = k;
-        int agg_size = k * k / 2;
-        int edge_size = k * k / 2;
+        int core_size = size_core();
+        int agg_size = size_agg();
+        int edge_size = size_edge();
+        int host_size = size_host();
         
         int h = getSize().height;
         int w = getSize().width;
         
-        int margin_y = 50;
+        int margin_y = 30;
+        int hAvail = h - margin_y * 2;
         int core_y = margin_y;
-        int agg_y  = h / 2;
-        int edge_y = h - margin_y;
+        int agg_y  = hAvail / 3;
+        int edge_y = 2 * hAvail / 3;
+        int host_y = h - margin_y;
         
         int core_x_sep = w / (core_size + 1);
         int agg_x_sep  = w / (agg_size  + 1);
         int edge_x_sep = w / (edge_size + 1);
+        int host_x_sep = w / (host_size + 1);
         
         for(int i=0; i<nodeIDs.size(); i++) {
             V v = nodeIDs.get(i);
             int core_id = i;
             int agg_id = i - core_size;
             int edge_id = i - core_size - agg_size;
+            int host_id = i - core_size - agg_size - edge_size;
             
             if(core_id < core_size) {
                 v.setPos(getVertexX(core_x_sep, core_id), core_y);
@@ -86,6 +119,9 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
             }
             else if(edge_id < edge_size) {
                 v.setPos(getVertexX(edge_x_sep, edge_id), edge_y);
+            }
+            else if(host_id < host_size) {
+                v.setPos(getVertexX(host_x_sep, host_id), host_y);
             }
         }
     }

@@ -1,6 +1,8 @@
 package org.openflow.lavi.drawables;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -23,6 +25,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
     public static final Paint FILL_COLOR_G = new Color(128, 255, 128);
     public static final Paint FILL_COLOR_B = new Color(128, 128, 255);
     public static final boolean SHOW_NAME = false;
+    public static final AlphaComposite ALPHA_OFF = AlphaComposite.SrcOver.derive(0.25f);
     
     private long datapathID;
     private static final double OUTLINE_RATIO = 4.0 / 3.0;
@@ -33,7 +36,12 @@ public class OpenFlowSwitch extends NodeWithPorts {
     // drawing-specific
     private Dimension size = SIZE;
     private Paint fillColor = FILL_COLOR_B;
-    private boolean active = true;
+    
+    /** whether the switch is off because it is not needed */
+    private boolean off = false;
+    
+    /** whether the switch is off because it "failed" */
+    private boolean failed = false;
     
     
     public OpenFlowSwitch(long dpid) {
@@ -45,12 +53,20 @@ public class OpenFlowSwitch extends NodeWithPorts {
         this.datapathID = dpid;
     }
 
-    public boolean isActive() {
-        return active;
+    public boolean isOff() {
+        return off && !failed;
     }
     
-    public void setActive(boolean b) {
-        active = b;
+    public void setOff(boolean b) {
+        off = b;
+    }
+
+    public boolean isFailed() {
+        return failed;
+    }
+    
+    public void setFailed(boolean b) {
+        failed = b;
     }
     
     /** Move the switch when it is dragged */
@@ -63,6 +79,12 @@ public class OpenFlowSwitch extends NodeWithPorts {
     }
 
     public void draw(Graphics2D gfx) {
+        Composite c = null;
+        if(isOff()) {
+            c = gfx.getComposite();
+            gfx.setComposite(ALPHA_OFF);
+        }
+        
         Paint outlineColor;
         if(isSelected())
             outlineColor = Constants.COLOR_SELECTED;
@@ -88,7 +110,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
         gfx.setPaint(fillColor);
         gfx.fillOval(x, y, size.width, size.height);
         
-        if(!active) {
+        if(failed) {
             int w=size.width, dx=0;
             if(GeometricIcon.X.getWidth() > w) {
                 dx = (GeometricIcon.X.getWidth() - w) / 2;
@@ -133,6 +155,9 @@ public class OpenFlowSwitch extends NodeWithPorts {
             if(isStringSet(serial_num))
                 gfx.drawString(serial_num, x, y);
         }
+        
+        if(isOff())
+            gfx.setComposite(c);
     }
     
     /** Returns true if s is not null, non-zero length, and not "None" or "?" */

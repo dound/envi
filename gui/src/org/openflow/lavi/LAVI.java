@@ -124,6 +124,10 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         case ET_POWER_USAGE:
             processPowerUsage((ETPowerUsage)msg);
             break;
+        
+        case ET_SWITCHES_OFF:
+            processSwitchesOff((ETSwitchesOff)msg);
+            break;
             
         case AUTH_REPLY:
         case SWITCHES_REQUEST:
@@ -527,5 +531,18 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
 
     private void processPowerUsage(ETPowerUsage msg) {
         manager.setPowerData(msg.watts_current, msg.watts_traditional, msg.watts_max);
+    }
+
+    private void processSwitchesOff(ETSwitchesOff msg) {
+        // turn everything back on
+        for(OpenFlowSwitch o : switchesMap.values())
+            o.setOff(false);
+        
+        // turn off the specified switches
+        for(long dpid : msg.dpids) {
+            OpenFlowSwitch o = switchesMap.get(dpid);
+            if(o != null)
+                o.setOff(true);
+        }
     }
 }

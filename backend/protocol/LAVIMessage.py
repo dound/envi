@@ -379,29 +379,29 @@ class ETPowerUsage(LAVIMessage):
     def get_type():
         return 0xF2
 
-    def __init__(self, xid, volts_current, volts_max):
+    def __init__(self, xid, watts_current, watts_max):
         LAVIMessage.__init__(self, xid)
-        self.volts_current = int(volts_current)
-        self.volts_max = int(volts_max)
+        self.watts_current = int(watts_current)
+        self.watts_max = int(watts_max)
 
     def length(self):
         return LAVIMessage.SIZE + 8
 
     def pack(self):
-        return LAVIMessage.pack(self) + struct.pack('> 2I', self.volts_current, self.volts_max)
+        return LAVIMessage.pack(self) + struct.pack('> 2I', self.watts_current, self.watts_max)
 
     @staticmethod
     def unpack(body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        volts_current = struct.unpack('> I', body[:4])[0]
+        watts_current = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        volts_max = struct.unpack('> I', body[:4])[0]
-        return ETPowerUsage(xid, volts_current, volts_max)
+        watts_max = struct.unpack('> I', body[:4])[0]
+        return ETPowerUsage(xid, watts_current, watts_max)
 
     def __str__(self):
         fmt = 'ET_POWER_USAGE: ' + LAVIMessage.__str__(self) + " cur=%u max=%u"
-        return fmt % (self.volts_current, self.volts_max)
+        return fmt % (self.watts_current, self.watts_max)
 
 LAVI_PROTOCOL = LTProtocol([Disconnect,
                             PollStart, PollStop,

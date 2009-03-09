@@ -10,16 +10,16 @@ import java.io.IOException;
  *
  */
 public class ETPowerUsage extends LAVIMessage {
-    /** the number of volts we are currently using */
-    public final int volts_current;
+    /** the number of watts we are currently using */
+    public final int watts_current;
     
-    /** the number of volts used when the system is fully utilized */
-    public final int volts_max;
+    /** the number of watts used when the system is fully utilized */
+    public final int watts_max;
     
-    public ETPowerUsage(int volts_current, int volts_max) {
+    public ETPowerUsage(int watts_current, int watts_max) {
         super(LAVIMessageType.ET_POWER_USAGE, 0);
-        this.volts_current = volts_current;
-        this.volts_max = volts_max;
+        this.watts_current = watts_current;
+        this.watts_max = watts_max;
     }
     
     /** This returns the maximum length of ETPowerUsage */
@@ -30,11 +30,11 @@ public class ETPowerUsage extends LAVIMessage {
     /** Writes the header (via super.write()), and this message */
     public void write(DataOutput out) throws IOException {
         super.write(out);
-        out.writeInt(volts_current);
-        out.writeInt(volts_max);
+        out.writeInt(watts_current);
+        out.writeInt(watts_max);
     }
     
     public String toString() {
-        return super.toString() + TSSEP + "cur=" + volts_current + " max=" + volts_max;
+        return super.toString() + TSSEP + "cur=" + watts_current + " max=" + watts_max;
     }
 }

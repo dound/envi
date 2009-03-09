@@ -519,6 +519,6 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     }
 
     private void processPowerUsage(ETPowerUsage msg) {
-        manager.setPowerData(msg.volts_current, msg.volts_max);
+        manager.setPowerData(msg.watts_current, msg.watts_max);
     }
 }

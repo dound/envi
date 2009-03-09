@@ -1,11 +1,15 @@
 package org.pzgui.layout;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.LinkedList;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import org.openflow.lavi.net.protocol.ETTrafficMatrix;
+import org.openflow.util.string.StringOps;
 import org.pzgui.Drawable;
 import org.pzgui.PZClosing;
 import org.pzgui.PZWindow;
@@ -19,9 +23,9 @@ public class ElasticTreeManager extends PZLayoutManager {
     public static final int SL_WIDTH = 50;
     public static final int LBL_HEIGHT = 20;
     public static final int LBL_WIDTH = 100;
-    public static final int GAP_X = 15;
-    public static final int RESERVED_COLUMN_WIDTH = GAP_X + SL_WIDTH + GAP_X + LBL_WIDTH;
-    public static final int RESERVED_ROW_HEIGHT   = 0;
+    public static final int LBL_WIDTH_BIG = 400;
+    public static final int GAP_X = 5;
+    public static final int RESERVED_COLUMN_WIDTH = Math.max(GAP_X + SL_WIDTH + GAP_X + LBL_WIDTH, LBL_WIDTH_BIG);
     
     /** Creates a new Elastic Tree GUI for a k=6 fat tree */
     public ElasticTreeManager() {
@@ -34,6 +38,25 @@ public class ElasticTreeManager extends PZLayoutManager {
         this.setLayout(fatTreeLayout);
         setCurrentTrafficMatrixText(getCurrentTrafficMatrix());
         setNextTrafficMatrixText(null);
+        
+        pnlSidebar.setDoubleBuffered(true);
+        pnlSidebar.setLayout(null);
+        pnlSidebar.setBorder(new javax.swing.border.LineBorder(Color.BLACK, 2));
+        pnlSidebar.add(slDemand);
+        pnlSidebar.add(lblDemand);
+        pnlSidebar.add(lblDemandVal);
+        pnlSidebar.add(slEdge);
+        pnlSidebar.add(lblEdge);
+        pnlSidebar.add(lblEdgeVal);
+        pnlSidebar.add(slAgg);
+        pnlSidebar.add(lblAgg);
+        pnlSidebar.add(lblAggVal);
+        pnlSidebar.add(slPLen);
+        pnlSidebar.add(lblPLen);
+        pnlSidebar.add(lblPLenVal);
+        pnlSidebar.add(lblTrafficMatrixCurrent);
+        pnlSidebar.add(lblTrafficMatrixNext);
+        pnlSidebar.add(lblPower);
     }
     
     
@@ -52,51 +75,67 @@ public class ElasticTreeManager extends PZLayoutManager {
         super.addDrawable(d);
         fatTreeLayout.relayout();
     }
+
+    /** Overrides parent to add my widgets to the new window. */
+    public void attachWindow(final PZWindow w) {
+        super.attachWindow(w);
+        if(getWindowIndex(w) == 0) {
+            w.getContentPane().add(pnlSidebar);
+            w.setReservedWidthRight(RESERVED_COLUMN_WIDTH);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    w.setMySize(w.getWidth(), w.getHeight(), w.getZoom());
+                }
+            });
+        }
+    }
     
     /**
      * Overrides parent to reduce size of node layout to provide room for other
      * widgets on the GUI.  Also lays out the Elastic Tree specific widgets. 
      */
-    public void setLayoutSize(int width, int height) {
-        int w = width - RESERVED_COLUMN_WIDTH;
-        int h = height - RESERVED_ROW_HEIGHT;
+    public void setLayoutSize(int w, int h) {
         super.setLayoutSize(w, h);
-        
+
         // place our custom components
+        pnlSidebar.setBounds(w, 0, RESERVED_COLUMN_WIDTH-4, h);
+        
+        int x = GAP_X;
+        int y = 0;
+        lblTrafficMatrixCurrent.setBounds(x, y, LBL_WIDTH_BIG, LBL_HEIGHT);
+        y += LBL_HEIGHT;
+        lblTrafficMatrixNext.setBounds(x, y, LBL_WIDTH_BIG, LBL_HEIGHT);
+        y += LBL_HEIGHT;
+        lblPower.setBounds(x, y, LBL_WIDTH_BIG, LBL_HEIGHT);
+
+        h -= y;
         final int SL_HEIGHT = h / 4;
         final int GAP_Y = ((h / 3) - SL_HEIGHT) / 2;
-        final int SL_X = w + GAP_X;
-        final int LBL_X = SL_X + SL_WIDTH + GAP_X;
-        int y = GAP_Y;
+        final int SL_X = GAP_X;
+        final int LBL_X = SL_X + SL_WIDTH;
         
-        slEdge.setBounds(SL_X, y, SL_WIDTH, SL_HEIGHT);
-        lblEdge.setBounds(LBL_X, y, LBL_WIDTH, LBL_HEIGHT);
-        lblEdgeVal.setBounds(LBL_X, y+LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
-        
-        y += SL_HEIGHT + GAP_Y + GAP_Y;
-        slAgg.setBounds(SL_X, y, SL_WIDTH, SL_HEIGHT);
-        lblAgg.setBounds(LBL_X, y, LBL_WIDTH, LBL_HEIGHT);
-        lblAggVal.setBounds(LBL_X, y+LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
-        
-        y += SL_HEIGHT + GAP_Y + GAP_Y;
+        x = SL_X;
+        y += GAP_Y;
         final int LOWER_SL_HEIGHT = SL_HEIGHT - LBL_HEIGHT;
         final int LBL_Y = y + LOWER_SL_HEIGHT;
-        slDemand.setBounds(SL_X, y, SL_WIDTH, LOWER_SL_HEIGHT);
-        lblDemand.setBounds(SL_X, LBL_Y, LBL_WIDTH, LBL_HEIGHT);
-        lblDemandVal.setBounds(SL_X, LBL_Y+LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
+        slDemand.setBounds(x, y, SL_WIDTH, LOWER_SL_HEIGHT);
+        lblDemand.setBounds(x, LBL_Y, LBL_WIDTH, LBL_HEIGHT);
+        lblDemandVal.setBounds(x, LBL_Y+LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
         
-        int x = SL_X + SL_WIDTH + GAP_X;
-        slPLen.setBounds(x, y, SL_WIDTH, LOWER_SL_HEIGHT);
-        lblPLen.setBounds(x, LBL_Y, LBL_WIDTH, LBL_HEIGHT);
-        lblPLenVal.setBounds(x, LBL_Y+LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
+        int x2 = x + SL_WIDTH + GAP_X;
+        slPLen.setBounds(x2, y, LBL_WIDTH, LOWER_SL_HEIGHT);
+        lblPLen.setBounds(x2, LBL_Y, LBL_WIDTH, LBL_HEIGHT);
+        lblPLenVal.setBounds(x2, LBL_Y+LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
         
-        x += SL_WIDTH + GAP_X;
-        y = LBL_Y;
-        lblTrafficMatrixCurrent.setBounds(x, y, LBL_WIDTH, LBL_HEIGHT);
-        y += LBL_HEIGHT;
-        lblTrafficMatrixNext.setBounds(x, y, LBL_WIDTH, LBL_HEIGHT);
-        y += LBL_HEIGHT;
-        lblPower.setBounds(x, y, LBL_WIDTH, LBL_HEIGHT);
+        y += SL_HEIGHT + GAP_Y + GAP_Y;
+        slAgg.setBounds(x, y, SL_WIDTH, SL_HEIGHT);
+        lblAgg.setBounds(LBL_X, y+SL_HEIGHT/2-LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
+        lblAggVal.setBounds(LBL_X, y+SL_HEIGHT/2, LBL_WIDTH, LBL_HEIGHT);
+        
+        y += SL_HEIGHT + GAP_Y + GAP_Y;
+        slEdge.setBounds(x, y, SL_WIDTH, SL_HEIGHT);
+        lblEdge.setBounds(LBL_X, y+SL_HEIGHT/2-LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
+        lblEdgeVal.setBounds(LBL_X, y+SL_HEIGHT/2, LBL_WIDTH, LBL_HEIGHT);
     }
     
     /**
@@ -110,21 +149,7 @@ public class ElasticTreeManager extends PZLayoutManager {
             return;
         
         // draw place our custom components
-        slDemand.repaint();
-        lblDemand.repaint();
-        lblDemandVal.repaint();
-        slEdge.repaint();
-        lblEdge.repaint();
-        lblEdgeVal.repaint();
-        slAgg.repaint();
-        lblAgg.repaint();
-        lblAggVal.repaint();
-        slPLen.repaint();
-        lblPLen.repaint();
-        lblPLenVal.repaint();
-        lblTrafficMatrixCurrent.repaint();
-        lblTrafficMatrixNext.repaint();
-        lblPower.repaint();
+        pnlSidebar.repaint();
     }
 
     
@@ -142,15 +167,17 @@ public class ElasticTreeManager extends PZLayoutManager {
         }
     }
     
-    private JLabel lblDemand = new JLabel("Demand");
-    private JLabel lblEdge = new JLabel("Edge");
-    private JLabel lblAgg = new JLabel("Agg");
-    private JLabel lblPLen = new JLabel("Len");
+    private JPanel pnlSidebar = new JPanel();
+    
+    private JLabel lblDemand = new JLabel("Demand", SwingConstants.LEFT);
+    private JLabel lblEdge = new JLabel("Edge", SwingConstants.LEFT);
+    private JLabel lblAgg = new JLabel("Agg", SwingConstants.LEFT);
+    private JLabel lblPLen = new JLabel("PktLen", SwingConstants.CENTER);
 
-    private JLabel lblDemandVal = new JLabel("1000000Gbps");
-    private JLabel lblEdgeVal = new JLabel("100%");
-    private JLabel lblAggVal = new JLabel("100%");
-    private JLabel lblPLenVal = new JLabel("1514B");
+    private JLabel lblDemandVal = new JLabel(StringOps.formatBitsPerSec(1000*1000*1000), SwingConstants.LEFT);
+    private JLabel lblEdgeVal = new JLabel("100%", SwingConstants.LEFT);
+    private JLabel lblAggVal = new JLabel("100%", SwingConstants.LEFT);
+    private JLabel lblPLenVal = new JLabel("1514B", SwingConstants.CENTER);
 
     private JSlider slDemand = new MyJSlider(SwingConstants.VERTICAL, 0, 1000*1000*1000, 1000*1000*1000);
     private JSlider slEdge   = new MyJSlider(SwingConstants.VERTICAL, 0, 100, 100);
@@ -162,12 +189,12 @@ public class ElasticTreeManager extends PZLayoutManager {
     
     public void setCurrentTrafficMatrixText(ETTrafficMatrix tm) {
         String s = (tm == null) ? "n/a" : tm.toStringShort();
-        lblTrafficMatrixCurrent.setText("Current Traffic Matrix: " + s);
+        lblTrafficMatrixCurrent.setText("Traffic Now: " + s);
     }
     
     public void setNextTrafficMatrixText(ETTrafficMatrix tm) {
         String s = (tm == null) ? "n/a" : tm.toStringShort();
-        lblTrafficMatrixNext.setText("Next Traffic Matrix: " + s);
+        lblTrafficMatrixNext.setText("Next Traffic: " + s);
     }
 
     private int current_volts;

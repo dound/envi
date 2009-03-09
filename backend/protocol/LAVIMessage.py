@@ -7,6 +7,8 @@ from twisted.internet import reactor
 
 from ltprotocol.ltprotocol import LTMessage, LTProtocol
 
+LAVI_DEFAULT_PORT = 2503
+
 def array_to_octstr(arr):
     bstr = ''
     for byte in arr:
@@ -444,14 +446,34 @@ LAVI_PROTOCOL = LTProtocol([Disconnect,
                             ETTrafficMatrix, ETLinkUtils, ETPowerUsage, ETSwitchesOff],
                            'H', 'B')
 
+def create_lavi_server(port, recv_callback):
+    """Starts a server which listens for LAVI clients on the specified port.
+
+    @param port  the port to listen on
+    @param recv_callback  the function to call with received message content
+                         (takes two arguments: transport, msg)
+
+    @return returns the new LTTwistedServer
+    """
+    from ltprotocol.ltprotocol import LTTwistedServer
+    server = LTTwistedServer(LAVI_PROTOCOL, recv_callback)
+    server.listen(port)
+    return server
+
+def run_lavi_server(port, recv_callback):
+    """Creates (see create_lavi_server()) and runs a LAVI server.
+
+    @return this method does not return until the server shuts down (e.g. ctrl-c)
+    """
+    server = create_lavi_server(port, recv_callback)
+    reactor.run()
+
 if __name__ == "__main__":
     # test: simply print out all received messages
-    def print_ltm(ltm):
+    def print_ltm(transport, ltm):
         print 'recv: %s' % str(ltm)
 
-    server = LTTwistedServer(LAVI_PROTOCOL, lambda m : print_ltm(m))
-    server.listen(2503)
-
+    server = create_lavi_server(LAVI_DEFAULT_PORT, print_ltm)
     def callback():
         if len(server.connections) > 0:
             print 'sending ...'

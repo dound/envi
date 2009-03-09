@@ -57,7 +57,7 @@ public class PowerDial extends ChartPanel {
         DialValueIndicator dvi = new DialValueIndicator(0);
         plot.addLayer(dvi);
 
-        StandardDialScale scale = new StandardDialScale(lowerBound, upperBound, -120, -300, 10.0, 4);
+        StandardDialScale scale = new StandardDialScale(lowerBound, upperBound, -120, -300, 1000, 250);
         scale.setMajorTickIncrement(increment);
         scale.setMinorTickCount(minorTickCount);
         scale.setTickRadius(1.0);
@@ -81,7 +81,13 @@ public class PowerDial extends ChartPanel {
     
     private void createChart(int max) {
         this.max = max;
-        
+        if(ElasticTreeManager.USE_VERTICAL_POWER_DIAL)
+            createVerticalChart(max);
+        else
+            createDialChart(max);
+    }
+     
+    private void createDialChart(int max) {
         JFreeChart chart = createStandardDialChart(
                 "Power Consumption",
                 "Watts", 
@@ -111,6 +117,42 @@ public class PowerDial extends ChartPanel {
         plot.removePointer(0);
         DialPointer.Pointer p = new DialPointer.Pointer();
         plot.addPointer(p);
+    }
+    
+    public void createVerticalChart(int max) {
+        this.data_watts_current = new DefaultValueDataset(100);
+        // get data for diagrams
+        DialPlot plot = new DialPlot();
+        plot.setView(0.78, 0.37, 0.22, 0.26);
+        plot.setDataset(this.data_watts_current);
+
+        ArcDialFrame dialFrame = new ArcDialFrame(-10.0, 20.0);
+        dialFrame.setInnerRadius(0.70);
+        dialFrame.setOuterRadius(0.90);
+        dialFrame.setForegroundPaint(Color.darkGray);
+        dialFrame.setStroke(new java.awt.BasicStroke(3.0f));
+        plot.setDialFrame(dialFrame);
+
+        GradientPaint gp = new GradientPaint(new Point(),
+                new Color(255, 255, 255), new Point(),
+                new Color(240, 240, 240));
+        DialBackground sdb = new DialBackground(gp);
+        sdb.setGradientPaintTransformer(new StandardGradientPaintTransformer(
+                GradientPaintTransformType.VERTICAL));
+        plot.addLayer(sdb);
+
+        StandardDialScale scale = new StandardDialScale(0, max, -8, 16.0, 1000, 250);
+        scale.setTickRadius(0.82);
+        scale.setTickLabelOffset(-0.04);
+        scale.setTickLabelFont(new Font("Dialog", Font.PLAIN, 14));
+
+        plot.addScale(0, scale);
+
+        DialPointer needle = new DialPointer.Pin();
+        needle.setRadius(0.84);
+        plot.addLayer(needle);
+        JFreeChart chart = new JFreeChart(plot);
+        setChart(chart);
     }
     
     private static void addRange(DialPlot plot, int min, int max, Color c) {

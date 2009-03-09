@@ -124,7 +124,7 @@ class SwitchesList(LAVIMessage):
         return SwitchesList(xid, dpids)
 
     def __str__(self):
-        return LAVIMessage.__str__(self) + ' dpids=' % str(self.dpids)
+        return LAVIMessage.__str__(self) + ' dpids=%s' % str(self.dpids)
 
 class SwitchesAdd(SwitchesList):
     @staticmethod
@@ -222,7 +222,7 @@ class LinksList(LAVIMessage):
         return LinksList(xid, links)
 
     def __str__(self):
-        return LAVIMessage.__str__(self) + ' links=' % str(self.links)
+        return LAVIMessage.__str__(self) + ' links=%s' % str(self.links)
 
 class LinksAdd(LinksList):
     @staticmethod
@@ -372,7 +372,7 @@ class ETLinkUtils(LAVIMessage):
         return ETLinkUtils(xid, utils)
 
     def __str__(self):
-        return 'ET_LINK_UTILS: ' + LAVIMessage.__str__(self) + ' utils=' % str(self.utils)
+        return 'ET_LINK_UTILS: ' + LAVIMessage.__str__(self) + ' utils=%s' % str(self.utils)
 
 class ETPowerUsage(LAVIMessage):
     @staticmethod

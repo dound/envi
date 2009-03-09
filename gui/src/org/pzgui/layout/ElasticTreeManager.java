@@ -74,7 +74,22 @@ public class ElasticTreeManager extends PZLayoutManager {
     /** Adds the drawable as usual and then invokes the fat tree layout engine */
     public synchronized void addDrawable(Drawable d) {
         super.addDrawable(d);
-        fatTreeLayout.relayout();
+        if(d instanceof Vertex) {
+            fatTreeLayout.noteVertex((Vertex)d);
+            fatTreeLayout.relayout();            
+        }
+    }
+    
+    /** 
+     * Removes the drawable as usual and then completely resets the fat tree 
+     * layout engine (assumes all switches are being removed).
+     */
+    public synchronized void removeDrawable(Drawable d) {
+        super.removeDrawable(d);
+        if(d instanceof Vertex) {
+            fatTreeLayout.clear();
+            fatTreeLayout.relayout();
+        }
     }
 
     /** Overrides parent to add my widgets to the new window. */

@@ -69,7 +69,7 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
     
     /** returns the number of switches in the core layer */
     public int size_core() {
-        return k;
+        return k * k / 4;
     }
     
     /** returns the number of switches in the aggregation layer */

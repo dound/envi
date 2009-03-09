@@ -12,13 +12,15 @@ import org.openflow.util.string.StringOps;
  *
  */
 public class ETTrafficMatrix extends LAVIMessage {
+    public final int k;
     public final int demand;
     public final int edge;
     public final int agg;
     public final int plen;
     
-    public ETTrafficMatrix(int demand, int edge, int agg, int plen) {
+    public ETTrafficMatrix(int k, int demand, int edge, int agg, int plen) {
         super(LAVIMessageType.ET_TRAFFIX_MATRIX, 0);
+        this.k = k;
         this.demand = demand;
         this.edge = edge;
         this.agg = agg;
@@ -27,12 +29,13 @@ public class ETTrafficMatrix extends LAVIMessage {
     
     /** This returns the maximum length of this message */
     public int length() {
-        return super.length() + 16;
+        return super.length() + 20;
     }
     
     /** Writes the header (via super.write()), and this message */
     public void write(DataOutput out) throws IOException {
         super.write(out);
+        out.writeInt(k);
         out.writeInt(demand);
         out.writeInt(edge);
         out.writeInt(agg);
@@ -43,12 +46,13 @@ public class ETTrafficMatrix extends LAVIMessage {
         if(o == null) return false;
         if(!(o instanceof ETTrafficMatrix)) return false;
         ETTrafficMatrix em = (ETTrafficMatrix)o;
-        return(demand==em.demand && edge==em.edge && agg==em.agg && plen==em.plen);
+        return(k==em.k && demand==em.demand && edge==em.edge && agg==em.agg && plen==em.plen);
     }
     
     public int hashCode() {
         int hash = 29;
-        hash *= demand;
+        hash *= k;
+        hash = hash * 32 + demand;
         hash = hash * 32 + edge;
         hash = hash * 32 + agg;
         return hash * 32 + plen;
@@ -59,6 +63,6 @@ public class ETTrafficMatrix extends LAVIMessage {
     }
 
     public String toStringShort() {
-        return StringOps.formatBitsPerSec(demand) + " edge=" + edge + "% agg=" + agg + "% plen=" + plen + "B";
+        return "k=" + k + " " +  StringOps.formatBitsPerSec(demand) + " edge=" + edge + "% agg=" + agg + "% plen=" + plen + "B";
     }
 }

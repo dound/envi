@@ -1,5 +1,17 @@
 from ltprotocol.ltprotocol import LTMessage, LTProtocol
-import struct
+import array, struct
+
+def array_to_octstr(arr):
+    bstr = ''
+    for byte in arr:
+        if bstr != '':
+            bstr += ':%02x' % (byte,)
+        else:
+            bstr += '%02x' %(byte,)
+    return bstr
+
+def dpidstr(ll):
+    return array_to_octstr(array.array('B',struct.pack('!Q',ll)))
 
 class LAVIMessage(LTMessage):
     SIZE = 4
@@ -124,7 +136,7 @@ class SwitchesList(LAVIMessage):
         return SwitchesList(xid, dpids)
 
     def __str__(self):
-        return LAVIMessage.__str__(self) + ' dpids=%s' % str(self.dpids)
+        return LAVIMessage.__str__(self) + ' dpids=[%s]' % ''.join([dpidstr(dpid) + ',' for dpid in self.dpids])
 
 class SwitchesAdd(SwitchesList):
     @staticmethod
@@ -171,7 +183,7 @@ class LinksRequest(LAVIMessage):
         return LinksRequest(xid, src_dpid)
 
     def __str__(self):
-        return 'LINKS_REQUEST: ' + LAVIMessage.__str__(self) + ' src_dpid=' + self.src_dpid
+        return 'LINKS_REQUEST: ' + LAVIMessage.__str__(self) + ' src_dpid=' + dpidstr(self.src_dpid)
 
 class Link:
     SIZE = 20

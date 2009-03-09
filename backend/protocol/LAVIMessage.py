@@ -419,12 +419,23 @@ class ETPowerUsage(LAVIMessage):
         fmt = 'ET_POWER_USAGE: ' + LAVIMessage.__str__(self) + " cur=%u trad=%u max=%u"
         return fmt % (self.watts_current, self.watts_traditional, self.watts_max)
 
+class ETSwitchesOff(SwitchesList):
+    @staticmethod
+    def get_type():
+        return 0xF3
+
+    def __init__(self, xid, dpids):
+        SwitchesList.__init__(self, xid, dpids)
+
+    def __str__(self):
+        return 'SWITCHES_OFF: ' + SwitchesList.__str__(self)
+
 LAVI_PROTOCOL = LTProtocol([Disconnect,
                             PollStart, PollStop,
                             SwitchesRequest, SwitchesAdd, SwitchesDel,
                             LinksRequest, LinksAdd, LinksDel,
                             SwitchesSubscribe, LinksSubscribe,
-                            ETTrafficMatrix, ETLinkUtils, ETPowerUsage],
+                            ETTrafficMatrix, ETLinkUtils, ETPowerUsage, ETSwitchesOff],
                            'H', 'B')
 
 if __name__ == "__main__":

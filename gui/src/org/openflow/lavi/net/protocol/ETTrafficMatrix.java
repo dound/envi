@@ -3,6 +3,8 @@ package org.openflow.lavi.net.protocol;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.openflow.util.string.StringOps;
+
 /**
  * Tells the backend about what kind of traffic matrix to generate.
  * 
@@ -57,6 +59,6 @@ public class ETTrafficMatrix extends LAVIMessage {
     }
 
     public String toStringShort() {
-        return "demand=" + demand + " edge=" + edge + "agg=" + agg + " plen=" + plen;
+        return StringOps.formatBitsPerSec(demand) + " edge=" + edge + "% agg=" + agg + "% plen=" + plen + "B";
     }
 }

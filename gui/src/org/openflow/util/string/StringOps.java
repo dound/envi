@@ -9,7 +9,7 @@ import java.util.LinkedList;
  * @author David Underhill
  */
 public abstract class StringOps {
-    public String formatBits( long num_bits, boolean toBytes  ) {
+    public static String formatBits( long num_bits, boolean toBytes  ) {
         long bytes = num_bits / (toBytes ? 8 : 1);
         int units = 0;
         while( bytes >= 10000 ) {
@@ -28,6 +28,14 @@ public abstract class StringOps {
         }
         
         return Long.toString( bytes ) + strUnit + (toBytes ? "B" : "b");
+    }
+    
+    public static String formatBitsPerSec(long num_bits, boolean toBytes) {
+        return formatBits(num_bits, toBytes) + "ps";
+    }
+    
+    public static String formatBitsPerSec(long num_bits) {
+        return formatBitsPerSec(num_bits, false);
     }
     
   /**

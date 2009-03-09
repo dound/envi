@@ -206,7 +206,7 @@ public class ElasticTreeManager extends PZLayoutManager {
      * Updates the slider labels and notify those listening for traffic matrix changes.
      */
     public void notifyTrafficMatrixChangeListeners() {
-        lblDemandVal.setText(formatBitsPerSec(slDemand.getValue()));
+        lblDemandVal.setText(StringOps.formatBitsPerSec(slDemand.getValue()));
         lblEdgeVal.setText(slEdge.getValue() + "%");
         lblAggVal.setText(slAgg.getValue() + "%");
         lblPLenVal.setText(slPLen.getValue() + "B");
@@ -214,27 +214,5 @@ public class ElasticTreeManager extends PZLayoutManager {
         ETTrafficMatrix tm = getCurrentTrafficMatrix();
         for(TrafficMatrixChangeListener c : trafficMatrixChangeListeneres)
             c.trafficMatrixChanged(tm);
-    }
-
-    /**
-     * Formats a number of bits as a human-readable rate.
-     */
-    public String formatBitsPerSec(long bits) {
-        int units = 0;
-        while( bits >= 1000 ) {
-            bits /= 1000;
-            units += 1;
-        }
-        String strUnit;
-        switch( units ) {
-            case  0: strUnit = "";  break;
-            case  1: strUnit = "k"; break;
-            case  2: strUnit = "M"; break;
-            case  3: strUnit = "G"; break;
-            case  4: strUnit = "T"; break;
-            case  5: strUnit = "P"; break;
-            default: strUnit = "?"; break;
-        }
-        return bits + strUnit + "bps";
     }
 }

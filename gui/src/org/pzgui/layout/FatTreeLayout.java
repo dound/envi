@@ -82,6 +82,11 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
         return k * k * k / 4;
     }
 
+    /** returns the number of switches and hosts in the fat tree */
+    public int size() {
+        return size_core() + size_agg() + size_edge() + size_host();
+    }
+    
     /** Layout the nodes in the graph from scratch */
     public synchronized void relayout() {
         int core_size = size_core();

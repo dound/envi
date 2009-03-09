@@ -11,6 +11,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import org.openflow.lavi.drawables.OpenFlowSwitch;
 import org.pzgui.math.Vector2i;
 
 /**
@@ -66,6 +67,14 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
             
             public void mouseReleased(MouseEvent evt) {
                 synchronized(manager) {
+                    if(evt.isControlDown()) {
+                        Drawable d = manager.getSelected();
+                        if(d instanceof OpenFlowSwitch) {
+                            OpenFlowSwitch o = (OpenFlowSwitch)d;
+                            o.setFailed(!o.isFailed());
+                        }
+                    }
+                    
                     manager.noteMouseUp();
 
                     // apply new panning, if any

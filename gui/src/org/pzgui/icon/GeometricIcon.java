@@ -154,12 +154,12 @@ public class GeometricIcon extends Icon {
 
     // example geometric icons
     /** GeometricIcon which is a green checkmark */
-    public static final Icon CHECKMARK = new GeometricIcon(new int[]{0,   8, 24, 20,  8,  4,  0},
+    public static final GeometricIcon CHECKMARK = new GeometricIcon(new int[]{0,   8, 24, 20,  8,  4,  0},
                                                                 new int[]{16, 26,  4,  0, 18, 14, 16},
                                                                 Color.GREEN);
 
     /** GeometricIcon which is a red 'X' */
-    public static final Icon X = new GeometricIcon(new int[]{0, 6, 12, 18, 24, 16, 24, 18, 12,  6,  0, 10, 0},
+    public static final GeometricIcon X = new GeometricIcon(new int[]{0, 6, 12, 18, 24, 16, 24, 18, 12,  6,  0, 10, 0},
                                                         new int[]{6, 0, 10,  0,  6, 12, 18, 24, 12, 24, 18, 12, 6},
                                                         Color.RED);
 }

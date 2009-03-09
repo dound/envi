@@ -9,6 +9,7 @@ import java.awt.geom.Ellipse2D;
 import org.openflow.protocol.SwitchDescriptionStats;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.Constants;
+import org.pzgui.icon.GeometricIcon;
 
 /**
  * Describes an OpenFlow node.
@@ -32,6 +33,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
     // drawing-specific
     private Dimension size = SIZE;
     private Paint fillColor = FILL_COLOR_B;
+    private boolean active = true;
     
     
     public OpenFlowSwitch(long dpid) {
@@ -43,6 +45,14 @@ public class OpenFlowSwitch extends NodeWithPorts {
         this.datapathID = dpid;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+    
+    public void setActive(boolean b) {
+        active = b;
+    }
+    
     /** Move the switch when it is dragged */
     public void drag(int x, int y) {
         setPos(x, y);
@@ -77,6 +87,20 @@ public class OpenFlowSwitch extends NodeWithPorts {
         gfx.drawOval(x, y, size.width, size.height);
         gfx.setPaint(fillColor);
         gfx.fillOval(x, y, size.width, size.height);
+        
+        if(!active) {
+            int w=size.width, dx=0;
+            if(GeometricIcon.X.getWidth() > w) {
+                dx = (GeometricIcon.X.getWidth() - w) / 2;
+                w = GeometricIcon.X.getWidth();
+            }
+            int h=size.height, dy=0;
+            if(GeometricIcon.X.getWidth() > h) {
+                dy = (GeometricIcon.X.getWidth() - h) / 2;
+                h = GeometricIcon.X.getWidth();
+            }
+            GeometricIcon.X.draw(gfx, x-dx, y-dy, w, h);
+        }
         
         if(SHOW_NAME) {
             gfx.setPaint(NAME_COLOR);

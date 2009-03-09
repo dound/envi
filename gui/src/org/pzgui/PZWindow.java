@@ -251,6 +251,19 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     // ------- Window Position and Size ------- //
     // **************************************** //
 
+    /** how much of the right side of the window is reserved for other content */
+    private int reservedWidthRight = 0;
+    
+    /** gets how much of the right side of the window is reserved for other content */
+    public int getReservedWidthRight() {
+        return reservedWidthRight;
+    }
+    
+    /** sets how much of the right side of the window is reserved for other content */
+    public void setReservedWidthRight(int reservedWidthRight) {
+        this.reservedWidthRight = reservedWidthRight;
+    }
+    
     /** 
      * How this window is docked to the previous window; 0=not docked, else see
      * SwingConstants (TOP, BOTTOM, LEFT, or RIGHT)
@@ -309,6 +322,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     public void setMySize(int w, int h, float zoom) {
         this.zoom = zoom;
         this.setBounds(getX(), getY(), w, h);
+        w -= reservedWidthRight;
         lblCanvas.setBounds(0, 0, w, h);
         
         synchronized(imgLock) {

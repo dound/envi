@@ -8,12 +8,12 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.dial.*;
 import org.jfree.data.general.DefaultValueDataset;
-import org.jfree.data.general.ValueDataset;
 import org.jfree.ui.GradientPaintTransformType;
 import org.jfree.ui.StandardGradientPaintTransformer;
 
 public class PowerDial extends ChartPanel {
     DefaultValueDataset data_watts_current;
+    DefaultValueDataset data_watts_traditional;
     private int max = -1;
 
     /** Creates a power dial panel. */
@@ -24,7 +24,9 @@ public class PowerDial extends ChartPanel {
     /** Creates a power dial panel whose chart has the specified upper bound. */
     public PowerDial(int max) {
         super(null);
-        setData(0, max);
+        data_watts_traditional = new DefaultValueDataset(0);
+        data_watts_current = new DefaultValueDataset(0);
+        setData(0, 0, max);
     }
         
     /**
@@ -32,7 +34,6 @@ public class PowerDial extends ChartPanel {
      *
      * @param chartTitle  the chart title.
      * @param dialLabel  the dial label.
-     * @param dataset  the dataset.
      * @param lowerBound  the lower bound.
      * @param upperBound  the upper bound.
      * @param increment  the major tick increment.
@@ -40,18 +41,19 @@ public class PowerDial extends ChartPanel {
      *
      * @return A chart that displays a value as a dial.
      */
-    public static JFreeChart createStandardDialChart(String chartTitle,
-            String dialLabel, ValueDataset dataset, double lowerBound,
-            double upperBound, double increment, int minorTickCount) {
+    private JFreeChart createStandardDialChart(String chartTitle,
+            String dialLabel, 
+            double lowerBound, double upperBound,
+            double increment, int minorTickCount) {
         DialPlot plot = new DialPlot();
-        plot.setDataset(dataset);
+        plot.setDataset(0, data_watts_traditional);
+        plot.setDataset(1, data_watts_current);
         plot.setDialFrame(new StandardDialFrame());
 
         plot.setBackground(new DialBackground());
         DialTextAnnotation annotation1 = new DialTextAnnotation(dialLabel);
         annotation1.setFont(new Font("Dialog", Font.BOLD, 14));
         annotation1.setRadius(0.7);
-
         plot.addLayer(annotation1);
 
         DialValueIndicator dvi = new DialValueIndicator(0);
@@ -64,19 +66,25 @@ public class PowerDial extends ChartPanel {
         scale.setTickLabelOffset(0.2);
         scale.setTickLabelFont(new Font("Dialog", Font.PLAIN, 14));
         plot.addScale(0, scale);
+        plot.addScale(1, scale);
 
-        plot.addPointer(new DialPointer.Pin());
-
+        plot.addPointer(new DialPointer.Pointer());
+        
+        DialPointer needle2 = new DialPointer.Pin(1);
+        needle2.setRadius(0.55);
+        plot.addPointer(needle2);
+        
         DialCap cap = new DialCap();
         plot.setCap(cap);
 
         return new JFreeChart(chartTitle, plot);
     }
 
-    public void setData(int cur, int max) {
+    public void setData(int cur, int traditional, int max) {
         if(max != this.max)
             createChart(max);
         this.data_watts_current.setValue(cur);
+        this.data_watts_traditional.setValue(traditional);
     }
     
     private void createChart(int max) {
@@ -90,16 +98,12 @@ public class PowerDial extends ChartPanel {
     private void createDialChart(int max) {
         JFreeChart chart = createStandardDialChart(
                 "Power Consumption",
-                "Watts", 
-                new DefaultValueDataset(100), 
-                0, 
-                max, 
-                1000, 
-                250);
+                "Watts",
+                0, max, 
+                1000, 250);
         
         setChart(chart);
         DialPlot plot = (DialPlot) chart.getPlot();
-        data_watts_current = (DefaultValueDataset)plot.getDataset();
         
         addRange(plot, 0, max/3, Color.GREEN);
         addRange(plot, max/3, max*2/3, Color.ORANGE);
@@ -113,14 +117,9 @@ public class PowerDial extends ChartPanel {
         DialBackground db = new DialBackground(gp);
         db.setGradientPaintTransformer(new StandardGradientPaintTransformer(GradientPaintTransformType.VERTICAL));
         plot.setBackground(db);
-        
-        plot.removePointer(0);
-        DialPointer.Pointer p = new DialPointer.Pointer();
-        plot.addPointer(p);
     }
     
     public void createVerticalChart(int max) {
-        this.data_watts_current = new DefaultValueDataset(100);
         // get data for diagrams
         DialPlot plot = new DialPlot();
         plot.setView(0.78, 0.37, 0.22, 0.26);

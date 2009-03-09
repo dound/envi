@@ -213,8 +213,8 @@ public class ElasticTreeManager extends PZLayoutManager {
 
     private PowerDial dialPower = new PowerDial();    
     
-    public void setPowerData(int cur, int max) {
-        dialPower.setData(cur, max);
+    public void setPowerData(int cur, int traditional, int max) {
+        dialPower.setData(cur, traditional, max);
     }
     
     // --- Traffic Matrix Change Handling --- //

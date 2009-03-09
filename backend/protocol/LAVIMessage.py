@@ -266,7 +266,7 @@ class Subscribe(LAVIMessage):
 
     def __str__(self):
         what = ' ' if self.subscribe else ' un'
-        return 'SUBSCRIBE: ' + LAVIMessage.__str__(self) + what + 'subscribe' + ' ' + str(self.get_type())
+        return 'SUBSCRIBE: ' + LAVIMessage.__str__(self) + what + 'subscribe'
 
 class SwitchesSubscribe(Subscribe):
     @staticmethod
@@ -379,16 +379,18 @@ class ETPowerUsage(LAVIMessage):
     def get_type():
         return 0xF2
 
-    def __init__(self, xid, watts_current, watts_max):
+    def __init__(self, xid, watts_current, watts_traditional, watts_max):
         LAVIMessage.__init__(self, xid)
         self.watts_current = int(watts_current)
+        self.watts_traditional = int(watts_traditional)
         self.watts_max = int(watts_max)
 
     def length(self):
-        return LAVIMessage.SIZE + 8
+        return LAVIMessage.SIZE + 12
 
     def pack(self):
-        return LAVIMessage.pack(self) + struct.pack('> 2I', self.watts_current, self.watts_max)
+        body = struct.pack('> 3I', self.watts_current, self.watts_traditional, self.watts_max)
+        return LAVIMessage.pack(self) + body
 
     @staticmethod
     def unpack(body):
@@ -396,12 +398,14 @@ class ETPowerUsage(LAVIMessage):
         body = body[4:]
         watts_current = struct.unpack('> I', body[:4])[0]
         body = body[4:]
+        watts_traditional = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
         watts_max = struct.unpack('> I', body[:4])[0]
-        return ETPowerUsage(xid, watts_current, watts_max)
+        return ETPowerUsage(xid, watts_current, watts_traditional, watts_max)
 
     def __str__(self):
-        fmt = 'ET_POWER_USAGE: ' + LAVIMessage.__str__(self) + " cur=%u max=%u"
-        return fmt % (self.watts_current, self.watts_max)
+        fmt = 'ET_POWER_USAGE: ' + LAVIMessage.__str__(self) + " cur=%u trad=%u max=%u"
+        return fmt % (self.watts_current, self.watts_traditional, self.watts_max)
 
 LAVI_PROTOCOL = LTProtocol([Disconnect,
                             PollStart, PollStop,

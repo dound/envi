@@ -2,18 +2,21 @@ package org.pzgui.layout;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.util.HashSet;
 import java.util.LinkedList;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 
+import org.openflow.lavi.drawables.DrawableIcon;
 import org.openflow.lavi.drawables.OpenFlowSwitch;
 import org.openflow.lavi.net.protocol.ETTrafficMatrix;
 import org.openflow.util.string.StringOps;
 import org.pzgui.Drawable;
 import org.pzgui.PZClosing;
 import org.pzgui.PZWindow;
+import org.pzgui.icon.GeometricIcon;
 
 /**
  * Elastic Tree GUI manager.
@@ -61,7 +64,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         pnlSidebar.add(dialPower);
     }
     
-    
     // -------- Layout and Redrawing -------- //
     // ************************************** //
     
@@ -73,18 +75,20 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
     
     /** Adds the drawable as usual and then invokes the fat tree layout engine */
-    public synchronized void addDrawable(Drawable d) {
+    public void addDrawable(Drawable d) {
         super.addDrawable(d);
-        if(d instanceof Vertex) {
-            if(fatTreeLayout.noteVertex((Vertex)d)) {
-                // a bit of a hack: draw switches representing hosts a different color
-                if(d instanceof OpenFlowSwitch) {
-                    OpenFlowSwitch o = ((OpenFlowSwitch)d);
-                    o.setFillColor(java.awt.Color.DARK_GRAY);
-                    o.setSize(OpenFlowSwitch.SIZE_SMALL);
+        synchronized(this) {
+            if(d instanceof Vertex) {
+                if(fatTreeLayout.noteVertex((Vertex)d)) {
+                    // a bit of a hack: draw switches representing hosts a different color
+                    if(d instanceof OpenFlowSwitch) {
+                        OpenFlowSwitch o = ((OpenFlowSwitch)d);
+                        o.setFillColor(java.awt.Color.DARK_GRAY);
+                        o.setSize(OpenFlowSwitch.SIZE_SMALL);
+                    }
                 }
+                relayout();
             }
-            fatTreeLayout.relayout();
         }
     }
     
@@ -92,15 +96,14 @@ public class ElasticTreeManager extends PZLayoutManager {
      * Removes the drawable as usual and then completely resets the fat tree 
      * layout engine (assumes all switches are being removed).
      */
-    public synchronized void removeDrawable(Drawable d) {
+    public void removeDrawable(Drawable d) {
         super.removeDrawable(d);
-        if(d instanceof Vertex) {
-            fatTreeLayout.clear();
+        synchronized(this) {
+            if(d instanceof Vertex) {
+                fatTreeLayout.clear();
+            }
         }
     }
-    
-    /* overrides parent to be a no-op */
-    protected void postRedraw() {}
 
     /** Overrides parent to add my widgets to the new window. */
     public void attachWindow(final PZWindow w) {
@@ -118,9 +121,7 @@ public class ElasticTreeManager extends PZLayoutManager {
      */
     public void setLayoutSize(int w, int h) {
         super.setLayoutSize(w, h);
-        fatTreeLayout.reset();
-        fatTreeLayout.relayout();
-        windows.get(0).setZoom(1.0f);
+        relayout();
 
         // place our custom components
         pnlSidebar.setBounds(w, 0, RESERVED_COLUMN_WIDTH-4, h);
@@ -180,14 +181,53 @@ public class ElasticTreeManager extends PZLayoutManager {
      * Overrides the parent implementation by appending the drawing of the 
      * additional Elastic Tree widgets.
      */
-    public synchronized void redraw(PZWindow window) {
-        super.redraw(window);
+    public void preRedraw(PZWindow window) {
+        super.preRedraw(window);
         Graphics2D gfx = window.getDisplayGfx();
         if(gfx == null)
             return;
         
-        // draw place our custom components
-        pnlSidebar.repaint();
+        for(DrawableIcon d : liveIcons)
+            d.drawObject(gfx);
+    }
+    
+    public void postRedraw() {}
+
+    private int[] baseX = new int[]{0,1,1,0};
+    private int[] baseY = new int[]{0,0,1,1};
+    private HashSet<DrawableIcon> liveIcons = new HashSet<DrawableIcon>();
+    private void addRectangle(int x, int y, int w, int h, Color c) {
+        DrawableIcon d = new DrawableIcon(new GeometricIcon(baseX, baseY, w, h, c), x, y, w, h);
+        liveIcons.add(d);
+    }
+
+    private static final Color[] POD_COLORS = new Color[] {new Color(255,243,243),
+                                                           new Color(243,255,243),
+                                                           new Color(243,243,255),
+                                                           new Color(255,255,243),
+                                                           new Color(255,243,255),
+                                                           new Color(243,255,255)};
+    
+    private void relayout() {
+        // only relayout once all nodes are present
+        if(fatTreeLayout.getGraph().getVertexCount() < fatTreeLayout.size())
+            return;
+        
+        for(DrawableIcon d : liveIcons)
+            removeDrawable(d);
+        liveIcons.clear();
+        
+        fatTreeLayout.reset();
+        fatTreeLayout.relayout();
+        windows.get(0).setZoom(1.0f);
+        
+        int y = fatTreeLayout.agg_y - 20;
+        int w = fatTreeLayout.pod_sz;
+        int h = fatTreeLayout.getSize().height - y;
+        int i;
+        for(i=0; i<fatTreeLayout.getK()-1; i++)
+            addRectangle(w*i, y, w, h, POD_COLORS[i]);
+        addRectangle(w*i, y, w*2, h, POD_COLORS[i]);
     }
 
     

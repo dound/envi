@@ -92,6 +92,9 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
         return size_core() + size_agg() + size_edge() + size_host();
     }
     
+    /** generated layout settings */
+    int core_y = 0, agg_y = 0, edge_y = 0, host_y = 0, pod_sz = 0;
+    
     /** Layout the nodes in the graph from scratch */
     public synchronized void relayout() {
         if(done || size() > nextID)
@@ -107,15 +110,16 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
         
         int margin_y = 40;
         int hAvail = h - margin_y * 2;
-        int core_y = margin_y;
-        int agg_y  = hAvail / 3;
-        int edge_y = 2 * hAvail / 3;
-        int host_y = h - margin_y;
+        core_y = margin_y;
+        agg_y  = hAvail / 3;
+        edge_y = 2 * hAvail / 3;
+        host_y = h - margin_y;
         
         int core_x_sep = w / core_size;
         int agg_x_sep  = w / agg_size;
         int edge_x_sep = w / edge_size;
         int host_x_sep = w / host_size;
+        pod_sz = agg_x_sep * k / 2;
         
         for(int i=0; i<nodeIDs.size(); i++) {
             V v = nodeIDs.get(i);

@@ -54,7 +54,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
     }
 
     public boolean isOff() {
-        return off && !failed;
+        return off;
     }
     
     public void setOff(boolean b) {

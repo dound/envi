@@ -1,5 +1,11 @@
+"""Defines the LAVI protocol and some associated helper functions."""
+
+import array
+import struct
+
+from twisted.internet import reactor
+
 from ltprotocol.ltprotocol import LTMessage, LTProtocol
-import array, struct
 
 def array_to_octstr(arr):
     bstr = ''
@@ -443,8 +449,6 @@ if __name__ == "__main__":
     def print_ltm(ltm):
         print 'recv: %s' % str(ltm)
 
-    from ltprotocol.ltprotocol import LTTwistedServer
-    from twisted.internet import reactor
     server = LTTwistedServer(LAVI_PROTOCOL, lambda m : print_ltm(m))
     server.listen(2503)
 

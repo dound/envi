@@ -7,7 +7,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 
 import org.openflow.lavi.drawables.OpenFlowSwitch;
 import org.openflow.lavi.net.protocol.ETTrafficMatrix;
@@ -97,9 +96,11 @@ public class ElasticTreeManager extends PZLayoutManager {
         super.removeDrawable(d);
         if(d instanceof Vertex) {
             fatTreeLayout.clear();
-            fatTreeLayout.relayout();
         }
     }
+    
+    /* overrides parent to be a no-op */
+    protected void postRedraw() {}
 
     /** Overrides parent to add my widgets to the new window. */
     public void attachWindow(final PZWindow w) {
@@ -107,11 +108,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         if(getWindowIndex(w) == 0) {
             w.getContentPane().add(pnlSidebar);
             w.setReservedWidthRight(RESERVED_COLUMN_WIDTH);
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    w.setMySize(w.getWidth(), w.getHeight(), w.getZoom());
-                }
-            });
+            w.setMySize(w.getWidth(), w.getHeight(), w.getZoom());
         }
     }
     
@@ -121,7 +118,9 @@ public class ElasticTreeManager extends PZLayoutManager {
      */
     public void setLayoutSize(int w, int h) {
         super.setLayoutSize(w, h);
+        fatTreeLayout.reset();
         fatTreeLayout.relayout();
+        windows.get(0).setZoom(1.0f);
 
         // place our custom components
         pnlSidebar.setBounds(w, 0, RESERVED_COLUMN_WIDTH-4, h);

@@ -11,6 +11,7 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
     
     private HashMap<Integer, V> nodeIDs = new HashMap<Integer, V>();
     private int nextID = 0;
+    private boolean done = false;
     
     /**
      * Constructs a new Fat Tree layout engine.
@@ -20,16 +21,18 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
         this.k = k;
     }
 
-    /** This method always returns true as the FatTree layout is immediate. */
-    public boolean done() {
-        return true;
+    /** This method always returns whether the fat tree has been laid out. */
+    public synchronized boolean done() {
+        return done;
     }
     
     public void initialize() {}
 
-    public void reset() {}
+    public synchronized void reset() {
+        done = false;
+    }
     
-        /** This method is a no-op as the FatTree layout is immediate. */
+    /** This method is a no-op as the FatTree layout is immediate. */
     public void step() {}
 
     /** Gets the degree of the fat tree redundancy */
@@ -45,6 +48,7 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
     public synchronized boolean noteVertex(V v) {
         boolean isHost = nextID >= size_core() + size_agg() + size_edge(); 
         nodeIDs.put(nextID++, v);
+        reset();
         return isHost;
     }
     
@@ -52,6 +56,7 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
     public synchronized void clear() {
         nodeIDs.clear();
         nextID = 0;
+        reset();
     }
     
     /** Sets the degree of the fat tree redundancy */
@@ -89,6 +94,9 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
     
     /** Layout the nodes in the graph from scratch */
     public synchronized void relayout() {
+        if(done || size() > nextID)
+            return;
+        
         int core_size = size_core();
         int agg_size = size_agg();
         int edge_size = size_edge();
@@ -104,10 +112,10 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
         int edge_y = 2 * hAvail / 3;
         int host_y = h - margin_y;
         
-        int core_x_sep = w / (core_size + 1);
-        int agg_x_sep  = w / (agg_size  + 1);
-        int edge_x_sep = w / (edge_size + 1);
-        int host_x_sep = w / (host_size + 1);
+        int core_x_sep = w / core_size;
+        int agg_x_sep  = w / agg_size;
+        int edge_x_sep = w / edge_size;
+        int host_x_sep = w / host_size;
         
         for(int i=0; i<nodeIDs.size(); i++) {
             V v = nodeIDs.get(i);
@@ -118,6 +126,7 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
             
             if(core_id < core_size) {
                 v.setPos(getVertexX(core_x_sep, core_id), core_y);
+                System.err.println("core " + core_id + " => " + v.getPos());
             }
             else if(agg_id < agg_size) {
                 v.setPos(getVertexX(agg_x_sep,  agg_id),  agg_y);
@@ -129,6 +138,8 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
                 v.setPos(getVertexX(host_x_sep, host_id), host_y);
             }
         }
+        
+        done = true;
     }
     
     /** computes the position of the i'th node when they are separated by sep */

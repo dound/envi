@@ -219,7 +219,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         fatTreeLayout.reset();
         fatTreeLayout.relayout();
-        windows.get(0).setZoom(1.0f);
         
         int y = fatTreeLayout.agg_y - 20;
         int w = fatTreeLayout.pod_sz;

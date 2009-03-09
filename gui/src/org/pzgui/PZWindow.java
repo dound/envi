@@ -323,6 +323,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     /** set the height, width, and zoom of this window */
     public void setMySize(int w, int h, float zoom) {
         this.zoom = zoom;
+        this.zoom = 1.0f; // ET hack
         this.setBounds(getX(), getY(), w, h);
         w -= reservedWidthRight;
         lblCanvas.setBounds(0, 0, w, h);
@@ -445,6 +446,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     /** set the current zoom */
     public void setZoom(float z) {
         zoom = z;
+        zoom = 1.0f; // ET hack
     }
 
     /** zoom in by the standard amount */

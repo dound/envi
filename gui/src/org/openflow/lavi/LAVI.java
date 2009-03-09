@@ -518,6 +518,8 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             double bps = util * existingLink.getMaximumDataRate();
             double pps = bps / (1500*8); // assumes 1500B packets
             psr.setRates(pps, bps, 0, when);
+            
+            existingLink.setColor();
         }
         else
             logLinkMissing("link", dstDPID, dstPort, srcDPID, srcPort);

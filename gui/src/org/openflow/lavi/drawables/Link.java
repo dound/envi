@@ -379,7 +379,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     }
     
     /** sets the color this link will be drawn based on the current utilization */
-    private void setColor() {
+    public void setColor() {
         float usage = (float)getCurrentUtilization();
         if(usage < 0) {
             this.curDrawColor = Color.BLUE; // indicate that we don't know the util
@@ -388,6 +388,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         else if (usage > 1)
             usage = 1;
         
-        this.curDrawColor = new Color(usage, 0f, 0f); 
+        if(usage == 0.0f)
+            this.curDrawColor = new Color(0.3f, 0.3f, 0.3f, 0.5f); // faded gray
+        else
+            this.curDrawColor = new Color(usage, 0f, 0f); 
     }
 }

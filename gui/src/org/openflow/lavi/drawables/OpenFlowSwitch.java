@@ -1,6 +1,7 @@
 package org.openflow.lavi.drawables;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.geom.Ellipse2D;
@@ -14,11 +15,13 @@ import org.pzgui.Constants;
  * @author David Underhill
  */
 public class OpenFlowSwitch extends NodeWithPorts {
-    java.awt.Dimension SIZE = new java.awt.Dimension(25, 25);
-    java.awt.Dimension SIZE_BIG = new java.awt.Dimension(40, 40);
+    public static final Dimension SIZE_SMALL = new Dimension(5, 5);
+    public static final Dimension SIZE = new Dimension(15, 15);
+    public static final Dimension SIZE_BIG = new Dimension(25, 25);
     public static final Paint NAME_COLOR = new Color(128, 128, 255);
     public static final Paint FILL_COLOR_G = new Color(128, 255, 128);
     public static final Paint FILL_COLOR_B = new Color(128, 128, 255);
+    public static final boolean SHOW_NAME = false;
     
     private long datapathID;
     private static final double OUTLINE_RATIO = 4.0 / 3.0;
@@ -27,7 +30,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
     private long descUpdateTime = 0;
     
     // drawing-specific
-    private java.awt.Dimension size = SIZE;
+    private Dimension size = SIZE;
     private Paint fillColor = FILL_COLOR_B;
     
     
@@ -75,13 +78,15 @@ public class OpenFlowSwitch extends NodeWithPorts {
         gfx.setPaint(fillColor);
         gfx.fillOval(x, y, size.width, size.height);
         
-        gfx.setPaint(NAME_COLOR);
-        int textYOffset = -size.height / 2 + 2;
-        if(isStringSet(getName()))
-            drawName(gfx, getX(), getY() - textYOffset, getY() + textYOffset);
-        else
-            gfx.drawString(DPIDUtil.toShortString(datapathID), x, y);
-        y += gfx.getFontMetrics().getHeight();
+        if(SHOW_NAME) {
+            gfx.setPaint(NAME_COLOR);
+            int textYOffset = -size.height / 2 + 2;
+            if(isStringSet(getName()))
+                drawName(gfx, getX(), getY() - textYOffset, getY() + textYOffset);
+            else
+                gfx.drawString(DPIDUtil.toShortString(datapathID), x, y);
+            y += gfx.getFontMetrics().getHeight();
+        }
         gfx.setPaint(Constants.PAINT_DEFAULT);
         
         // display switch description stats on mouse over
@@ -111,8 +116,12 @@ public class OpenFlowSwitch extends NodeWithPorts {
         return s!=null && s.length()>0 && !s.equals("None") && !s.equals("?");
     }
     
-    public java.awt.Dimension getSize() {
+    public Dimension getSize() {
         return size;
+    }
+    
+    public void setSize(Dimension d) {
+        size = d;
     }
     
     public String getDebugName() {

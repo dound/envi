@@ -8,6 +8,8 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+
+import org.openflow.lavi.drawables.OpenFlowSwitch;
 import org.openflow.lavi.net.protocol.ETTrafficMatrix;
 import org.openflow.util.string.StringOps;
 import org.pzgui.Drawable;
@@ -77,10 +79,13 @@ public class ElasticTreeManager extends PZLayoutManager {
         if(d instanceof Vertex) {
             if(fatTreeLayout.noteVertex((Vertex)d)) {
                 // a bit of a hack: draw switches representing hosts a different color
-                if(d instanceof org.openflow.lavi.drawables.OpenFlowSwitch)
-                    ((org.openflow.lavi.drawables.OpenFlowSwitch)d).setFillColor(java.awt.Color.DARK_GRAY);
+                if(d instanceof OpenFlowSwitch) {
+                    OpenFlowSwitch o = ((OpenFlowSwitch)d);
+                    o.setFillColor(java.awt.Color.DARK_GRAY);
+                    o.setSize(OpenFlowSwitch.SIZE_SMALL);
+                }
             }
-            fatTreeLayout.relayout();            
+            fatTreeLayout.relayout();
         }
     }
     
@@ -116,6 +121,7 @@ public class ElasticTreeManager extends PZLayoutManager {
      */
     public void setLayoutSize(int w, int h) {
         super.setLayoutSize(w, h);
+        fatTreeLayout.relayout();
 
         // place our custom components
         pnlSidebar.setBounds(w, 0, RESERVED_COLUMN_WIDTH-4, h);

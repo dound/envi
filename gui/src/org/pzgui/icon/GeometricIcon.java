@@ -57,6 +57,7 @@ public class GeometricIcon extends Icon {
     private final Polygon poly;
     private Color fillColor;
     private final Dimension size;
+    private boolean center = false;
     private final HashMap<Dimension, Polygon> resampledPolygons = new HashMap<Dimension, Polygon>();
     
     public GeometricIcon(int[] x, int[] y, Color c) {
@@ -83,17 +84,19 @@ public class GeometricIcon extends Icon {
     }
     
     public void draw( Graphics2D gfx, int x, int y ) {
-        draw(gfx, poly, fillColor, x, y, size.width, size.height);
+        draw(gfx, poly, fillColor, x, y, size.width, size.height, center);
     }
     
     public void draw( Graphics2D gfx, int x, int y, int w, int h ) {
-        draw(gfx, getPolygon(new Dimension(w, h)), fillColor, x, y, w, h);
+        draw(gfx, getPolygon(new Dimension(w, h)), fillColor, x, y, w, h, center);
     }
     
-    public static void draw( Graphics2D gfx, Polygon poly, Color fillColor, int x, int y, int w, int h) {
+    public static void draw( Graphics2D gfx, Polygon poly, Color fillColor, int x, int y, int w, int h, boolean center) {
         // center the drawing
-        x -= w / 2;
-        y -= h / 2;
+        if(center) {
+            x -= w / 2;
+            y -= h / 2;
+        }
         
         // draw the polygon in the appropriate place
         gfx.translate(x, y);
@@ -123,6 +126,14 @@ public class GeometricIcon extends Icon {
     
     public void setFillColor(Color c) {
         fillColor = c;
+    }
+    
+    public boolean isCenter() {
+        return center;
+    }
+    
+    public void setCenter(boolean b) {
+        center = b;
     }
     
     public Polygon getPolygon(Dimension sz) {

@@ -308,7 +308,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
 
     /** set the height and width of this window */
     public void setMySize(int w, int h) {
-        int oldW = img.getWidth();
+        int oldW = img.getWidth() + reservedWidthRight;
         int oldH = img.getHeight();
         
         if(w!=oldW || h!=oldH) {

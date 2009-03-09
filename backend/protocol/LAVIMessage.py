@@ -447,4 +447,12 @@ if __name__ == "__main__":
     from twisted.internet import reactor
     server = LTTwistedServer(LAVI_PROTOCOL, lambda m : print_ltm(m))
     server.listen(2503)
+
+    def callback():
+        if len(server.connections) > 0:
+            print 'sending ...'
+            server.send(SwitchesAdd(0, [v+1 for v in range(99)]))
+        else:
+            reactor.callLater(1, callback)
+    reactor.callLater(1, callback)
     reactor.run()

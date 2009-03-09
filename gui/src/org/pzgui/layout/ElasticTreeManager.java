@@ -132,15 +132,14 @@ public class ElasticTreeManager extends PZLayoutManager {
         lblTrafficMatrixNext.setBounds(x, y, LBL_WIDTH_BIG, LBL_HEIGHT);
         
         h -= y;
-        final int SL_HEIGHT = h / 4;
+        int SL_HEIGHT = h / 8;
         final int GAP_Y = ((h / 3) - SL_HEIGHT) / 2;
         final int SL_X = GAP_X;
-        final int LBL_X = SL_X + SL_WIDTH;
         
-        x = SL_X;
-        y += GAP_Y;
+        x = GAP_X;
+        y = h - SL_HEIGHT - LBL_HEIGHT;
         final int LOWER_SL_HEIGHT = SL_HEIGHT - LBL_HEIGHT;
-        final int LBL_Y = y + LOWER_SL_HEIGHT;
+        int LBL_Y = y + LOWER_SL_HEIGHT;
         slDemand.setBounds(x, y, SL_WIDTH, LOWER_SL_HEIGHT);
         lblDemand.setBounds(x, LBL_Y, LBL_WIDTH, LBL_HEIGHT);
         lblDemandVal.setBounds(x, LBL_Y+LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
@@ -150,16 +149,18 @@ public class ElasticTreeManager extends PZLayoutManager {
         lblPLen.setBounds(x2, LBL_Y, LBL_WIDTH, LBL_HEIGHT);
         lblPLenVal.setBounds(x2, LBL_Y+LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
         
-        y += SL_HEIGHT + GAP_Y + GAP_Y;
+        x = SL_X;
+        y = h / 3 - 2 * SL_HEIGHT / 3;
+        LBL_Y = y + SL_HEIGHT;
         slAgg.setBounds(x, y, SL_WIDTH, SL_HEIGHT);
-        lblAgg.setBounds(LBL_X, y+SL_HEIGHT/2-LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
-        lblAggVal.setBounds(LBL_X, y+SL_HEIGHT/2, LBL_WIDTH, LBL_HEIGHT);
+        lblAgg.setBounds(x, LBL_Y, LBL_WIDTH, LBL_HEIGHT);
+        lblAggVal.setBounds(x, LBL_Y+LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
         
-        y += SL_HEIGHT + GAP_Y + GAP_Y;
-        final int LBL_Y_BTM = y + SL_HEIGHT-LBL_HEIGHT;
+        y = 2 * h / 3 - SL_HEIGHT;
+        LBL_Y = y + SL_HEIGHT;
         slEdge.setBounds(x, y, SL_WIDTH, SL_HEIGHT);
-        lblEdge.setBounds(LBL_X, LBL_Y_BTM, LBL_WIDTH, LBL_HEIGHT);
-        lblEdgeVal.setBounds(LBL_X, LBL_Y_BTM-LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
+        lblEdge.setBounds(x, LBL_Y, LBL_WIDTH, LBL_HEIGHT);
+        lblEdgeVal.setBounds(x, LBL_Y+LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
         
         int o = SL_WIDTH + GAP_X;
         int sz = LBL_WIDTH_BIG - o - GAP_X * 2;
@@ -171,8 +172,7 @@ public class ElasticTreeManager extends PZLayoutManager {
             dialPower.setBounds(x + o, y, sz, szh);
         }
         else {
-            y = h - sz;
-            dialPower.setBounds(x + o, y, sz, sz);
+            dialPower.setBounds(x + o, 2 * LBL_HEIGHT + 5, sz, sz);
         }
     }
     

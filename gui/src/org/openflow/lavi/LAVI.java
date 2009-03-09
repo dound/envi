@@ -19,6 +19,8 @@ import org.pzgui.layout.ElasticTreeManager;
 import org.pzgui.layout.TrafficMatrixChangeListener;
 
 public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChangeListener {
+    public static final boolean ENABLE_AUTO_REQUESTS = false;
+    
     /** run the LAVI front-end */
     public static void main(String args[]) {
         String server = null;
@@ -219,6 +221,9 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         switchesList.add(dpid);
         s.setPos((int)Math.random()*500, (int)Math.random()*500);
         addSwitchDrawable(s);
+        
+        if(!ENABLE_AUTO_REQUESTS)
+            return s;
         
         // get the links associated with this switch
         try {

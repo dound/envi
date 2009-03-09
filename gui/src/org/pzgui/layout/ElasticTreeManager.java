@@ -56,7 +56,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         pnlSidebar.add(lblPLenVal);
         pnlSidebar.add(lblTrafficMatrixCurrent);
         pnlSidebar.add(lblTrafficMatrixNext);
-        pnlSidebar.add(lblPower);
+        pnlSidebar.add(dialPower);
     }
     
     
@@ -105,9 +105,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         lblTrafficMatrixCurrent.setBounds(x, y, LBL_WIDTH_BIG, LBL_HEIGHT);
         y += LBL_HEIGHT;
         lblTrafficMatrixNext.setBounds(x, y, LBL_WIDTH_BIG, LBL_HEIGHT);
-        y += LBL_HEIGHT;
-        lblPower.setBounds(x, y, LBL_WIDTH_BIG, LBL_HEIGHT);
-
+        
         h -= y;
         final int SL_HEIGHT = h / 4;
         final int GAP_Y = ((h / 3) - SL_HEIGHT) / 2;
@@ -133,9 +131,15 @@ public class ElasticTreeManager extends PZLayoutManager {
         lblAggVal.setBounds(LBL_X, y+SL_HEIGHT/2, LBL_WIDTH, LBL_HEIGHT);
         
         y += SL_HEIGHT + GAP_Y + GAP_Y;
+        final int LBL_Y_BTM = y + SL_HEIGHT-LBL_HEIGHT;
         slEdge.setBounds(x, y, SL_WIDTH, SL_HEIGHT);
-        lblEdge.setBounds(LBL_X, y+SL_HEIGHT/2-LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
-        lblEdgeVal.setBounds(LBL_X, y+SL_HEIGHT/2, LBL_WIDTH, LBL_HEIGHT);
+        lblEdge.setBounds(LBL_X, LBL_Y_BTM, LBL_WIDTH, LBL_HEIGHT);
+        lblEdgeVal.setBounds(LBL_X, LBL_Y_BTM-LBL_HEIGHT, LBL_WIDTH, LBL_HEIGHT);
+        
+        int o = SL_WIDTH + GAP_X;
+        int sz = LBL_WIDTH_BIG - o - GAP_X * 2;
+        y = h - sz;
+        dialPower.setBounds(x + o, y, sz, sz);
     }
     
     /**
@@ -197,14 +201,10 @@ public class ElasticTreeManager extends PZLayoutManager {
         lblTrafficMatrixNext.setText("Next Traffic: " + s);
     }
 
-    private int current_volts;
-    private int max_volts;
-    private JLabel lblPower = new JLabel("0V / 0V");
-
-    public void setPowerData(int currentV, int maxV) {
-        current_volts = currentV;
-        max_volts = maxV;
-        lblPower.setText(current_volts + "V / " + max_volts + "V");
+    private PowerDial dialPower = new PowerDial();    
+    
+    public void setPowerData(int cur, int max) {
+        dialPower.setData(cur, max);
     }
     
     // --- Traffic Matrix Change Handling --- //

@@ -130,7 +130,6 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
             
             if(core_id < core_size) {
                 v.setPos(getVertexX(core_x_sep, core_id), core_y);
-                System.err.println("core " + core_id + " => " + v.getPos());
             }
             else if(agg_id < agg_size) {
                 v.setPos(getVertexX(agg_x_sep,  agg_id),  agg_y);

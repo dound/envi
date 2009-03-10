@@ -135,7 +135,7 @@ class SwitchesList(LAVIMessage):
         return LAVIMessage.SIZE + self.dpids * 8
 
     def pack(self):
-        return LAVIMessage.pack(self) + ''.join([struct.pack('> Q', dpid) for dpid in self.dpids])
+        return LAVIMessage.pack(self) + ''.join([struct.pack('> Q', long(dpid)) for dpid in self.dpids])
 
     @staticmethod
     def unpack(body):
@@ -147,7 +147,7 @@ class SwitchesList(LAVIMessage):
         return SwitchesList(dpids, xid)
 
     def __str__(self):
-        return LAVIMessage.__str__(self) + ' dpids=[%s]' % ''.join([dpidstr(dpid) + ',' for dpid in self.dpids])
+        return LAVIMessage.__str__(self) + ' dpids=[%s]' % ''.join([dpidstr(long(dpid)) + ',' for dpid in self.dpids])
 
 class SwitchesAdd(SwitchesList):
     @staticmethod
@@ -178,7 +178,7 @@ class LinksRequest(LAVIMessage):
 
     def __init__(self, src_dpid, xid=0):
         LAVIMessage.__init__(self, xid)
-        self.src_dpid = src_dpid
+        self.src_dpid = long(src_dpid)
 
     def length(self):
         return LAVIMessage.SIZE + 8
@@ -200,9 +200,9 @@ class Link:
     SIZE = 20
 
     def __init__(self, src_dpid, src_port, dst_dpid, dst_port):
-        self.src_dpid = src_dpid
+        self.src_dpid = long(src_dpid)
         self.src_port = src_port
-        self.dst_dpid = dst_dpid
+        self.dst_dpid = long(dst_dpid)
         self.dst_port = dst_port
 
     def pack(self):

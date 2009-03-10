@@ -43,7 +43,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         setCurrentTrafficMatrixText(null);
         setNextTrafficMatrixText(null);
         
-        dialPower = new MultiPointerDial("Power Consumption", "Watts", 2, 10000, 1000);
+        dialPower = new MultiPointerDial("Power Consumption", "Watts", 2, 460, 50);
         dialPower.setPointerLine(1, 0.95);
         
         dialBandwidth = new MultiPointerDial("Aggregate Xput", "Gbps", 2, 550, 50);
@@ -292,6 +292,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     public void setPowerData(int cur, int traditional, int max) {
         dialPower.setValue(0, cur);
         dialPower.setValue(1, traditional);
+        dialPower.setMax(max);
     }
     
     public void setExpectedAggregateThroughput(double total_bps) {

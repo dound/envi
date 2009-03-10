@@ -43,6 +43,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         setCurrentTrafficMatrixText(null);
         setNextTrafficMatrixText(null);
         
+        dialPower = new MultiPointerDial("Power Consumption", "Watts", 2, 10000, 1000);
+        dialPower.setPointerLine(1, 0.95);
+        
         pnlSidebar.setDoubleBuffered(true);
         pnlSidebar.setLayout(null);
         pnlSidebar.setBorder(new javax.swing.border.LineBorder(Color.BLACK, 2));
@@ -133,7 +136,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         h -= y;
         int SL_HEIGHT = h / 8;
-        final int GAP_Y = ((h / 3) - SL_HEIGHT) / 2;
         final int SL_X = GAP_X;
         
         x = GAP_X;
@@ -272,10 +274,11 @@ public class ElasticTreeManager extends PZLayoutManager {
         lblTrafficMatrixNext.setText("Next Traffic: " + s);
     }
 
-    private PowerDial dialPower = new PowerDial();    
+    private final MultiPointerDial dialPower;    
     
     public void setPowerData(int cur, int traditional, int max) {
-        dialPower.setData(cur, traditional, max);
+        dialPower.setValue(0, cur);
+        dialPower.setValue(1, traditional);
     }
     
     public void setExpectedAggregateThroughput(double total_bps) {

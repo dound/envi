@@ -85,6 +85,9 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             // remove all switches when we get disconnected
             for(Long d : switchesList)
                 disconnectSwitch(d);
+            
+            // temporary: usually get d/c atm if backend crashes
+            System.exit(-1);
         }
         else
             tmManager.start();

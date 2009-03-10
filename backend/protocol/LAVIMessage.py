@@ -19,7 +19,7 @@ def array_to_octstr(arr):
     return bstr
 
 def dpidstr(ll):
-    return array_to_octstr(array.array('B',struct.pack('!Q',ll)))
+    return array_to_octstr(array.array('B',struct.pack('!Q',ll))).replace('00:', '')
 
 class LAVIMessage(LTMessage):
     SIZE = 4

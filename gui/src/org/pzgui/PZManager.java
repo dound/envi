@@ -4,7 +4,6 @@ import org.pzgui.icon.Icon;
 import org.pzgui.icon.TemporalIcon;
 import org.pzgui.icon.TextIcon;
 import org.pzgui.math.Vector2i;
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Collection;
 import java.util.LinkedList;

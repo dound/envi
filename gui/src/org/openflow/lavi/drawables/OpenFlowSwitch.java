@@ -80,7 +80,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
 
     public void draw(Graphics2D gfx) {
         Composite c = null;
-        if(isOff()) {
+        if(isOff() && !isFailed()) {
             c = gfx.getComposite();
             gfx.setComposite(ALPHA_OFF);
         }
@@ -156,7 +156,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
                 gfx.drawString(serial_num, x, y);
         }
         
-        if(isOff())
+        if(isOff() && !isFailed())
             gfx.setComposite(c);
     }
     

@@ -73,10 +73,12 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
                         if(d instanceof OpenFlowSwitch) {
                             OpenFlowSwitch o = (OpenFlowSwitch)d;
                             o.setFailed(!o.isFailed());
+                            manager.fireDrawableEvent(d, "failure");
                         }
                         else if(d instanceof Link) {
                             Link l = (Link)d;
                             l.setFailed(!l.isFailed());
+                            manager.fireDrawableEvent(d, "failure");
                         }
                     }
                     

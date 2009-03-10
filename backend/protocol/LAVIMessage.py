@@ -443,6 +443,66 @@ class ETSwitchesOff(SwitchesList):
     def __str__(self):
         return 'SWITCHES_OFF: ' + SwitchesList.__str__(self)
 
+class ETBandwidth(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0xF4
+
+    def __init__(self, bandwidth_achieved_bps, xid=0):
+        LAVIMessage.__init__(self, xid)
+        self.bandwidth_achieved_bps = int(bandwidth_achieved_bps)
+
+    def length(self):
+        return LAVIMessage.SIZE + 4
+
+    def pack(self):
+        body = struct.pack('> I', self.bandwidth_achieved_bps)
+        return LAVIMessage.pack(self) + body
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        bandwidth_achieved_bps = struct.unpack('> I', body[:4])[0]
+        return ETPowerUsage(bandwidth_achieved_bps, xid)
+
+    def __str__(self):
+        fmt = 'ET_BANDWIDTH_ACHIEVED: ' + LAVIMessage.__str__(self) + " %u bps"
+        return fmt % self.bandwidth_achieved_bps
+
+class ETLatency(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0xF5
+
+    def __init__(self, latency_ms_edge, latency_ms_agg, latency_ms_core, xid=0):
+        LAVIMessage.__init__(self, xid)
+        self.latency_ms_edge = int(latency_ms_edge)
+        self.latency_ms_agg = int(latency_ms_agg)
+        self.latency_ms_core = int(latency_ms_core)
+
+    def length(self):
+        return LAVIMessage.SIZE + 12
+
+    def pack(self):
+        body = struct.pack('> 3I', self.latency_ms_edge, self.latency_ms_agg, self.latency_ms_core)
+        return LAVIMessage.pack(self) + body
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        latency_ms_edge = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        latency_ms_agg = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        latency_ms_core = struct.unpack('> I', body[:4])[0]
+        return ETLatency(latency_ms_edge, latency_ms_agg, latency_ms_core, xid)
+
+    def __str__(self):
+        fmt = 'ET_LATENCY: ' + LAVIMessage.__str__(self) + " edge_ms=%u agg_ms=%u core_ms=%u"
+        return fmt % (self.latency_ms_edge, self.latency_ms_agg, self.latency_ms_core)
+
 class ETComputationDone(LAVIMessage):
     @staticmethod
     def get_type():
@@ -459,7 +519,9 @@ LAVI_PROTOCOL = LTProtocol([Disconnect,
                             SwitchesRequest, SwitchesAdd, SwitchesDel,
                             LinksRequest, LinksAdd, LinksDel,
                             SwitchesSubscribe, LinksSubscribe,
-                            ETTrafficMatrix, ETLinkUtils, ETPowerUsage, ETSwitchesOff, ETComputationDone],
+                            ETTrafficMatrix, ETComputationDone,
+                            ETLinkUtils, ETPowerUsage, ETSwitchesOff,
+                            ETBandwidth],
                            'H', 'B')
 
 def create_lavi_server(port, recv_callback):

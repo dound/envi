@@ -1,5 +1,6 @@
 package org.openflow.lavi.net.protocol;
 
+import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
@@ -19,11 +20,14 @@ public class ETPowerUsage extends LAVIMessage {
     /** the number of watts used when the system is fully utilized */
     public final int watts_max;
     
-    public ETPowerUsage(int watts_current, int watts_traditional, int watts_max) {
-        super(LAVIMessageType.ET_POWER_USAGE, 0);
-        this.watts_current = watts_current;
-        this.watts_traditional = watts_traditional;
-        this.watts_max = watts_max;
+    public ETPowerUsage(final int len, final int xid, final DataInput in) throws IOException {
+        super(LAVIMessageType.ET_POWER_USAGE, xid);
+        if(len != length())
+            throw new IOException("ETBandwidth is " + len + "B - expected " + length() + "B");
+        
+        this.watts_current = in.readInt();
+        this.watts_traditional = in.readInt();
+        this.watts_max = in.readInt();
     }
     
     /** This returns the maximum length of ETPowerUsage */

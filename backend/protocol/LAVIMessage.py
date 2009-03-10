@@ -72,14 +72,14 @@ class PollStart(LAVIMessage):
     def unpack(body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        interval = struct.unpack('> S', body[:2])[0]
+        interval = struct.unpack('> H', body[:2])[0]
         body = body[2:]
 
-        _ = struct.unpack('> S', body[:2])[0]  # inner message length
+        _ = struct.unpack('> H', body[:2])[0]  # inner message length
         body = body[2:]
-        type_val = struct.unpack('> B', body[1:])[0]
+        type_val = struct.unpack('> B', body[:1])[0]
         body = body[1:]
-        lm = LAVI_PROTOCOL.unpck_received_msg(type_val, body)
+        lm = LAVI_PROTOCOL.unpack_received_msg(type_val, body)
 
         return PollStart(interval, lm, xid)
 

@@ -469,12 +469,12 @@ def run_lavi_server(port, recv_callback):
 
     @return this method does not return until the server shuts down (e.g. ctrl-c)
     """
-    server = create_lavi_server(port, recv_callback)
+    create_lavi_server(port, recv_callback)
     reactor.run()
 
-if __name__ == "__main__":
+def test():
     # test: simply print out all received messages
-    def print_ltm(transport, ltm):
+    def print_ltm(_, ltm):
         print 'recv: %s' % str(ltm)
 
     server = create_lavi_server(LAVI_DEFAULT_PORT, print_ltm)
@@ -486,3 +486,6 @@ if __name__ == "__main__":
             reactor.callLater(1, callback)
     reactor.callLater(1, callback)
     reactor.run()
+
+if __name__ == "__main__":
+    test()

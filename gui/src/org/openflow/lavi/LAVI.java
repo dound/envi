@@ -47,7 +47,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     public LAVI(String server, Short port) {
         // ask the user for the NOX controller's IP if it wasn't already given
         if(server == null || server.length()==0)
-            server = DialogHelper.getInput("What is the IP or hostname of the NOX server?", "mvm-nox2.stanford.edu");
+            server = DialogHelper.getInput("What is the IP or hostname of the NOX server?", "127.0.0.1");
 
         if(server == null) {
             System.out.println("Goodbye");

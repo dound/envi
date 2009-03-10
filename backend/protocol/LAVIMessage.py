@@ -117,14 +117,11 @@ class SwitchesRequest(LAVIMessage):
     def get_type():
         return 0x10
 
-    def __init__(self, k):
-        LAVIMessage.__init__(self, k)
-
-    def getK(self):
-        return self.xid
+    def __init__(self, xid=0):
+        LAVIMessage.__init__(self, xid)
 
     def __str__(self):
-        return 'SWITCHES_REQUEST: k=%u' % self.getK()
+        return 'SWITCHES_REQUEST: ' + LAVIMessage.__str__(self)
 
 class SwitchesList(LAVIMessage):
     def __init__(self, dpids, xid=0):
@@ -507,6 +504,31 @@ class ETLatency(LAVIMessage):
         fmt = 'ET_LATENCY: ' + LAVIMessage.__str__(self) + " edge_ms=%u agg_ms=%u core_ms=%u"
         return fmt % (self.latency_ms_edge, self.latency_ms_agg, self.latency_ms_core)
 
+class ETSwitchesRequest(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0xF6
+
+    def __init__(self, k, xid=0):
+        LAVIMessage.__init__(self, xid)
+        self.k = int(k)
+
+    def length(self):
+        return LAVIMessage.SIZE + 4
+
+    def pack(self):
+        return LAVIMessage.pack(self) + struct.pack('> I', self.k)
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        k = struct.unpack('> I', body[:4])[0]
+        return ETSwitchesRequest(k, xid)
+
+    def __str__(self):
+        return 'ET_SWITCHES_REQUEST: ' + LAVIMessage.__str__(self) + ' k=%u' % self.k
+
 class ETComputationDone(LAVIMessage):
     @staticmethod
     def get_type():
@@ -523,9 +545,8 @@ LAVI_PROTOCOL = LTProtocol([Disconnect,
                             SwitchesRequest, SwitchesAdd, SwitchesDel,
                             LinksRequest, LinksAdd, LinksDel,
                             SwitchesSubscribe, LinksSubscribe,
-                            ETTrafficMatrix, ETComputationDone,
-                            ETLinkUtils, ETPowerUsage, ETSwitchesOff,
-                            ETBandwidth],
+                            ETTrafficMatrix, ETSwitchesRequest,
+                            ETLinkUtils, ETPowerUsage, ETSwitchesOff, ETBandwidth, ETLatency, ETComputationDone],
                            'H', 'B')
 
 def create_lavi_server(port, recv_callback):

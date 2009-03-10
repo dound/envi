@@ -34,6 +34,9 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     /** connection to the backend */
     private final LAVIConnection conn;
     
+    /** whether we have been connected before */
+    private boolean firstConnection = true;
+    
     /** the GUI window manager */
     private final ElasticTreeManager manager;
     
@@ -88,8 +91,17 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             // temporary: usually get d/c atm if backend crashes
             System.exit(-1);
         }
-        else
+        else {
             tmManager.start();
+            
+            if(firstConnection) {
+                try {
+                    conn.sendLAVIMessage(new ETSwitchesRequest(6));
+                    firstConnection = false;
+                }
+                catch(IOException e) {}
+            }
+        }
     }
 
     /** Handles messages received from the LAVI backend */
@@ -150,6 +162,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         case LINKS_REQUEST:
         case STAT_REQUEST:
         case ET_TRAFFIX_MATRIX:
+        case ET_SWITCHES_REQUEST:
             System.err.println("Received unexpected message type: " + msg.type.toString());
             
         default:

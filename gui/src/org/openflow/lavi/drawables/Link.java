@@ -120,11 +120,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         // draw the port numbers
         if(DRAW_PORT_NUMBERS) {
             double alpha = 0.9;
-            gfx.setPaint(Color.RED);
+            gfx.setPaint(Constants.cmap(Color.RED));
             int srcPortX = (int)(alpha*src.getX() + (1.0-alpha)*dst.getX() + offsetX);
             int srcPortY = (int)(alpha*src.getY() + (1.0-alpha)*dst.getY() + offsetY);
             gfx.drawString(Short.toString(this.srcPort), srcPortX, srcPortY);
-            gfx.setPaint(Color.GREEN.darker());
+            gfx.setPaint(Constants.cmap(Color.GREEN.darker()));
             int dstPortX = (int)(alpha*dst.getX() + (1.0-alpha)*src.getX() + offsetX);
             int dstPortY = (int)(alpha*dst.getY() + (1.0-alpha)*src.getY() + offsetY);
             gfx.drawString(Short.toString(this.dstPort), dstPortX, dstPortY);
@@ -353,7 +353,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     }
     
     /** the color to draw the link */
-    private Color curDrawColor = Color.BLACK;
+    private Color curDrawColor = Constants.cmap(Color.BLACK);
     
     /** 
      * Returns the current bandwidth being sent through the link in ps or a 

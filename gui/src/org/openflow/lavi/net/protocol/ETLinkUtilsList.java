@@ -27,7 +27,7 @@ public class ETLinkUtilsList extends LAVIMessage {
         // make sure the number of bytes makes sense
         int left = len - super.length();
         if(left % ETLinkUtil.SIZEOF != 0) {
-            throw new IOException("Body of links list is not a multiple of " + (Link.SIZEOF-8) + " (length of body is " + left + " bytes)");
+            throw new IOException("Body of links util list is not a multiple of " + ETLinkUtil.SIZEOF + " (length of body is " + left + " bytes)");
         }
         
         // read in the DPIDs

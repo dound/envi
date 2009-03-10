@@ -529,6 +529,28 @@ class ETSwitchesRequest(LAVIMessage):
     def __str__(self):
         return 'ET_SWITCHES_REQUEST: ' + LAVIMessage.__str__(self) + ' k=%u' % self.k
 
+class ETSwitchFailures(SwitchesList):
+    @staticmethod
+    def get_type():
+        return 0xF7
+
+    def __init__(self, dpids, xid=0):
+        SwitchesList.__init__(self, dpids, xid)
+
+    def __str__(self):
+        return 'ET_SWITCH_FAILURES: ' + SwitchesList.__str__(self)
+
+class ETLinkFailures(LinksList):
+    @staticmethod
+    def get_type():
+        return 0xF8
+
+    def __init__(self, links, xid=0):
+        LinksList.__init__(self, links, xid)
+
+    def __str__(self):
+        return 'ET_LINK_FAILURES: ' + LinksList.__str__(self)
+
 class ETComputationDone(LAVIMessage):
     @staticmethod
     def get_type():
@@ -545,7 +567,7 @@ LAVI_PROTOCOL = LTProtocol([Disconnect,
                             SwitchesRequest, SwitchesAdd, SwitchesDel,
                             LinksRequest, LinksAdd, LinksDel,
                             SwitchesSubscribe, LinksSubscribe,
-                            ETTrafficMatrix, ETSwitchesRequest,
+                            ETTrafficMatrix, ETSwitchesRequest, ETSwitchFailures, ETLinkFailures,
                             ETLinkUtils, ETPowerUsage, ETSwitchesOff, ETBandwidth, ETLatency, ETComputationDone],
                            'H', 'B')
 

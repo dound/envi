@@ -163,6 +163,8 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         case STAT_REQUEST:
         case ET_TRAFFIX_MATRIX:
         case ET_SWITCHES_REQUEST:
+        case ET_SWITCH_FAILURES:
+        case ET_LINK_FAILURES:
             System.err.println("Received unexpected message type: " + msg.type.toString());
             
         default:

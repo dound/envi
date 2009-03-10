@@ -334,7 +334,10 @@ class ETTrafficMatrix(LAVIMessage):
         if self.demand<0.0 or self.demand>1.0 or self.edge<0.0 or self.edge>1.0 or self.agg<0.0 or self.edge>1.0:
             raise Exception("demand (%f), edge (%f) and agg (%f) must be between 0.0 and 1.0 inclusive" % (self.demand, self.edge, self.agg))
         if self.agg + self.edge > 1.0:
-            raise Exception("agg + edge > 1.0 (%f)" % (self.agg+self.edge))
+            if self.agg + self.edge > 1.01: # more than floating point imprecision
+                raise Exception("agg + edge > 1.0 (%f)" % (self.agg+self.edge))
+            else:
+                self.agg = 1.0 - self.edge
 
     def length(self):
         return LAVIMessage.SIZE + 24

@@ -129,7 +129,7 @@ class SwitchesList(LAVIMessage):
         self.dpids = dpids
 
     def length(self):
-        return LAVIMessage.SIZE + self.dpids * 8
+        return LAVIMessage.SIZE + len(self.dpids) * 8
 
     def pack(self):
         return LAVIMessage.pack(self) + ''.join([struct.pack('> Q', long(dpid)) for dpid in self.dpids])
@@ -203,12 +203,12 @@ class Link:
         self.dst_port = dst_port
 
     def pack(self):
-        return struct.pack('> HQH', self.src_port, self.dst_dpid, self.dst_port)
+        return struct.pack('> QHQH', self.src_dpid, self.src_port, self.dst_dpid, self.dst_port)
 
     @staticmethod
     def unpack(src_dpid, buf):
-        t = struct.unpack('> HQH', buf[:12])
-        return Link(src_dpid, t[1], t[2], t[3])
+        t = struct.unpack('> QHQH', buf[:Link.SIZE])
+        return Link(t[0], t[1], t[2], t[3])
 
     def __str__(self):
         return '%s <--> %s' % (dpidstr(self.src_dpid), dpidstr(self.dst_dpid))
@@ -219,16 +219,10 @@ class LinksList(LAVIMessage):
         self.links = links
 
     def length(self):
-        return LAVIMessage.SIZE + 8 + self.links * 12
+        return LAVIMessage.SIZE + len(self.links) * Link.SIZE
 
     def pack(self):
-        src_dpid = 0
-        if len(self.links) > 0:
-            src_dpid = self.links[0].src_dpid
-            for link in self.links:
-                if src_dpid != link.src_dpid:
-                    raise AssertionError('not all dpids match in LinksList.links: [%s]' % self.links_to_string())
-        hdr = LAVIMessage.pack(self) + struct.pack('> Q', src_dpid)
+        hdr = LAVIMessage.pack(self)
         return hdr + ''.join([link.pack() for link in self.links])
 
     @staticmethod
@@ -237,11 +231,11 @@ class LinksList(LAVIMessage):
         body = body[4:]
         src_dpid = struct.unpack('> Q', body[:8])[0]
         body = body[8:]
-        num_links = len(body) / 12
+        num_links = len(body) / Link.SIZE
         links = []
         for _ in range(num_links):
-            links.append(Link.unpack(src_dpid, body[:12]))
-            body = body[12:]
+            links.append(Link.unpack(src_dpid, body[:Link.SIZE]))
+            body = body[Link.SIZE:]
         return LinksList(links, xid)
 
     def links_to_string(self):

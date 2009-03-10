@@ -12,14 +12,16 @@ import org.openflow.util.string.StringOps;
  *
  */
 public class ETTrafficMatrix extends LAVIMessage {
+    public final boolean use_hw;
     public final int k;
     public final int demand;
     public final int edge;
     public final int agg;
     public final int plen;
     
-    public ETTrafficMatrix(int k, int demand, int edge, int agg, int plen) {
+    public ETTrafficMatrix(boolean use_hw, int k, int demand, int edge, int agg, int plen) {
         super(LAVIMessageType.ET_TRAFFIX_MATRIX, 0);
+        this.use_hw = use_hw;
         this.k = k;
         this.demand = demand;
         this.edge = edge;
@@ -29,12 +31,13 @@ public class ETTrafficMatrix extends LAVIMessage {
     
     /** This returns the maximum length of this message */
     public int length() {
-        return super.length() + 20;
+        return super.length() + 24;
     }
     
     /** Writes the header (via super.write()), and this message */
     public void write(DataOutput out) throws IOException {
         super.write(out);
+        out.writeInt(use_hw ? 1 : 0);
         out.writeInt(k);
         out.writeInt(demand);
         out.writeInt(edge);
@@ -55,7 +58,7 @@ public class ETTrafficMatrix extends LAVIMessage {
         hash = hash * 32 + demand;
         hash = hash * 32 + edge;
         hash = hash * 32 + agg;
-        return hash * 32 + plen;
+        return hash * 32 + plen + (use_hw ? 1 : 0);
     }
     
     public String toString() {
@@ -63,6 +66,6 @@ public class ETTrafficMatrix extends LAVIMessage {
     }
 
     public String toStringShort() {
-        return "k=" + k + " " +  StringOps.formatBitsPerSec(demand) + " edge=" + edge + "% agg=" + agg + "% plen=" + plen + "B";
+        return StringOps.formatBitsPerSec(demand) + " edge=" + edge + "% agg=" + agg + "% plen=" + plen + "B";
     }
 }

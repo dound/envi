@@ -86,7 +86,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     
     /** a drawable has fired an event */
     public void drawableEvent(Drawable d, String event) {
-        if(event.equals("fail"))
+        if(event.equals("failure"))
             processFailEvent(d);
     }
     

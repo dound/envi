@@ -14,7 +14,6 @@ import org.openflow.lavi.drawables.OpenFlowSwitch;
 import org.openflow.lavi.net.protocol.ETTrafficMatrix;
 import org.openflow.util.string.StringOps;
 import org.pzgui.Drawable;
-import org.pzgui.PZClosing;
 import org.pzgui.PZWindow;
 import org.pzgui.icon.GeometricIcon;
 
@@ -322,7 +321,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
 
     /** removes the specified traffic matrix change listener */
-    public void removeTrafficMatrixChangeListener(PZClosing c) {
+    public void removeTrafficMatrixChangeListener(TrafficMatrixChangeListener c) {
         trafficMatrixChangeListeneres.remove(c);
     }
     

@@ -210,6 +210,9 @@ class Link:
         t = struct.unpack('> HQH', buf[:12])
         return Link(src_dpid, t[1], t[2], t[3])
 
+    def __str__(self):
+        return '%s <--> %s' % (dpidstr(self.src_dpid), dpidstr(self.dst_dpid))
+
 class LinksList(LAVIMessage):
     def __init__(self, links, xid=0):
         LAVIMessage.__init__(self, xid)

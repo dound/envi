@@ -206,7 +206,7 @@ class Link:
         return struct.pack('> QHQH', self.src_dpid, self.src_port, self.dst_dpid, self.dst_port)
 
     @staticmethod
-    def unpack(src_dpid, buf):
+    def unpack(buf):
         t = struct.unpack('> QHQH', buf[:Link.SIZE])
         return Link(t[0], t[1], t[2], t[3])
 
@@ -229,12 +229,10 @@ class LinksList(LAVIMessage):
     def unpack(body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        src_dpid = struct.unpack('> Q', body[:8])[0]
-        body = body[8:]
         num_links = len(body) / Link.SIZE
         links = []
         for _ in range(num_links):
-            links.append(Link.unpack(src_dpid, body[:Link.SIZE]))
+            links.append(Link.unpack(body[:Link.SIZE]))
             body = body[Link.SIZE:]
         return LinksList(links, xid)
 

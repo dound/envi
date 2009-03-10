@@ -30,7 +30,6 @@ public class ElasticTreeManager extends PZLayoutManager {
     public static final int LBL_WIDTH_BIG = 400;
     public static final int GAP_X = 5;
     public static final int RESERVED_COLUMN_WIDTH = Math.max(GAP_X + SL_WIDTH + GAP_X + LBL_WIDTH, LBL_WIDTH_BIG);
-    public static final boolean USE_VERTICAL_POWER_DIAL = false;
     
     /** Creates a new Elastic Tree GUI for a k=6 fat tree */
     public ElasticTreeManager() {
@@ -165,16 +164,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         int o = SL_WIDTH + GAP_X;
         int sz = LBL_WIDTH_BIG - o - GAP_X * 2;
-        if(USE_VERTICAL_POWER_DIAL) {
-            y = 2 * LBL_HEIGHT + GAP_Y;
-            int szh = 5 * (h - y - 2 * GAP_Y) / 3;
-            y = -h / 3 + h / 6;
-            x += 5 * GAP_X;
-            dialPower.setBounds(x + o, y, sz, szh);
-        }
-        else {
-            dialPower.setBounds(x + o, 2 * LBL_HEIGHT + 5, sz, sz);
-        }
+        dialPower.setBounds(x + o, 2 * LBL_HEIGHT + 5, sz, sz);
     }
     
     /**

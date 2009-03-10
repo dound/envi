@@ -13,12 +13,14 @@ import org.openflow.lavi.stats.PortStatsRates;
 import org.openflow.protocol.*;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
+import org.pzgui.Drawable;
+import org.pzgui.DrawableEventListener;
 import org.pzgui.PZClosing;
 import org.pzgui.PZManager;
 import org.pzgui.layout.ElasticTreeManager;
 import org.pzgui.layout.TrafficMatrixChangeListener;
 
-public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChangeListener {
+public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChangeListener, DrawableEventListener {
     public static final boolean ENABLE_AUTO_REQUESTS = false;
     
     /** run the LAVI front-end */
@@ -61,6 +63,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         // fire up the GUI
         manager = new ElasticTreeManager(6);
         manager.addClosingListener(this);
+        manager.addDrawableEventListener(this);
         manager.addTrafficMatrixChangeListener(this);
         manager.start();
         
@@ -79,6 +82,12 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
 
         // wait until the connection has been torn down or 1sec has passed
         while(!conn.isShutdown() && System.currentTimeMillis()-start<1000) {}
+    }
+    
+    /** a drawable has fired an event */
+    public void drawableEvent(Drawable d, String event) {
+        if(event.equals("fail"))
+            processFailEvent(d);
     }
     
     /** Called when the LAVI backend has been disconnected or reconnected */
@@ -600,5 +609,50 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
 
     private void processComputationDone() {
         tmManager.completedLastTrafficMatrix();
+    }
+    
+    private final CopyOnWriteArrayList<Long> switchFailuresList = new CopyOnWriteArrayList<Long>();
+    private final CopyOnWriteArrayList<Link> linkFailuresList = new CopyOnWriteArrayList<Link>();
+    
+    private void processFailEvent(Drawable d) {
+        if(d instanceof OpenFlowSwitch) {
+            OpenFlowSwitch o = (OpenFlowSwitch)d;
+            if(o.isFailed())
+                switchFailuresList.add(o.getDatapathID());
+            else
+                switchFailuresList.remove(o.getDatapathID());
+            
+            long[] dpids = new long[switchFailuresList.size()];
+            for(int i=0; i<switchFailuresList.size(); i++)
+                dpids[i] = switchFailuresList.get(i);
+            
+            try {
+                conn.sendLAVIMessage(new ETSwitchFailures(dpids));
+            }
+            catch(IOException e) {
+                System.err.println("failed to send switch failures list");
+            }
+        }
+        else if(d instanceof Link) {
+            Link l = (Link)d;
+            if(l.isFailed())
+                linkFailuresList.add(l);
+            else
+                linkFailuresList.remove(l);
+            
+            org.openflow.lavi.net.protocol.Link[] links = new org.openflow.lavi.net.protocol.Link[linkFailuresList.size()];
+            for(int i=0; i<linkFailuresList.size(); i++) {
+                Link link = linkFailuresList.get(i);
+                links[i] = new org.openflow.lavi.net.protocol.Link(link.getSource().getDatapathID(),      link.getMyPort(link.getSource()),
+                                                                   link.getDestination().getDatapathID(), link.getMyPort(link.getDestination()));
+            }
+            
+            try {
+                conn.sendLAVIMessage(new ETLinkFailures(links));
+            }
+            catch(IOException e) {
+                System.err.println("failed to send link failures list");
+            }
+        }
     }
 }

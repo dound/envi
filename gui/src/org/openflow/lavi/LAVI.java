@@ -130,6 +130,14 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         case ET_SWITCHES_OFF:
             processSwitchesOff((ETSwitchesOff)msg);
             break;
+        
+        case ET_BANDWIDTH:
+            processBandwidthData((ETBandwidth)msg);
+            break;
+            
+        case ET_LATENCY:
+            processLatencyData((ETLatency)msg);
+            break;
             
         case ET_COMPUTATION_DONE:
             processComputationDone();
@@ -146,7 +154,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             System.err.println("Unhandled type received: " + msg.type.toString());
         }
     }
-    
+
     private void processAuthRequest(AuthHeader msg) {
         switch(msg.authType) {
         case PLAIN_TEXT:
@@ -503,21 +511,26 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     // ************************************** //    
     
     private void processLinkUtils(ETLinkUtilsList msg) {
+        double total_bps = 0;
         for(org.openflow.lavi.net.protocol.ETLinkUtil x : msg.utils)
-            processLinkUtil(x.srcDPID, x.srcPort, x.dstDPID, x.dstPort, x.util, msg.timeCreated);
+            total_bps += processLinkUtil(x.srcDPID, x.srcPort, x.dstDPID, x.dstPort, x.util, msg.timeCreated);
+        manager.setExpectedAggregateThroughput(total_bps);
     }
     
-    private void processLinkUtil(long dstDPID, short dstPort, long srcDPID, short srcPort, float util, long when) {
+    /**
+     * Updates the throughput data of the link described by these parameters.
+     */
+    private double processLinkUtil(long dstDPID, short dstPort, long srcDPID, short srcPort, float util, long when) {
         OpenFlowSwitch srcSwitch = switchesMap.get(srcDPID);
         if(srcSwitch == null) {
             logLinkMissing("src switch", dstDPID, dstPort, srcDPID, srcPort);
-            return;
+            return 0;
         }
         
         OpenFlowSwitch dstSwitch = switchesMap.get(dstDPID);
         if(dstSwitch == null) {
             logLinkMissing("dst switch", dstDPID, dstPort, srcDPID, srcPort);
-            return;
+            return 0;
         }
         
         Link existingLink = dstSwitch.getLinkTo(dstPort, srcSwitch, srcPort);
@@ -531,9 +544,12 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             psr.setRates(pps, bps, 0, when);
             
             existingLink.setColor();
+            return bps;
         }
-        else
+        else {
             logLinkMissing("link", dstDPID, dstPort, srcDPID, srcPort);
+            return 0;
+        }
     }
 
     private void processPowerUsage(ETPowerUsage msg) {
@@ -551,6 +567,14 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             if(o != null)
                 o.setOff(true);
         }
+    }
+
+    private void processBandwidthData(ETBandwidth msg) {
+        manager.setAchievedAggregateThroughput(msg.bandwidth_achieved_bps);
+    }
+
+    private void processLatencyData(ETLatency msg) {
+        manager.setLatencyData(msg.latency_ms_edge, msg.latency_ms_agg, msg.latency_ms_core);
     }
 
     private void processComputationDone() {

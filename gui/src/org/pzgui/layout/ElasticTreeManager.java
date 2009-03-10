@@ -288,6 +288,18 @@ public class ElasticTreeManager extends PZLayoutManager {
         dialPower.setData(cur, traditional, max);
     }
     
+    public void setExpectedAggregateThroughput(double total_bps) {
+        // not yet implemented
+    }
+
+    public void setAchievedAggregateThroughput(int bandwidth_achieved_bps) {
+        // not yet implemented
+    }
+
+    public void setLatencyData(int latency_ms_edge, int latency_ms_agg, int latency_ms_core) {
+        // not yet implemented
+    }
+    
     // --- Traffic Matrix Change Handling --- //
     // ************************************** //
     

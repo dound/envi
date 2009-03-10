@@ -52,9 +52,8 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         }
         
         if(port == null)
-            conn = new LAVIConnection(this, server);
-        else
-            conn = new LAVIConnection(this, server, port);
+            port = LAVIConnection.DEFAULT_PORT;
+        conn = new LAVIConnection(this, server, port, false, false);
 
         // fire up the GUI
         manager = new ElasticTreeManager(6);

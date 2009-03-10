@@ -138,10 +138,10 @@ public class LAVIConnection extends Thread {
     private boolean shutdown = false;
     
     /** whether to subscribe to switch updates */
-    private boolean subscribeToSwitchChanges = true;
+    private boolean subscribeToSwitchChanges;
     
     /** whether to subscribe to link updates */
-    private boolean subscribeToLinkChanges = true;
+    private boolean subscribeToLinkChanges;
     
     /** 
      * Connect to the LAVI server at the specified IP on DEFAULT_PORT.
@@ -159,9 +159,24 @@ public class LAVIConnection extends Thread {
      * @param port  the port the LAVI server listens on
      */
     public LAVIConnection(LAVIMessageProcessor mp, String ip, int port) {
+        this(mp, ip, port, true, true);
+    }
+    
+    /**
+     * Connect to the LAVI server at the specified address and port.
+     * 
+     * @param ip                 the IP where the LAVI server lives
+     * @param port               the port the LAVI server listens on
+     * @param subscribeSwitches  whether to subscribe to switch changes
+     * @param subscribeLinks     whether to subscribe to link changes
+     */
+    public LAVIConnection(LAVIMessageProcessor mp, String ip, int port, 
+                          boolean subscribeSwitches, boolean subscribeLinks) {
         msgProcessor = mp;
         serverIP = ip;
         serverPort = port;
+        subscribeToSwitchChanges = subscribeSwitches;
+        subscribeToLinkChanges = subscribeLinks;
     }
     
     /**

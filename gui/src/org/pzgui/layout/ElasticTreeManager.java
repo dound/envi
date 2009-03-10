@@ -191,8 +191,10 @@ public class ElasticTreeManager extends PZLayoutManager {
         if(gfx == null)
             return;
         
+        /*
         for(DrawableIcon d : liveIcons)
             d.drawObject(gfx);
+        */
     }
     
     public void postRedraw() {}

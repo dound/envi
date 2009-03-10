@@ -227,7 +227,7 @@ class LinksList(LAVIMessage):
             src_dpid = self.links[0].src_dpid
             for dpid in self.links:
                 if src_dpid != dpid:
-                    raise AssertionError('not all dpids match in LinksList.links: ' + str(self.links))
+                    raise AssertionError('not all dpids match in LinksList.links: [%s]' % self.links_to_string())
         hdr = LAVIMessage.pack(self) + struct.pack('> Q', src_dpid)
         return hdr + ''.join([link.pack() for link in self.links])
 
@@ -244,8 +244,11 @@ class LinksList(LAVIMessage):
             body = body[12:]
         return LinksList(links, xid)
 
+    def links_to_string(self):
+        return '[' + ', '.join([str(l) for l in self.links]) + ']'
+
     def __str__(self):
-        return LAVIMessage.__str__(self) + ' links=%s' % str(self.links)
+        return LAVIMessage.__str__(self) + ' links=%s' % str(self.links_to_string())
 
 class LinksAdd(LinksList):
     @staticmethod

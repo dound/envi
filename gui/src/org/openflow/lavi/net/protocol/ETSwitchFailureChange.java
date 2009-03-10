@@ -14,7 +14,7 @@ public class ETSwitchFailureChange extends LAVIMessage {
     public final boolean failed;
     
     public ETSwitchFailureChange(final long dpid, boolean failed) {
-        super(LAVIMessageType.ET_LINK_FAILURES, 0);
+        super(LAVIMessageType.ET_SWITCH_FAILURES, 0);
         this.dpid = dpid;
         this.failed = failed;
     }

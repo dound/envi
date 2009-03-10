@@ -46,6 +46,11 @@ public class ElasticTreeManager extends PZLayoutManager {
         dialPower = new MultiPointerDial("Power Consumption", "Watts", 2, 10000, 1000);
         dialPower.setPointerLine(1, 0.95);
         
+        dialBandwidth = new MultiPointerDial("Aggregate Xput", "Gbps", 2, 550, 50);
+        dialBandwidth.setPointerLine(1, 0.95);
+        
+        dialLatency = new MultiPointerDial("Layer Latency", "msec", 3, 100, 10);
+        
         pnlSidebar.setDoubleBuffered(true);
         pnlSidebar.setLayout(null);
         pnlSidebar.setBorder(new javax.swing.border.LineBorder(Color.BLACK, 2));
@@ -64,6 +69,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         pnlSidebar.add(lblTrafficMatrixCurrent);
         pnlSidebar.add(lblTrafficMatrixNext);
         pnlSidebar.add(dialPower);
+        pnlSidebar.add(dialBandwidth);
+        pnlSidebar.add(dialLatency);
     }
     
     // -------- Layout and Redrawing -------- //
@@ -166,7 +173,13 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         int o = SL_WIDTH + GAP_X;
         int sz = LBL_WIDTH_BIG - o - GAP_X * 2;
-        dialPower.setBounds(x + o, 2 * LBL_HEIGHT + 5, sz, sz);
+        x = x + o;
+        y = 2 * LBL_HEIGHT + 5;
+        dialPower.setBounds(x, y, sz, sz);
+        y += sz + 10;
+        dialBandwidth.setBounds(x, y, sz, sz);
+        y += sz + 10;
+        dialLatency.setBounds(x, y, sz, sz);
     }
     
     /**
@@ -274,7 +287,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         lblTrafficMatrixNext.setText("Next Traffic: " + s);
     }
 
-    private final MultiPointerDial dialPower;    
+    private final MultiPointerDial dialPower, dialBandwidth, dialLatency;    
     
     public void setPowerData(int cur, int traditional, int max) {
         dialPower.setValue(0, cur);
@@ -282,15 +295,17 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
     
     public void setExpectedAggregateThroughput(double total_bps) {
-        // not yet implemented
+        dialBandwidth.setValue(1, (int)total_bps);
     }
 
     public void setAchievedAggregateThroughput(int bandwidth_achieved_bps) {
-        // not yet implemented
+        dialBandwidth.setValue(0, bandwidth_achieved_bps);
     }
 
     public void setLatencyData(int latency_ms_edge, int latency_ms_agg, int latency_ms_core) {
-        // not yet implemented
+        dialLatency.setValue(0, latency_ms_edge);
+        dialLatency.setValue(1, latency_ms_agg);
+        dialLatency.setValue(2, latency_ms_core);
     }
     
     // --- Traffic Matrix Change Handling --- //

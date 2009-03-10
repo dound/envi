@@ -581,4 +581,30 @@ public class PZManager extends Thread {
                 d.setHovered(true);
         }
     }
+
+
+    // ------ Drawable Event Handling ------- //
+    // ************************************** //
+    
+    /** closing event listeners */
+    private final LinkedList<DrawableEventListener> drawableEventListeners = new LinkedList<DrawableEventListener>();
+    
+    /** adds a listener to be notified when the traffic matrix has changed */
+    public void addDrawableEventListener(DrawableEventListener del) {
+        if(!drawableEventListeners.contains(del))
+            drawableEventListeners.add(del);
+    }
+
+    /** removes the specified traffic matrix change listener */
+    public void removeDrawableEventListener(DrawableEventListener del) {
+        drawableEventListeners.remove(del);
+    }
+        
+    /**
+     * Updates the slider labels and notify those listening for traffic matrix changes.
+     */
+    public void fireDrawableEvent(Drawable d, String event) {
+        for(DrawableEventListener del : drawableEventListeners)
+            del.drawableEvent(d, event);
+    }
 }

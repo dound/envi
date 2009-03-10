@@ -332,22 +332,26 @@ class ETTrafficMatrix(LAVIMessage):
         LAVIMessage.__init__(self, xid)
         self.use_hw = int(use_hw)
         self.k      = int(k)
-        self.demand = int(demand)
-        self.edge   = int(edge)
-        self.agg    = int(agg)
+        self.demand = float(demand)
+        self.edge   = float(edge)
+        self.agg    = float(agg)
         self.plen   = int(plen)
+        if self.demand<0.0 or self.demand>1.0 or self.edge<0.0 or self.edge>1.0 or self.agg<0.0 or self.edge>1.0:
+            raise Exception("demand (%f), edge (%f) and agg (%f) must be between 0.0 and 1.0 inclusive" % (self.demand, self.edge, self.agg))
+        if self.agg + self.edge > 1.0:
+            raise Exception("agg + edge > 1.0 (%f)" % (self.agg+self.edge))
 
     def length(self):
         return LAVIMessage.SIZE + 24
 
     def pack(self):
-        return LAVIMessage.pack(self) + struct.pack('> 6I', self.use_hw, self.k, self.demand, self.edge, self.agg, self.plen)
+        return LAVIMessage.pack(self) + struct.pack('> 2I 3f I', self.use_hw, self.k, self.demand, self.edge, self.agg, self.plen)
 
     @staticmethod
     def unpack(body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        t = struct.unpack('> 6I', body[:24])
+        t = struct.unpack('> 2I 3f I', body[:24])
         return ETTrafficMatrix(t[0], t[1], t[2], t[3], t[4], t[5], xid)
 
     def __str__(self):

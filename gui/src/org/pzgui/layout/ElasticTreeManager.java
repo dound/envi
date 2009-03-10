@@ -327,7 +327,10 @@ public class ElasticTreeManager extends PZLayoutManager {
     
     /** gets the current traffic matrix */
     public ETTrafficMatrix getCurrentTrafficMatrix() {
-        return new ETTrafficMatrix(false, fatTreeLayout.getK(), slDemand.getValue(), slEdge.getValue(), slAgg.getValue(), slPLen.getValue());
+        float demand = slDemand.getValue() / (float)slDemand.getMaximum();
+        float edge = slEdge.getValue() / (float)slEdge.getMaximum();
+        float agg = Math.min(1.0f-edge, slAgg.getValue() / (float)slAgg.getMaximum());
+        return new ETTrafficMatrix(false, fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
     }
 
     /**

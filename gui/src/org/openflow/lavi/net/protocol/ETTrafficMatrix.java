@@ -14,13 +14,21 @@ import org.openflow.util.string.StringOps;
 public class ETTrafficMatrix extends LAVIMessage {
     public final boolean use_hw;
     public final int k;
-    public final int demand;
-    public final int edge;
-    public final int agg;
+    public final float demand;
+    public final float edge;
+    public final float agg;
     public final int plen;
     
-    public ETTrafficMatrix(boolean use_hw, int k, int demand, int edge, int agg, int plen) {
+    public ETTrafficMatrix(boolean use_hw, int k, float demand, float edge, float agg, int plen) {
         super(LAVIMessageType.ET_TRAFFIX_MATRIX, 0);
+        if(demand<0 || demand>1)
+            throw new IllegalArgumentException("demand must be between 0.0 and 1.0 inclusive");
+        if(edge<0 || edge>1)
+            throw new IllegalArgumentException("edge must be between 0.0 and 1.0 inclusive");
+        if(agg<0 || agg>1)
+            throw new IllegalArgumentException("agg must be between 0.0 and 1.0 inclusive");
+        if(edge + agg > 1.0)
+            throw new IllegalArgumentException("edge + agg must be less than 1.0 when summed");
         this.use_hw = use_hw;
         this.k = k;
         this.demand = demand;
@@ -39,9 +47,9 @@ public class ETTrafficMatrix extends LAVIMessage {
         super.write(out);
         out.writeInt(use_hw ? 1 : 0);
         out.writeInt(k);
-        out.writeInt(demand);
-        out.writeInt(edge);
-        out.writeInt(agg);
+        out.writeFloat(demand);
+        out.writeFloat(edge);
+        out.writeFloat(agg);
         out.writeInt(plen);
     }
     
@@ -55,9 +63,9 @@ public class ETTrafficMatrix extends LAVIMessage {
     public int hashCode() {
         int hash = 29;
         hash *= k;
-        hash = hash * 32 + demand;
-        hash = hash * 32 + edge;
-        hash = hash * 32 + agg;
+        hash = hash * 32 + Float.floatToIntBits(demand);
+        hash = hash * 32 + Float.floatToIntBits(edge);
+        hash = hash * 32 + Float.floatToIntBits(agg);
         return hash * 32 + plen + (use_hw ? 1 : 0);
     }
     
@@ -66,6 +74,6 @@ public class ETTrafficMatrix extends LAVIMessage {
     }
 
     public String toStringShort() {
-        return StringOps.formatBitsPerSec(demand) + " edge=" + edge + "% agg=" + agg + "% plen=" + plen + "B";
+        return StringOps.formatBitsPerSec(demand,1000*1000*1000) + " edge=" + edge + "% agg=" + agg + "% plen=" + plen + "B";
     }
 }

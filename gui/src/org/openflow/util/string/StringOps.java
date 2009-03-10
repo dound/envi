@@ -38,6 +38,10 @@ public abstract class StringOps {
         return formatBitsPerSec(num_bits, false);
     }
     
+    public static String formatBitsPerSec(float util, long max_rate) {
+        return formatBitsPerSec((int)(max_rate * util), false);
+    }
+    
   /**
    * Checks to see if name contains anything other than alphanumeric characters, underscores,
    * or spaces.

@@ -13,6 +13,7 @@ import org.openflow.lavi.drawables.DrawableIcon;
 import org.openflow.lavi.drawables.OpenFlowSwitch;
 import org.openflow.lavi.net.protocol.ETTrafficMatrix;
 import org.openflow.util.string.StringOps;
+import org.pzgui.Constants;
 import org.pzgui.Drawable;
 import org.pzgui.PZWindow;
 import org.pzgui.icon.GeometricIcon;
@@ -191,10 +192,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         if(gfx == null)
             return;
         
-        /*
         for(DrawableIcon d : liveIcons)
             d.drawObject(gfx);
-        */
     }
     
     public void postRedraw() {}
@@ -206,13 +205,15 @@ public class ElasticTreeManager extends PZLayoutManager {
         DrawableIcon d = new DrawableIcon(new GeometricIcon(baseX, baseY, w, h, c), x, y, w, h);
         liveIcons.add(d);
     }
-
-    private static final Color[] POD_COLORS = new Color[] {new Color(255,243,243),
-                                                           new Color(243,255,243),
-                                                           new Color(243,243,255),
-                                                           new Color(255,255,243),
-                                                           new Color(255,243,255),
-                                                           new Color(243,255,255)};
+    
+    private static final int POD_COLOR_HIGH = (Constants.INVERT_COLORS ? 32 : 255);
+    private static final int POD_COLOR_LOW  = (Constants.INVERT_COLORS ? 16 : 243);
+    private static final Color[] POD_COLORS = new Color[] {new Color(POD_COLOR_HIGH,POD_COLOR_LOW,POD_COLOR_LOW),
+                                                           new Color(POD_COLOR_LOW,POD_COLOR_HIGH,POD_COLOR_LOW),
+                                                           new Color(POD_COLOR_LOW,POD_COLOR_LOW,POD_COLOR_HIGH),
+                                                           new Color(POD_COLOR_HIGH,POD_COLOR_HIGH,POD_COLOR_LOW),
+                                                           new Color(POD_COLOR_HIGH,POD_COLOR_LOW,POD_COLOR_HIGH),
+                                                           new Color(POD_COLOR_LOW,POD_COLOR_HIGH,POD_COLOR_HIGH)};
     
     private void relayout() {
         // only relayout once all nodes are present

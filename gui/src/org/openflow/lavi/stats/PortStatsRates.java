@@ -65,6 +65,10 @@ public class PortStatsRates extends PortStats {
         long byteCount = (long)(bitsPerSec * tDiff / 8);
         int flowCount = (int)(flowsPerSec * tDiff);
         super.update(packetCount, byteCount, flowCount, when);
+        
+        this.packetsPerSec = packetsPerSec;
+        this.bitsPerSec = bitsPerSec;
+        this.flowsPerSec = flowsPerSec;
     }
 
     /** update the statistics with the specified values and recompute rates */

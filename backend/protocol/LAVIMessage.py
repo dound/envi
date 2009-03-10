@@ -404,11 +404,11 @@ class ETPowerUsage(LAVIMessage):
     def get_type():
         return 0xF2
 
-    def __init__(self, watts_current, watts_traditional, watts_max, xid=0):
+    def __init__(self, watts_current, watts_traditional, watts_max=None, xid=0):
         LAVIMessage.__init__(self, xid)
         self.watts_current = int(watts_current)
         self.watts_traditional = int(watts_traditional)
-        self.watts_max = int(watts_max)
+        self.watts_max = int(watts_max if watts_max is not None else watts_traditional)
 
     def length(self):
         return LAVIMessage.SIZE + 12

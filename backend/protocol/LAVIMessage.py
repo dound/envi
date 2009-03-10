@@ -206,11 +206,11 @@ class Link:
         self.dst_port = dst_port
 
     def pack(self):
-        return struct.pack('> SQS', self.src_port, self.dst_dpid, self.dst_port)
+        return struct.pack('> HQH', self.src_port, self.dst_dpid, self.dst_port)
 
     @staticmethod
     def unpack(src_dpid, buf):
-        t = struct.unpack('> SQS', buf[:12])
+        t = struct.unpack('> HQH', buf[:12])
         return Link(src_dpid, t[1], t[2], t[3])
 
 class LinksList(LAVIMessage):
@@ -366,12 +366,12 @@ class ETLinkUtil(Link):
         self.util = float(util)
 
     def pack(self):
-        return struct.pack('> QSQSf', self.src_dpid, self.src_port, self.dst_dpid, self.dst_port, self.util)
+        return struct.pack('> QHQHf', self.src_dpid, self.src_port, self.dst_dpid, self.dst_port, self.util)
 
     @staticmethod
     def unpack(buf):
-        t = struct.unpack('> QSQS', buf[:20])
-        return Link(t[0], t[1], t[2], t[3])
+        t = struct.unpack('> QHQHf', buf[:24])
+        return Link(t[0], t[1], t[2], t[3], t[4])
 
 class ETLinkUtils(LAVIMessage):
     @staticmethod

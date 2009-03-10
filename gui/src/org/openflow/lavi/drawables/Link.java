@@ -409,21 +409,21 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         if(usage == 0.0f)
             this.curDrawColor = new Color(0.3f, 0.3f, 0.3f, 0.5f); // faded gray
         else {
-            float min_intensity = 0.5f;
-            float low = 1.0f / 3.0f;
-            float mid = 2.0f / 3.0f;
+            float mid = 1.5f / 3.0f;
             
-            if(usage < low) {
-                float intensity = min_intensity + (usage / low) * (1.0f-min_intensity);
-                this.curDrawColor = new Color(0f, intensity, 0f);
-            }
-            else if(usage < mid) {
-                float intensity = min_intensity + ((usage-low) / (mid-low)) * (1.0f-min_intensity);
-                this.curDrawColor = new Color(intensity, intensity, 0f);
+            if(usage < mid) {
+                // blend green + yellow
+                float alpha = usage / mid;
+                this.curDrawColor = new Color(0.0f*alpha+1.0f*(1.0f-alpha),
+                                              1.0f*alpha+1.0f*(1.0f-alpha),
+                                              0.0f);
             }
             else {
-                float intensity = min_intensity + ((usage-mid) / (1.0f-mid)) * (1.0f-min_intensity);
-                this.curDrawColor = new Color(intensity, 0f, 0f);
+                // blend red + yellow
+                float alpha = (usage - mid) / mid;
+                this.curDrawColor = new Color(1.0f*alpha+1.0f*(1.0f-alpha),
+                                              0.0f*alpha+1.0f*(1.0f-alpha),
+                                              0.0f);
             }
         }
     }

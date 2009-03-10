@@ -356,6 +356,9 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
                 if(l == null)
                     continue;
                 
+                if(!ENABLE_AUTO_REQUESTS)
+                    continue;
+                
                 // tell the backend to keep us updated on the link's utilization
                 try {
                     l.trackStats(statsRefreshRate_msec, Match.MATCH_ALL, conn);

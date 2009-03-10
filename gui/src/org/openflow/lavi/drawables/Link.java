@@ -89,6 +89,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     }
     
     public void drawObject(Graphics2D gfx) {
+        if(curDrawColor == null)
+            return;
+        
         Stroke s = gfx.getStroke();
         
         int ocount = ((numOtherLinks+1)/2)*2;
@@ -353,7 +356,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     }
     
     /** the color to draw the link */
-    private Color curDrawColor = Constants.cmap(Color.BLACK);
+    private Color curDrawColor = null;
     
     /** 
      * Returns the current bandwidth being sent through the link in ps or a 

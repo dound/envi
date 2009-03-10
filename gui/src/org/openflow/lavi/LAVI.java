@@ -518,7 +518,8 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     private TrafficMatrixManager tmManager;
 
     public void trafficMatrixChanged(ETTrafficMatrix tm) {
-        tmManager.setNextTrafficMatrix(tm);
+        if(tmManager != null)
+            tmManager.setNextTrafficMatrix(tm);
     }
     
     

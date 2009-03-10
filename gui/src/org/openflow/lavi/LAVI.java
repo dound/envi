@@ -611,47 +611,28 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         tmManager.completedLastTrafficMatrix();
     }
     
-    private final CopyOnWriteArrayList<Long> switchFailuresList = new CopyOnWriteArrayList<Long>();
-    private final CopyOnWriteArrayList<Link> linkFailuresList = new CopyOnWriteArrayList<Link>();
-    
     private void processFailEvent(Drawable d) {
         if(d instanceof OpenFlowSwitch) {
             OpenFlowSwitch o = (OpenFlowSwitch)d;
-            if(o.isFailed())
-                switchFailuresList.add(o.getDatapathID());
-            else
-                switchFailuresList.remove(o.getDatapathID());
-            
-            long[] dpids = new long[switchFailuresList.size()];
-            for(int i=0; i<switchFailuresList.size(); i++)
-                dpids[i] = switchFailuresList.get(i);
             
             try {
-                conn.sendLAVIMessage(new ETSwitchFailures(dpids));
+                conn.sendLAVIMessage(new ETSwitchFailureChange(o.getDatapathID(), o.isFailed()));    
             }
             catch(IOException e) {
-                System.err.println("failed to send switch failures list");
+                System.err.println("failed to send switch failure");
             }
         }
         else if(d instanceof Link) {
             Link l = (Link)d;
-            if(l.isFailed())
-                linkFailuresList.add(l);
-            else
-                linkFailuresList.remove(l);
-            
-            org.openflow.lavi.net.protocol.Link[] links = new org.openflow.lavi.net.protocol.Link[linkFailuresList.size()];
-            for(int i=0; i<linkFailuresList.size(); i++) {
-                Link link = linkFailuresList.get(i);
-                links[i] = new org.openflow.lavi.net.protocol.Link(link.getSource().getDatapathID(),      link.getMyPort(link.getSource()),
-                                                                   link.getDestination().getDatapathID(), link.getMyPort(link.getDestination()));
-            }
-            
             try {
-                conn.sendLAVIMessage(new ETLinkFailures(links));
+                conn.sendLAVIMessage(new ETLinkFailureChange(new org.openflow.lavi.net.protocol.Link(
+                        l.getSource().getDatapathID(),
+                        l.getMyPort(l.getSource()),
+                        l.getDestination().getDatapathID(),
+                        l.getMyPort(l.getDestination())), l.isFailed()));    
             }
             catch(IOException e) {
-                System.err.println("failed to send link failures list");
+                System.err.println("failed to send link failure");
             }
         }
     }

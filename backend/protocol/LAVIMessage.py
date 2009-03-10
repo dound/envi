@@ -529,27 +529,63 @@ class ETSwitchesRequest(LAVIMessage):
     def __str__(self):
         return 'ET_SWITCHES_REQUEST: ' + LAVIMessage.__str__(self) + ' k=%u' % self.k
 
-class ETSwitchFailures(SwitchesList):
+class ETSwitchFailureChange(LAVIMessage):
     @staticmethod
     def get_type():
         return 0xF7
 
-    def __init__(self, dpids, xid=0):
-        SwitchesList.__init__(self, dpids, xid)
+    def __init__(self, dpid, failed, xid=0):
+        LAVIMessage.__init__(self, xid)
+        self.dpid = long(dpid)
+        self.failed = failed
+
+    def length(self):
+        return LAVIMessage.SIZE + 8 + 1
+
+    def pack(self):
+        return LAVIMessage.pack(self) + struct.pack('> QB', self.dpid, (1 if self.failed else 0))
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        dpid = struct.unpack('> Q', body[:8])[0]
+        body = body[8:]
+        failed = struct.unpack('> B', body[:1])[0]
+        return ETSwitchFailureChange(dpid, True if failed==1 else False, xid)
 
     def __str__(self):
-        return 'ET_SWITCH_FAILURES: ' + SwitchesList.__str__(self)
+        what = ' ' if self.failed else ' un'
+        return 'ET_SWITCH_FAILURE_CHANGE: ' + LAVIMessage.__str__(self) + dpidstr(self.dpid) + ' => ' + what + 'fail'
 
-class ETLinkFailures(LinksList):
+class ETLinkFailureChange(LAVIMessage):
     @staticmethod
     def get_type():
         return 0xF8
 
-    def __init__(self, links, xid=0):
-        LinksList.__init__(self, links, xid)
+    def __init__(self, link, failed, xid=0):
+        LAVIMessage.__init__(self, xid)
+        self.link = link
+        self.failed = failed
+
+    def length(self):
+        return LAVIMessage.SIZE + Link.SIZE + 1
+
+    def pack(self):
+        return LAVIMessage.pack(self) + self.link.pack() + struct.pack('> B', (1 if self.failed else 0))
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        link = Link.unpack(body[:Link.SIZE])
+        body = body[Link.SIZE:]
+        failed = struct.unpack('> B', body[:1])[0]
+        return ETLinkFailureChange(dpid, True if failed==1 else False, xid)
 
     def __str__(self):
-        return 'ET_LINK_FAILURES: ' + LinksList.__str__(self)
+        what = ' ' if self.failed else ' un'
+        return 'ET_LINK_FAILURE_CHANGE: ' + LAVIMessage.__str__(self) + str(self.link) + ' => ' + what + 'fail'
 
 class ETComputationDone(LAVIMessage):
     @staticmethod
@@ -567,7 +603,7 @@ LAVI_PROTOCOL = LTProtocol([Disconnect,
                             SwitchesRequest, SwitchesAdd, SwitchesDel,
                             LinksRequest, LinksAdd, LinksDel,
                             SwitchesSubscribe, LinksSubscribe,
-                            ETTrafficMatrix, ETSwitchesRequest, ETSwitchFailures, ETLinkFailures,
+                            ETTrafficMatrix, ETSwitchesRequest, ETSwitchFailureChange, ETLinkFailureChange,
                             ETLinkUtils, ETPowerUsage, ETSwitchesOff, ETBandwidth, ETLatency, ETComputationDone],
                            'H', 'B')
 

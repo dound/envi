@@ -41,7 +41,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     public ElasticTreeManager(int k) {
         fatTreeLayout = new FatTreeLayout<Vertex, Edge>(getGraph(), k);
         this.setLayout(fatTreeLayout);
-        setCurrentTrafficMatrixText(getCurrentTrafficMatrix());
+        setCurrentTrafficMatrixText(null);
         setNextTrafficMatrixText(null);
         
         pnlSidebar.setDoubleBuffered(true);
@@ -264,11 +264,19 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JLabel lblTrafficMatrixCurrent = new JLabel();
     private JLabel lblTrafficMatrixNext = new JLabel();
     
+    /**
+     * Sets the text description of the data currently being visualized.
+     * @param tm  the matrix which led to the latest data
+     */
     public void setCurrentTrafficMatrixText(ETTrafficMatrix tm) {
         String s = (tm == null) ? "n/a" : tm.toStringShort();
         lblTrafficMatrixCurrent.setText("Traffic Now: " + s);
     }
     
+    /**
+     * Sets the text description of the data currently pending results.
+     * @param tm  the matrix which has been sent to the server but not responded to yet
+     */
     public void setNextTrafficMatrixText(ETTrafficMatrix tm) {
         String s = (tm == null) ? "n/a" : tm.toStringShort();
         lblTrafficMatrixNext.setText("Next Traffic: " + s);

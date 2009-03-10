@@ -62,11 +62,11 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         manager.addTrafficMatrixChangeListener(this);
         manager.start();
         
+        // setup the object which manages the sending of traffic matrix commands to the server
+        tmManager = new TrafficMatrixManager(manager.getCurrentTrafficMatrix());
+        
         // try to connect to the backend
         conn.start();
-        
-        // start the update sender
-        tmSender.start();
     }
     
     /** shutdown the connection */
@@ -86,6 +86,8 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             for(Long d : switchesList)
                 disconnectSwitch(d);
         }
+        else
+            tmManager.start();
     }
 
     /** Handles messages received from the LAVI backend */
@@ -127,6 +129,10 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         
         case ET_SWITCHES_OFF:
             processSwitchesOff((ETSwitchesOff)msg);
+            break;
+            
+        case ET_COMPUTATION_DONE:
+            processComputationDone();
             break;
             
         case AUTH_REPLY:
@@ -431,70 +437,71 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             System.err.println("Warning: received switch description for unknown switch " + DPIDUtil.toString(msg.dpid));
     }
 
+    // ------- Traffic Matrix Sending ------- //
+    // ************************************** //
     
-    /**
-     * Periodically sends any update to the traffic matrix.
-     */
-    private class TrafficMatrixUpdateSender extends Thread {
-        private static final int MIN_DELAY_BTWN_UPDATES_MS = 3000;
-        private ETTrafficMatrix tmNext = null;
-        private ETTrafficMatrix tmLastSent = null;
-        private long lastSentTime = 0;
+    private class TrafficMatrixManager {
+        /** the most recent traffic matrix command relayed to the server */
+        private ETTrafficMatrix tmOutstanding  = null;
         
+        /** the next traffic matrix to relay to the server */
+        private ETTrafficMatrix tmNext;
         
-        public synchronized void setTrafficMatrix(ETTrafficMatrix tm) {
-            this.tmNext = tm;
-            manager.setNextTrafficMatrixText(tm);
+        /** Initializes the manager with the initial traffic matrix to use */
+        public TrafficMatrixManager(ETTrafficMatrix tm) {
+            setNextTrafficMatrix(tm);
         }
         
-        public void run() {
-            while(true) {
-                // wait until it is appropriate to send another update
-                long now = System.currentTimeMillis();
-                while(lastSentTime + MIN_DELAY_BTWN_UPDATES_MS > now) {
-                    try {
-                        Thread.sleep(lastSentTime + MIN_DELAY_BTWN_UPDATES_MS - now);
-                    }
-                    catch(InterruptedException e) {}
-                    now = System.currentTimeMillis();
-                }
-                
-                if(!send())
-                    System.err.println("unable to send the change");
-                else
-                    lastSentTime = System.currentTimeMillis();
-            }
+        /** 
+         * Sets the next traffic matrix to use.  Overwrites any enqueued traffic
+         * matrix.  The next matrix will be sent to the server as soon as the 
+         * previous run is complte.
+         */
+        public synchronized void setNextTrafficMatrix(ETTrafficMatrix tm) {
+            this.tmNext = new ETTrafficMatrix(tm.k, tm.demand, tm.edge, tm.agg, tm.plen);;
         }
-    
-        private synchronized boolean send() {
-            ETTrafficMatrix tm;
-            if(tmNext == null)
-                return true;
-            else if(tmNext.equals(tmLastSent))
-                return true;
-            else
-                tm = tmNext;
+        
+        /** Sends the next traffic matrix to the server. */
+        private synchronized boolean sendNextTrafficMatrix() {
+            tmOutstanding = tmNext;
+            manager.setNextTrafficMatrixText(tmOutstanding);
             
             try {
-                conn.sendLAVIMessage(tm);
+                conn.sendLAVIMessage(tmOutstanding);
             } catch (IOException e) {
-                System.err.println("Warning: unable to send traffix matrix update: " + tm);
+                System.err.println("Warning: unable to send traffix matrix update: " + tmOutstanding);
                 return false;
             }
-            manager.setCurrentTrafficMatrixText(tm);
-            manager.setNextTrafficMatrixText(null);
-            tmNext = null;
-            tmLastSent = tm;
             return true;
         }
-    }
-    
-    private final TrafficMatrixUpdateSender tmSender = new TrafficMatrixUpdateSender();
-    
-    public void trafficMatrixChanged(ETTrafficMatrix tm) {
-        tmSender.setTrafficMatrix(tm);
-    }
+        
+        /**
+         * Tells the traffic matrix manager that the outstanding request has
+         * been completed so that it can send the next request. 
+         */
+        public synchronized void completedLastTrafficMatrix() {
+            manager.setCurrentTrafficMatrixText(tmOutstanding);
+            sendNextTrafficMatrix();
+        }
 
+        /**
+         * Starts the traffic matrix loop by sending a command to the server.  
+         * This should be called whenever the connection to the server is setup.
+         */
+        public void start() {
+            sendNextTrafficMatrix();
+        }
+    }
+    private TrafficMatrixManager tmManager;
+
+    public void trafficMatrixChanged(ETTrafficMatrix tm) {
+        tmManager.setNextTrafficMatrix(tm);
+    }
+    
+    
+    // --- Elastic Tree Message Processing -- //
+    // ************************************** //    
+    
     private void processLinkUtils(ETLinkUtilsList msg) {
         for(org.openflow.lavi.net.protocol.ETLinkUtil x : msg.utils)
             processLinkUtil(x.srcDPID, x.srcPort, x.dstDPID, x.dstPort, x.util, msg.timeCreated);
@@ -544,5 +551,9 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             if(o != null)
                 o.setOff(true);
         }
+    }
+
+    private void processComputationDone() {
+        tmManager.completedLastTrafficMatrix();
     }
 }

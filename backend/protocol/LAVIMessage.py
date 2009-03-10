@@ -442,12 +442,23 @@ class ETSwitchesOff(SwitchesList):
     def __str__(self):
         return 'SWITCHES_OFF: ' + SwitchesList.__str__(self)
 
+class ETComputationDone(LAVIMessage):
+    @staticmethod
+    def get_type():
+        return 0xFF
+
+    def __init__(self, xid=0):
+        LAVIMessage.__init__(self, xid)
+
+    def __str__(self):
+        return 'ET_COMPUTATION_DONE: ' + LAVIMessage.__str__(self)
+
 LAVI_PROTOCOL = LTProtocol([Disconnect,
                             PollStart, PollStop,
                             SwitchesRequest, SwitchesAdd, SwitchesDel,
                             LinksRequest, LinksAdd, LinksDel,
                             SwitchesSubscribe, LinksSubscribe,
-                            ETTrafficMatrix, ETLinkUtils, ETPowerUsage, ETSwitchesOff],
+                            ETTrafficMatrix, ETLinkUtils, ETPowerUsage, ETSwitchesOff, ETComputationDone],
                            'H', 'B')
 
 def create_lavi_server(port, recv_callback):

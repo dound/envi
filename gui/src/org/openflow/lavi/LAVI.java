@@ -600,7 +600,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     }
 
     private void processBandwidthData(ETBandwidth msg) {
-        manager.setAchievedAggregateThroughput(msg.bandwidth_achieved_bps);
+        manager.setAchievedAggregateThroughput(msg.bandwidth_achieved_mbps);
     }
 
     private void processLatencyData(ETLatency msg) {

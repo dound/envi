@@ -291,11 +291,12 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
     
     public void setExpectedAggregateThroughput(double total_bps) {
-        dialBandwidth.setValue(1, (int)total_bps);
+        int gbps = (int)(total_bps / (1000 * 1000 * 1000));
+        dialBandwidth.setValue(1, gbps);
     }
 
-    public void setAchievedAggregateThroughput(int bandwidth_achieved_bps) {
-        dialBandwidth.setValue(0, bandwidth_achieved_bps);
+    public void setAchievedAggregateThroughput(int bandwidth_achieved_mbps) {
+        dialBandwidth.setValue(0, bandwidth_achieved_mbps / 1000);
     }
 
     public void setLatencyData(int latency_ms_edge, int latency_ms_agg, int latency_ms_core) {

@@ -450,27 +450,27 @@ class ETBandwidth(LAVIMessage):
     def get_type():
         return 0xF4
 
-    def __init__(self, bandwidth_achieved_bps, xid=0):
+    def __init__(self, bandwidth_achieved_mbps, xid=0):
         LAVIMessage.__init__(self, xid)
-        self.bandwidth_achieved_bps = int(bandwidth_achieved_bps)
+        self.bandwidth_achieved_mbps = int(bandwidth_achieved_mbps)
 
     def length(self):
         return LAVIMessage.SIZE + 4
 
     def pack(self):
-        body = struct.pack('> I', self.bandwidth_achieved_bps)
+        body = struct.pack('> I', self.bandwidth_achieved_mbps)
         return LAVIMessage.pack(self) + body
 
     @staticmethod
     def unpack(body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        bandwidth_achieved_bps = struct.unpack('> I', body[:4])[0]
-        return ETPowerUsage(bandwidth_achieved_bps, xid)
+        bandwidth_achieved_mbps = struct.unpack('> I', body[:4])[0]
+        return ETPowerUsage(bandwidth_achieved_mbps, xid)
 
     def __str__(self):
-        fmt = 'ET_BANDWIDTH_ACHIEVED: ' + LAVIMessage.__str__(self) + " %u bps"
-        return fmt % self.bandwidth_achieved_bps
+        fmt = 'ET_BANDWIDTH_ACHIEVED: ' + LAVIMessage.__str__(self) + " %u Mbps"
+        return fmt % self.bandwidth_achieved_mbps
 
 class ETLatency(LAVIMessage):
     @staticmethod

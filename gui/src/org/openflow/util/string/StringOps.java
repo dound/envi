@@ -42,6 +42,20 @@ public abstract class StringOps {
         return formatBitsPerSec((int)(max_rate * util), false);
     }
     
+    public static String formatSecs(int num_msecs) {
+        int hours = num_msecs / 3600000; num_msecs -= 3600000 * hours;
+        int mins = num_msecs / 60000; num_msecs -= 60000 * mins;
+        int secs = num_msecs / 1000; num_msecs -= 1000 * secs;
+        
+        if(hours > 0)
+            return hours + "h:" + mins + "m:" + secs + "." + num_msecs + "sec";
+        if(mins > 0)
+            return mins + "m:" + secs + "." + num_msecs + "sec";
+        if(secs > 0)
+            return secs + "." + num_msecs + "sec";
+        return num_msecs + "msec";
+    }
+    
   /**
    * Checks to see if name contains anything other than alphanumeric characters, underscores,
    * or spaces.

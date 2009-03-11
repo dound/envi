@@ -620,9 +620,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         /** whether it is animating */
         private boolean live = false;
         
-        /** whether this is the first animation frame */
-        private boolean first;
-        
         /** time between animation steps */
         private int period_sec;
         
@@ -647,7 +644,7 @@ public class ElasticTreeManager extends PZLayoutManager {
             // ignore user-input while animating
             setIgnoreChangesToSliders(true);
             
-            first = live = true;
+            live = true;
             this.period_sec = period_sec;
             this.type = type;
             this.stepSize = stepSize;
@@ -660,7 +657,11 @@ public class ElasticTreeManager extends PZLayoutManager {
             this.edge = 0;
             this.agg = 0;
             
+            // tell the thread it can have the lock
             animationManager.notifyAll();
+            
+            // wake it up if it was sleeping
+            animationManager.interrupt();
         }
         
         /** stops the current animation */
@@ -669,6 +670,9 @@ public class ElasticTreeManager extends PZLayoutManager {
             
             // re-enable user input
             setIgnoreChangesToSliders(false);
+            
+            // wake the thread up so we don't continue to sleep
+            animationManager.interrupt();
         }
         
         /** main loop: animate while live */
@@ -678,28 +682,24 @@ public class ElasticTreeManager extends PZLayoutManager {
                     // wait until it is time to animate
                     while(!live) {
                         try {
-                            Thread.sleep(100);
+                            Thread.sleep(1000);
                             animationManager.wait(); 
                         } 
                         catch(InterruptedException e) {}
                     }
-                
-                    // wait in between intervals
-                    if(!first) {
-                        try {
-                            Thread.sleep(period_sec*1000);
-                        }
-                        catch(InterruptedException e) {}
-                    }
-                    else
-                        first = false;
-                    
+    
                     // compute apply the edge and agg settings for the next step
                     nextFrame();
                     slEdge.setValue(edge);
                     slAgg.setValue(agg);
                     notifyTrafficMatrixChangeListeners();
                 }
+                
+                // wait in between intervals
+                try {
+                    Thread.sleep(period_sec*1000);
+                }
+                catch(InterruptedException e) {}
             }
         }
         

@@ -170,7 +170,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             break;
             
         case ET_COMPUTATION_DONE:
-            processComputationDone();
+            processComputationDone((ETComputationDone)msg);
             break;
             
         case AUTH_REPLY:
@@ -634,8 +634,9 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         manager.setLatencyData(msg.latency_ms_edge, msg.latency_ms_agg, msg.latency_ms_core);
     }
 
-    private void processComputationDone() {
+    private void processComputationDone(ETComputationDone msg) {
         tmManager.completedLastTrafficMatrix();
+        manager.noteResult(msg.num_unplaced_flows);
     }
     
     private void processFailEvent(Drawable d) {

@@ -593,11 +593,27 @@ class ETComputationDone(LAVIMessage):
     def get_type():
         return 0xFF
 
-    def __init__(self, xid=0):
+    def __init__(self, num_unplaced_flows, xid=0):
         LAVIMessage.__init__(self, xid)
+        self.num_unplaced_flows = int(num_unplaced_flows)
+
+    def length(self):
+        return LAVIMessage.SIZE + 4
+
+    def pack(self):
+        body = struct.pack('> I', self.num_unplaced_flows)
+        return LAVIMessage.pack(self) + body
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        num_unplaced_flows = struct.unpack('> I', body[:4])[0]
+        return ETPowerUsage(num_unplaced_flows, xid)
 
     def __str__(self):
-        return 'ET_COMPUTATION_DONE: ' + LAVIMessage.__str__(self)
+        fmt = 'ET_COMPUTATION_DONE: ' + LAVIMessage.__str__(self) + " %u flows could not be placed"
+        return fmt % self.num_unplaced_flows
 
 LAVI_PROTOCOL = LTProtocol([Disconnect,
                             PollStart, PollStop,

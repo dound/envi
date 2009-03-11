@@ -71,6 +71,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         pnlSidebar.add(lblPLenVal);
         pnlSidebar.add(lblTrafficMatrixCurrent);
         pnlSidebar.add(lblTrafficMatrixNext);
+        pnlSidebar.add(lblResultInfo);
+        lblResultInfo.setVisible(false);
         pnlSidebar.add(dialPower);
         pnlSidebar.add(dialBandwidth);
         pnlSidebar.add(dialLatency);
@@ -143,6 +145,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         lblTrafficMatrixCurrent.setBounds(x, y, LBL_WIDTH_BIG, LBL_HEIGHT);
         y += LBL_HEIGHT;
         lblTrafficMatrixNext.setBounds(x, y, LBL_WIDTH_BIG, LBL_HEIGHT);
+        y += LBL_HEIGHT;
+        lblResultInfo.setBounds(x, y, LBL_WIDTH_BIG, LBL_HEIGHT);
         
         h -= y;
         int SL_HEIGHT = h / 8;
@@ -177,7 +181,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         int o = SL_WIDTH + GAP_X;
         int sz = LBL_WIDTH_BIG - o - GAP_X * 2;
         x = x + o;
-        y = 2 * LBL_HEIGHT + 5;
+        y = 3 * LBL_HEIGHT + 5;
         dialPower.setBounds(x, y, sz, sz);
         y += sz + 10;
         dialBandwidth.setBounds(x, y, sz, sz);
@@ -264,6 +268,7 @@ public class ElasticTreeManager extends PZLayoutManager {
 
     private JLabel lblTrafficMatrixCurrent = new JLabel();
     private JLabel lblTrafficMatrixNext = new JLabel();
+    private JLabel lblResultInfo = new JLabel();
     
     /**
      * Sets the text description of the data currently being visualized.
@@ -304,6 +309,15 @@ public class ElasticTreeManager extends PZLayoutManager {
         dialLatency.setValue(0, latency_ms_edge);
         dialLatency.setValue(1, latency_ms_agg);
         dialLatency.setValue(2, latency_ms_core);
+    }
+
+    public void noteResult(int num_unplaced_flows) {
+        if(num_unplaced_flows == 0)
+            lblResultInfo.setVisible(false);
+        else {
+            lblResultInfo.setText("FAILED to place " + num_unplaced_flows + " flows!");
+            lblResultInfo.setVisible(true);
+        }
     }
     
     // --- Traffic Matrix Change Handling --- //

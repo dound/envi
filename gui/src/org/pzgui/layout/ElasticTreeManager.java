@@ -235,7 +235,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         public void setValue(int i) {
             if(i != getValue()) {
                 super.setValue(i);
-                notifyTrafficMatrixChangeListeners();
+                
+                if(!isIgnoreChangesToSliders())
+                    notifyTrafficMatrixChangeListeners();
             }
         }
     }
@@ -791,6 +793,11 @@ public class ElasticTreeManager extends PZLayoutManager {
         }
         return new ETTrafficMatrix(optModeHW.isSelected(), fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
     }
+    
+    /** Gets whether slider changes are being ignored. */
+    public boolean isIgnoreChangesToSliders() {
+        return ignoreChangesToSliders;
+    }
 
     /** 
      * Sets whether to ignore slider changes (if ignored, changes do not 
@@ -798,17 +805,14 @@ public class ElasticTreeManager extends PZLayoutManager {
      */
     private void setIgnoreChangesToSliders(boolean b) {
         ignoreChangesToSliders = b;
-        slEdge.setEnabled(b);
-        slAgg.setEnabled(b);
+        slEdge.setEnabled(!b);
+        slAgg.setEnabled(!b);
     }
     
     /**
      * Updates the slider labels and notify those listening for traffic matrix changes.
      */
     public void notifyTrafficMatrixChangeListeners() {
-        if(ignoreChangesToSliders)
-            return;
-        
         setPanelTitle(pnlDemand, "Demand: " + StringOps.formatBitsPerSec(slDemand.getValue()), TITLE_BORDER_FONT_SMALL);
         setPanelTitle(pnlAgg,    "Aggregation Layer: " + slAgg.getValue() + "%", TITLE_BORDER_FONT_SMALL);
         setPanelTitle(pnlEdge,   "Edge Layer: " + slEdge.getValue() + "%", TITLE_BORDER_FONT_SMALL);

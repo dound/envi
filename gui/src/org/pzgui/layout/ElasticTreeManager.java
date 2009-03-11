@@ -256,9 +256,9 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JRadioButton optAnimSawtooth = new JRadioButton("Sawtooth");
     private JRadioButton optAnimSineWave = new JRadioButton("Sine Wave");
     private JLabel lblAnimStepDuration = new JLabel("Step Duration:");
-    private JSlider slAnimStepDuration = new JSlider(SwingConstants.HORIZONTAL, 1, 5, 60);
+    private JSlider slAnimStepDuration = new JSlider(SwingConstants.HORIZONTAL, 1, 60, 5);
     private JLabel lblAnimStepSize = new JLabel("Step Size (% of Space):");
-    private JSlider slAnimStepSize = new JSlider(SwingConstants.HORIZONTAL, 1, 10, 100);
+    private JSlider slAnimStepSize = new JSlider(SwingConstants.HORIZONTAL, 1, 100, 10);
     
     private JPanel pnlMode = new JPanel();
     private ButtonGroup optgrpMode = new ButtonGroup();

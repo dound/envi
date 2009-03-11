@@ -16,7 +16,7 @@ public abstract class Constants {
     
     public static final Color cmap(Color c) {
         if(INVERT_COLORS)
-            return new Color(255-c.getRed(), 255-c.getGreen(), 255-c.getBlue());
+            return new Color(255-c.getRed(), 255-c.getGreen(), 255-c.getBlue(), c.getAlpha());
         else
             return c;
     }

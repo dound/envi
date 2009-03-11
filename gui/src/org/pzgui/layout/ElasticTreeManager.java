@@ -118,7 +118,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         // choose a reasonable size for the dials based on the available width
         int margin = 20;
-        int sz = Math.min(RESERVED_HEIGHT_BOTTOM, w/4) - 3 * margin;
+        int sz = Math.min(RESERVED_HEIGHT_BOTTOM - 3 * margin, w/4);
         Dimension prefDialSize = new Dimension(sz, sz);
         dialPower.setPreferredSize(prefDialSize);
         dialBandwidth.setPreferredSize(prefDialSize);

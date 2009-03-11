@@ -536,6 +536,9 @@ public class ElasticTreeManager extends PZLayoutManager {
                 }
             }
         });
+        
+        // not quite supported yet
+        cboModeK.setVisible(false);
     }
     
     /** pointer to the mode which was most recently selected */

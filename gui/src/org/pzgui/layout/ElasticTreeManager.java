@@ -574,6 +574,9 @@ public class ElasticTreeManager extends PZLayoutManager {
     // --- Traffic Matrix Change Handling --- //
     // ************************************** //
     
+    /** whether to ignore changes to sliders */
+    private boolean ignoreChangesToSliders = false;
+    
     /** closing event listeners */
     private final LinkedList<TrafficMatrixChangeListener> trafficMatrixChangeListeneres = new LinkedList<TrafficMatrixChangeListener>();
     
@@ -600,10 +603,23 @@ public class ElasticTreeManager extends PZLayoutManager {
         return new ETTrafficMatrix(optModeHW.isSelected(), fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
     }
 
+    /** 
+     * Sets whether to ignore slider changes (if ignored, changes do not 
+     * trigger commands to the server. 
+     */
+    private void setIgnoreChangesToSliders(boolean b) {
+        ignoreChangesToSliders = b;
+        slEdge.setEnabled(b);
+        slAgg.setEnabled(b);
+    }
+    
     /**
      * Updates the slider labels and notify those listening for traffic matrix changes.
      */
     public void notifyTrafficMatrixChangeListeners() {
+        if(ignoreChangesToSliders)
+            return;
+        
         setPanelTitle(pnlDemand, "Demand: " + StringOps.formatBitsPerSec(slDemand.getValue()), TITLE_BORDER_FONT_SMALL);
         setPanelTitle(pnlAgg,    "Aggregation Layer: " + slAgg.getValue() + "%", TITLE_BORDER_FONT_SMALL);
         setPanelTitle(pnlEdge,   "Edge Layer: " + slEdge.getValue() + "%", TITLE_BORDER_FONT_SMALL);

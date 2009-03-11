@@ -1,15 +1,12 @@
 package org.pzgui.layout;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Stroke;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashSet;
 import java.util.LinkedList;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
-import javax.swing.SwingConstants;
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
 
 import org.openflow.lavi.drawables.DrawableIcon;
 import org.openflow.lavi.drawables.Link;
@@ -28,6 +25,7 @@ import org.pzgui.icon.GeometricIcon;
  * @author David Underhill
  */
 public class ElasticTreeManager extends PZLayoutManager {
+    public static final int HW_FAT_TREE_K = 6;
     public static final int SL_WIDTH = 50;
     public static final int LBL_HEIGHT = 20;
     public static final int LBL_WIDTH = 100;
@@ -37,7 +35,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     
     /** Creates a new Elastic Tree GUI for a k=6 fat tree */
     public ElasticTreeManager() {
-        this(6);
+        this(HW_FAT_TREE_K);
     }
 
     /** Creates a new Elastic Tree GUI for a k fat tree */
@@ -58,7 +56,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         pnlSidebar.setDoubleBuffered(true);
         pnlSidebar.setLayout(null);
-        pnlSidebar.setBorder(new javax.swing.border.LineBorder(Color.BLACK, 2));
         pnlSidebar.add(slDemand);
         pnlSidebar.add(lblDemand);
         pnlSidebar.add(lblDemandVal);
@@ -78,6 +75,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         pnlSidebar.add(dialPower);
         pnlSidebar.add(dialBandwidth);
         pnlSidebar.add(dialLatency);
+        pnlSidebar.add(pnlAnim);
+        pnlSidebar.add(pnlMode);
+        initComponents();
     }
     
     // -------- Layout and Redrawing -------- //
@@ -193,6 +193,11 @@ public class ElasticTreeManager extends PZLayoutManager {
         dialBandwidth.setBounds(x, y, sz, sz);
         y += sz + y_margin;
         dialLatency.setBounds(x, y, sz, sz);
+        
+        pnlAnim.setLocation(0, 0);
+        pnlAnim.setSize(pnlAnim.getPreferredSize());
+        pnlMode.setLocation(0, 500);
+        pnlMode.setSize(pnlMode.getPreferredSize());
     }
     
     /**
@@ -295,6 +300,184 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JLabel lblTrafficMatrixNext = new JLabel();
     private JLabel lblResultInfo = new JLabel();
     
+    private JPanel pnlAnim = new JPanel();
+    private ButtonGroup optgrpAnim = new ButtonGroup();
+    private JRadioButton optAnimNone = new JRadioButton("None");
+    private JRadioButton optAnimPulse = new JRadioButton("Pulse");
+    private JRadioButton optAnimSawtooth = new JRadioButton("Sawtooth");
+    private JRadioButton optAnimSineWave = new JRadioButton("Sine Wave");
+    private JLabel lblAnimStepDuration = new JLabel("Step Duration:");
+    private JSlider slAnimStepDuration = new JSlider(SwingConstants.HORIZONTAL, 1, 60, 60);
+    
+    private JPanel pnlMode = new JPanel();
+    private ButtonGroup optgrpMode = new ButtonGroup();
+    private JRadioButton optModeHW = new JRadioButton("Hardware");
+    private JRadioButton optModeSW = new JRadioButton("Simulation");
+    private JComboBox cboModeK = new JComboBox(new String[] {"4", "6"});
+    
+    private static final Font TITLE_BORDER_FONT = new java.awt.Font("Tahoma", Font.BOLD, 16);
+    private static final Color TITLE_BORDER_FONT_COLOR = new java.awt.Color(0, 0, 128);
+    
+    private GroupLayout initGroupLayout(Container c) {
+        GroupLayout layout = new GroupLayout(c);
+        layout.setAutoCreateGaps(true);
+        layout.setAutoCreateContainerGaps(true);
+        c.setLayout(layout);
+        return layout;
+    }
+    
+    private GroupLayout initPanel(JPanel pnl, String title) {
+        return initPanel(pnl, title, TITLE_BORDER_FONT);
+    }
+    
+    private GroupLayout initPanel(JPanel pnl, String title, Font f) {
+        pnl.setBorder(BorderFactory.createTitledBorder(null, 
+                                                       title, 
+                                                       TitledBorder.DEFAULT_JUSTIFICATION, 
+                                                       TitledBorder.DEFAULT_POSITION, 
+                                                       f,
+                                                       TITLE_BORDER_FONT_COLOR));
+        
+        return initGroupLayout(pnl);
+    }
+    
+    /** layout and initialize all panels */
+    private void initComponents() {
+        initAnimPanel();
+        initModePanel();
+    }
+
+    /** layout and initialize the animation panel and its components */
+    private void initAnimPanel() {
+        GroupLayout layout = initPanel(pnlAnim, "Animation");
+        
+        layout.setHorizontalGroup(
+                layout.createParallelGroup()
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(optAnimNone)
+                        .addComponent(optAnimPulse)
+                        .addComponent(optAnimSawtooth)
+                        .addComponent(optAnimSineWave))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblAnimStepDuration)
+                        .addComponent(slAnimStepDuration))
+        );
+        
+        layout.setVerticalGroup(
+                layout.createSequentialGroup()
+                    .addGroup(layout.createParallelGroup()
+                        .addComponent(optAnimNone)
+                        .addComponent(optAnimPulse)
+                        .addComponent(optAnimSawtooth)
+                        .addComponent(optAnimSineWave))
+                    .addGroup(layout.createParallelGroup()
+                        .addComponent(lblAnimStepDuration)
+                        .addComponent(slAnimStepDuration))
+        );
+        
+        optgrpAnim.add(optAnimNone);
+        optgrpAnim.add(optAnimPulse);
+        optgrpAnim.add(optAnimSawtooth);
+        optgrpAnim.add(optAnimSineWave);
+        optAnimNone.setSelected(true);
+        animLastSelected = optAnimNone;
+        
+        layout.linkSize(SwingConstants.VERTICAL, optAnimNone, optAnimPulse, optAnimSawtooth, optAnimSineWave);
+        layout.linkSize(SwingConstants.VERTICAL, lblAnimStepDuration, slAnimStepDuration);
+        
+        ActionListener animListener = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if(animLastSelected != e.getSource()) {
+                    animLastSelected = e.getSource();
+                    handleAnimationTypeChange();
+                }
+            }
+        };
+        optAnimNone.addActionListener(animListener);
+        optAnimPulse.addActionListener(animListener);
+        optAnimSawtooth.addActionListener(animListener);
+        optAnimSineWave.addActionListener(animListener);
+    }
+
+    /** pointer to the animation mode which was most recently selected */
+    private Object animLastSelected = null;
+    
+    /** called when the animation mode is being changed */
+    private void handleAnimationTypeChange() {
+        if(optAnimNone.isSelected()) {
+            // to do
+        }
+        else {
+            // to do
+        }
+    }
+
+    /** layout and initialize the mode panel and its components */
+    private void initModePanel() {
+        GroupLayout layout = initPanel(pnlMode, "Mode");
+        
+        layout.setHorizontalGroup(
+                layout.createSequentialGroup()
+                    .addComponent(optModeHW)
+                    .addComponent(optModeSW)
+                    .addComponent(cboModeK)
+        );
+        
+        layout.setVerticalGroup(
+                layout.createParallelGroup()
+                    .addComponent(optModeHW)
+                    .addComponent(optModeSW)
+                    .addComponent(cboModeK)
+        );
+        
+        optgrpMode.add(optModeHW);
+        optgrpMode.add(optModeSW);
+        optModeSW.setSelected(true);
+        modeLastSelected = optModeSW;
+        cboModeK.setSelectedItem(Integer.toString(fatTreeLayout.getK()));
+        
+        layout.linkSize(SwingConstants.VERTICAL, optModeHW, optModeSW, cboModeK);
+        
+        ActionListener modeListener = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if(modeLastSelected != e.getSource()) {
+                    modeLastSelected = e.getSource();
+                    handleModeTypeChange();
+                }
+            }
+        };
+        optModeHW.addActionListener(modeListener);
+        optModeSW.addActionListener(modeListener);
+        
+        cboModeK.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int newK = Integer.valueOf((String)cboModeK.getSelectedItem());
+                if(fatTreeLayout.getK() != newK) {
+                    handleKChange(newK);
+                }
+            }
+        });
+    }
+    
+    /** pointer to the mode which was most recently selected */
+    private Object modeLastSelected = null;
+    
+    /** called when the mode is being changed */
+    private void handleModeTypeChange() {
+        if(optModeHW.isSelected() && fatTreeLayout.getK() != HW_FAT_TREE_K)
+            fatTreeLayout.setK(HW_FAT_TREE_K);
+        notifyTrafficMatrixChangeListeners();
+    }
+    
+    /** called when K is to be changed */
+    private void handleKChange(int newK) {
+        if(newK != HW_FAT_TREE_K && optModeHW.isSelected()) {
+            optModeSW.setSelected(true);
+        }
+        fatTreeLayout.setK(newK);
+        notifyTrafficMatrixChangeListeners();
+    }
+    
     /**
      * Sets the text description of the data currently being visualized.
      * @param tm  the matrix which led to the latest data
@@ -371,7 +554,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         if(agg != aggDef) {
             slAgg.setValue((int)(100*agg));
         }
-        return new ETTrafficMatrix(false, fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
+        return new ETTrafficMatrix(optModeHW.isSelected(), fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
     }
 
     /**

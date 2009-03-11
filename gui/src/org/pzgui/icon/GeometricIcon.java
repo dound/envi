@@ -5,7 +5,10 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Polygon;
+import java.awt.Stroke;
 import java.util.HashMap;
+
+import org.pzgui.Constants;
 
 /**
  * An icon specified by geometric shapes.
@@ -55,26 +58,36 @@ public class GeometricIcon extends Icon {
     }
     
     private final Polygon poly;
+    private Color borderColor;
     private Color fillColor;
+    private Stroke borderStroke;
     private final Dimension size;
     private boolean center = false;
     private final HashMap<Dimension, Polygon> resampledPolygons = new HashMap<Dimension, Polygon>();
     
-    public GeometricIcon(int[] x, int[] y, Color c) {
+    public GeometricIcon(int[] x, int[] y, Color fillColor) {
+        this(x, y, fillColor, Constants.COLOR_DEFAULT, null);
+    }
+    
+    public GeometricIcon(int[] x, int[] y, Color fillColor, Color borderColor, Stroke borderStroke) {
         poly = new Polygon(x, y, x.length);
-        fillColor = c;
+        this.fillColor = fillColor;
+        this.borderColor = borderColor;
+        this.borderStroke = borderStroke;
         size = new Dimension(spread(x), spread(y));
         super.setSize(size);
     }
     
-    public GeometricIcon(int[] x, int[] y, int width, int height, Color c) {
+    public GeometricIcon(int[] x, int[] y, int width, int height, Color fillColor, Color borderColor, Stroke borderStroke) {
         Dimension origSize = new Dimension(spread(x), spread(y));
         if( origSize.width!=width || origSize.height!=height )
             poly = getScaledPolygon(x, y, width, height);
         else
             poly = new Polygon(x, y, x.length);
         
-        fillColor = c;
+        this.fillColor = fillColor;
+        this.borderColor = borderColor;
+        this.borderStroke = borderStroke;
         size = new Dimension(width, height);
         super.setSize(size);
     }
@@ -84,14 +97,14 @@ public class GeometricIcon extends Icon {
     }
     
     public void draw( Graphics2D gfx, int x, int y ) {
-        draw(gfx, poly, fillColor, x, y, size.width, size.height, center);
+        draw(gfx, poly, fillColor, borderColor, borderStroke, x, y, size.width, size.height, center);
     }
     
     public void draw( Graphics2D gfx, int x, int y, int w, int h ) {
-        draw(gfx, getPolygon(new Dimension(w, h)), fillColor, x, y, w, h, center);
+        draw(gfx, getPolygon(new Dimension(w, h)), fillColor, borderColor, borderStroke, x, y, w, h, center);
     }
     
-    public static void draw( Graphics2D gfx, Polygon poly, Color fillColor, int x, int y, int w, int h, boolean center) {
+    public static void draw( Graphics2D gfx, Polygon poly, Color fillColor, Color borderColor, Stroke borderStroke, int x, int y, int w, int h, boolean center) {
         // center the drawing
         if(center) {
             x -= w / 2;
@@ -101,13 +114,21 @@ public class GeometricIcon extends Icon {
         // draw the polygon in the appropriate place
         gfx.translate(x, y);
         
+        Paint p = gfx.getPaint();
         if( fillColor != null ) {
-            Paint p = gfx.getPaint();
             gfx.setColor(fillColor);
             gfx.fill(poly);
-            gfx.setPaint(p);
         }
-        gfx.draw(poly);
+        gfx.setColor(borderColor);
+        if(borderStroke != null) {
+            Stroke s = gfx.getStroke();
+            gfx.setStroke(borderStroke);
+            gfx.draw(poly);
+            gfx.setStroke(s);
+        }
+        else
+            gfx.draw(poly);
+        gfx.setPaint(p);
         
         gfx.translate(-x, -y);
     }
@@ -118,6 +139,22 @@ public class GeometricIcon extends Icon {
     
     public Polygon getPolygon() {
         return poly;
+    }
+
+    public Color getBorderColor() {
+        return borderColor;
+    }
+    
+    public void setBorderColor(Color c) {
+        borderColor = c;
+    }
+
+    public Stroke getBorderStroke() {
+        return borderStroke;
+    }
+    
+    public void setBorderStroke(Stroke s) {
+        borderStroke = s;
     }
     
     public Color getFillColor() {

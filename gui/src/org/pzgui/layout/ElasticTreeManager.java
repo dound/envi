@@ -1,7 +1,9 @@
 package org.pzgui.layout;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Stroke;
 import java.util.HashSet;
 import java.util.LinkedList;
 import javax.swing.JLabel;
@@ -201,39 +203,30 @@ public class ElasticTreeManager extends PZLayoutManager {
     private int[] baseX = new int[]{0,1,1,0};
     private int[] baseY = new int[]{0,0,1,1};
     private HashSet<DrawableIcon> liveIcons = new HashSet<DrawableIcon>();
-    private void addRectangle(int x, int y, int w, int h, Color c) {
-        DrawableIcon d = new DrawableIcon(new GeometricIcon(baseX, baseY, w, h, c), x, y, w, h);
+    private void addRectangle(int x, int y, int w, int h, Color f, Color b, Stroke s) {
+        DrawableIcon d = new DrawableIcon(new GeometricIcon(baseX, baseY, w, h, f, b, s), x, y, w, h);
         liveIcons.add(d);
     }
     
-    private static final int POD_COLOR_HIGH = (Constants.INVERT_COLORS ? 32 : 255);
-    private static final int POD_COLOR_LOW  = (Constants.INVERT_COLORS ? 16 : 243);
-    private static final Color[] POD_COLORS = new Color[] {new Color(POD_COLOR_HIGH,POD_COLOR_LOW,POD_COLOR_LOW),
-                                                           new Color(POD_COLOR_LOW,POD_COLOR_HIGH,POD_COLOR_LOW),
-                                                           new Color(POD_COLOR_LOW,POD_COLOR_LOW,POD_COLOR_HIGH),
-                                                           new Color(POD_COLOR_HIGH,POD_COLOR_HIGH,POD_COLOR_LOW),
-                                                           new Color(POD_COLOR_HIGH,POD_COLOR_LOW,POD_COLOR_HIGH),
-                                                           new Color(POD_COLOR_LOW,POD_COLOR_HIGH,POD_COLOR_HIGH)};
+    private static final Color POD_OUTLINE_COLOR = Constants.cmap(new Color(25, 25, 0, 128));
+    private static final BasicStroke POD_SEP_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[] {5.0f, 5.0f}, 15.0f);
     
     private void relayout() {
         // only relayout once all nodes are present
         if(fatTreeLayout.getGraph().getVertexCount() < fatTreeLayout.size())
             return;
         
-        for(DrawableIcon d : liveIcons)
-            removeDrawable(d);
         liveIcons.clear();
         
         fatTreeLayout.reset();
         fatTreeLayout.relayout();
         
-        int y = fatTreeLayout.agg_y - 20;
+        int y = fatTreeLayout.agg_y;
         int w = fatTreeLayout.pod_sz;
         int h = fatTreeLayout.getSize().height - y;
         int i;
-        for(i=0; i<fatTreeLayout.getK()-1; i++)
-            addRectangle(w*i, y, w, h, POD_COLORS[i]);
-        addRectangle(w*i, y, w*2, h, POD_COLORS[i]);
+        for(i=1; i<fatTreeLayout.getK(); i++)
+            addRectangle(w*i, y, 0, h, POD_OUTLINE_COLOR, POD_OUTLINE_COLOR, POD_SEP_STROKE);
     }
 
     

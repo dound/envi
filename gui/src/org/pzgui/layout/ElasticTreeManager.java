@@ -48,7 +48,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         dialPower = new MultiPointerDial("Power Consumption", "Watts", 2, 460, 50);
         dialPower.setPointerLine(1, 0.95);
         
-        dialBandwidth = new MultiPointerDial("Aggregate Xput", "Gbps", 2, 550, 50);
+        int max_gbps = 2 * fatTreeLayout.size_links(); /* 1Gbps in each direction per link */
+        dialBandwidth = new MultiPointerDial("Aggregate Xput", "Gbps", 2,  max_gbps, max_gbps/10);
         dialBandwidth.setPointerLine(1, 0.95);
         
         dialLatency = new MultiPointerDial("Layer Latency", "msec", 3, 100, 10);

@@ -91,6 +91,11 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
     public int size() {
         return size_core() + size_agg() + size_edge() + size_host();
     }
+
+    /** returns the number of total links */
+    public int size_links() {
+        return size_agg() * k + size_edge() * k / 2;
+    }
     
     /** generated layout settings */
     int core_y = 0, agg_y = 0, edge_y = 0, host_y = 0, pod_sz = 0;

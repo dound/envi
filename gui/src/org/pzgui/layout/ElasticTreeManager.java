@@ -291,6 +291,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         lblResultInfo.setVisible(false);        
         lblResultInfo.setForeground(Color.RED);
+        lblResultInfo.setFont(new Font("Tahoma", Font.BOLD, 16));
         
         lblLegend.setIcon(new ImageIcon(Link.USAGE_LEGEND));
         lblLegend.setPreferredSize(new Dimension(Link.USAGE_LEGEND.getWidth(), Link.USAGE_LEGEND.getHeight()));

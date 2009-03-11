@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 import edu.uci.ics.jung.algorithms.util.IterativeContext;
+import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
 
 public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> implements IterativeContext {
@@ -63,7 +64,8 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
     public void setK(int k) {
         if(this.k != k) {
             this.k = k;
-            relayout();
+            clear();
+            setGraph(new DirectedSparseGraph<V, E>());
         }
     }
     

@@ -97,12 +97,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     /** Called when the LAVI backend has been disconnected or reconnected */
     public void connectionStateChange() {
         if(!conn.isConnected()) {
-            // remove all switches when we get disconnected
-            for(Long d : switchesList)
-                disconnectSwitch(d);
-            
-            // if the manager was waiting for a response, it won't be coming
-            tmManager.responseWillNotCome();
+            cleanup();
             
             // temporary: usually get d/c atm if backend crashes
             System.exit(-1);
@@ -116,6 +111,15 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
                 catch(IOException e) {}
             }
         }
+    }
+    
+    private void cleanup() {
+        // remove all switches when we get disconnected
+        for(Long d : switchesList)
+            disconnectSwitch(d);
+        
+        // if the manager was waiting for a response, it won't be coming
+        tmManager.responseWillNotCome();
     }
 
     /** Handles messages received from the LAVI backend */
@@ -511,6 +515,13 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         
         /** Sends the next traffic matrix to the server. */
         private synchronized boolean sendNextTrafficMatrix() {
+            if(tmOutstanding != null && tmOutstanding.k != tmNext.k) {
+                try {
+                    cleanup();
+                    conn.sendLAVIMessage(new ETSwitchesRequest(tmNext.k));
+                }
+                catch(IOException e) {}
+            }
             tmOutstanding = tmNext;
             manager.setNextTrafficMatrixText(tmOutstanding);
             

@@ -657,6 +657,8 @@ public class ElasticTreeManager extends PZLayoutManager {
             // start with all core traffic (=> start with all edge traffic for pulse, doesn't matter for others)
             this.edge = 0;
             this.agg = 0;
+            
+            animationManager.notifyAll();
         }
         
         /** stops the current animation */
@@ -670,18 +672,31 @@ public class ElasticTreeManager extends PZLayoutManager {
         /** main loop: animate while live */
         public void run() {
             while(true) {
-                synchronized(this) {
+                synchronized(animationManager) {
                     // wait until it is time to animate
                     while(!live) {
                         try {
-                            if(!first)
-                                Thread.sleep(period_sec*1000);
-                            this.wait(); 
+                            Thread.sleep(100);
+                            animationManager.wait(); 
                         } 
                         catch(InterruptedException e) {}
                     }
                 
+                    // wait in between intervals
+                    if(!first) {
+                        try {
+                            Thread.sleep(period_sec*1000);
+                        }
+                        catch(InterruptedException e) {}
+                    }
+                    else
+                        first = false;
+                    
+                    // compute apply the edge and agg settings for the next step
                     nextFrame();
+                    slEdge.setValue(edge);
+                    slAgg.setValue(agg);
+                    notifyTrafficMatrixChangeListeners();
                 }
             }
         }
@@ -739,11 +754,6 @@ public class ElasticTreeManager extends PZLayoutManager {
                     edge = 0;
                     agg = (int)((100 * (1-p)) + (0 * p));
                 }
-                
-                // apply the edge and agg settings
-                slEdge.setValue(edge);
-                slAgg.setValue(agg);
-                notifyTrafficMatrixChangeListeners();
             }
         }
     }

@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Stroke;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import org.openflow.lavi.net.LAVIConnection;
@@ -399,32 +400,63 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** sets the color this link will be drawn based on the current utilization */
     public void setColor() {
         float usage = (float)getCurrentUtilization();
+        this.curDrawColor = getUsageColor(usage);
+    }
+    
+    /**
+     * Gets the color associated with a particular usage value.
+     */
+    public static Color getUsageColor(float usage) {
         if(usage < 0) {
-            this.curDrawColor = Color.BLUE; // indicate that we don't know the util
-            return;
+            return Color.BLUE; // indicates that we don't know the utilization
         }
         else if (usage > 1)
             usage = 1;
         
+        return USAGE_COLORS[(int)(usage * (NUM_USAGE_COLORS-1))];
+    }
+    
+    /**
+     * Computes the color associated with a particular usage value.
+     */
+    private static Color computeUsageColor(float usage) {
         if(usage == 0.0f)
-            this.curDrawColor = new Color(0.3f, 0.3f, 0.3f, 0.5f); // faded gray
+            return new Color(0.3f, 0.3f, 0.3f, 0.5f); // faded gray
         else {
             float mid = 1.5f / 3.0f;
             
             if(usage < mid) {
                 // blend green + yellow
                 float alpha = usage / mid;
-                this.curDrawColor = new Color(0.0f*alpha+1.0f*(1.0f-alpha),
-                                              1.0f*alpha+1.0f*(1.0f-alpha),
-                                              0.0f);
+                return new Color(1.0f*alpha+0.0f*(1.0f-alpha),
+                                 1.0f*alpha+1.0f*(1.0f-alpha),
+                                 0.0f);
             }
             else {
                 // blend red + yellow
                 float alpha = (usage - mid) / mid;
-                this.curDrawColor = new Color(1.0f*alpha+1.0f*(1.0f-alpha),
-                                              0.0f*alpha+1.0f*(1.0f-alpha),
-                                              0.0f);
+                return new Color(1.0f*alpha+1.0f*(1.0f-alpha),
+                                 0.0f*alpha+1.0f*(1.0f-alpha),
+                                 0.0f);
             }
         }
+    }
+    
+    /** precomputed usage colors for performance reasons */
+    public static final int NUM_USAGE_COLORS = 256;
+    public static final Color[] USAGE_COLORS;
+    public static final  BufferedImage USAGE_LEGEND;
+    
+    static {
+        USAGE_COLORS = new Color[NUM_USAGE_COLORS];
+        int legendHeight = 20;
+        USAGE_LEGEND = new BufferedImage(NUM_USAGE_COLORS, legendHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D gfx = (Graphics2D)USAGE_LEGEND.getGraphics();
+        for(int i=0; i<NUM_USAGE_COLORS; i++) {
+            USAGE_COLORS[i] = computeUsageColor(i / (float)(NUM_USAGE_COLORS-1));
+            gfx.setPaint(USAGE_COLORS[i]);
+            gfx.drawLine(i, 0, i, legendHeight);
+        }
+        gfx.setPaint(Constants.PAINT_DEFAULT);
     }
 }

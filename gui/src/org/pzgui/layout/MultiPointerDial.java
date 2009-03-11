@@ -24,7 +24,7 @@ public class MultiPointerDial extends ChartPanel {
     /** increment between major tick marks */
     private int majorStep;
     
-    /** pointer valeus */
+    /** pointer values */
     private DefaultValueDataset[] values;
     
 
@@ -52,12 +52,20 @@ public class MultiPointerDial extends ChartPanel {
         setMax(max);
     }
     
+    /** Gets the maximum value of the dial. */
+    public int getMax() {
+        return max;
+    }
+    
     /** 
-     * Sets the maximum value of the dial.
+     * Sets the maximum value of the dial and returns true if it had changed.
      */
-    public void setMax(int max) {
-        if(max != this.max)
+    public boolean setMax(int max) {
+        if(max != this.max) { 
             createChart(max);
+            return true;
+        }
+        return false;
     }
     
     /**
@@ -74,7 +82,7 @@ public class MultiPointerDial extends ChartPanel {
      * Sets the specified pointer to appear as a standard pointer.
      */
     public void setPointerStandard(int pointerIndex) {
-        setPointer(pointerIndex, new DialPointer.Pointer(pointerIndex));
+        setPointer(new DialPointer.Pointer(pointerIndex));
     }
     
     /**
@@ -86,13 +94,13 @@ public class MultiPointerDial extends ChartPanel {
     public void setPointerLine(int pointerIndex, double radius) {
         DialPointer pointer = new DialPointer.Pin(pointerIndex);
         pointer.setRadius(radius);
-        setPointer(pointerIndex, pointer);
+        setPointer(pointer);
     }
     
     /** Sets the pointer for the specified dataset */
-    public void setPointer(int pointerIndex, DialPointer p) {
+    public void setPointer(DialPointer p) {
         DialPlot plot = (DialPlot)getChart().getPlot();
-        DialPointer pointerOld = plot.getPointerForDataset(pointerIndex);
+        DialPointer pointerOld = plot.getPointerForDataset(p.getDatasetIndex());
         if(pointerOld != null)
             plot.removePointer(pointerOld);
         plot.addPointer(p);

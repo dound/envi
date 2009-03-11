@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
+import org.jfree.chart.plot.dial.DialPointer;
 import org.openflow.lavi.drawables.DrawableIcon;
 import org.openflow.lavi.drawables.Link;
 import org.openflow.lavi.drawables.OpenFlowSwitch;
@@ -44,16 +45,57 @@ public class ElasticTreeManager extends PZLayoutManager {
         setCurrentTrafficMatrixText(null);
         setNextTrafficMatrixText(null);
         
-        dialPower = new MultiPointerDial("Power Consumption", "Watts", 2, 460, 50);
-        dialPower.setPointerLine(1, 0.95);
+        dialPower = new MultiPointerDial("Power Consumption", "Watts", 2, 459, 50);
         
         int max_gbps = 2 * fatTreeLayout.size_links(); /* 1Gbps in each direction per link */
         dialBandwidth = new MultiPointerDial("Aggregate Throughput", "Gbps", 2,  max_gbps, max_gbps/10);
-        dialBandwidth.setPointerLine(1, 0.95);
+        setPointersFor2PointerDial(dialBandwidth);
         
         dialLatency = new MultiPointerDial("Layer Latency", "msec", 3, 100, 10);
+        setPointersFor3PointerDial(dialLatency);
         
         initSidebarPanel();
+    }
+    
+    /**
+     * Adds two pointers to the specified dial.  The first is the usual, the 
+     * second is a red pointer.
+     */
+    private void setPointersFor2PointerDial(MultiPointerDial d) {
+        DialPointer.Pointer p;
+        p = new DialPointer.Pointer(0);
+        p.setRadius(0.95);
+        d.setPointer(p);
+        
+        p = new DialPointer.Pointer(1);
+        p.setRadius(1.0);
+        p.setFillPaint(Color.RED);
+        d.setPointer(p);
+    }
+    
+    /**
+     * Adds three pointers to the specified dial.  Each is a different size and
+     * color.
+     */
+    private void setPointersFor3PointerDial(MultiPointerDial d) {
+        DialPointer.Pointer p;
+        p = new DialPointer.Pointer(0);
+        p.setRadius(1.0);
+        p.setFillPaint(Color.RED);
+        p.setWidthRadius(0.1);
+        d.setPointer(p);
+        
+        p = new DialPointer.Pointer(1);
+        p.setRadius(0.75);
+        p.setFillPaint(Color.YELLOW);
+        p.setWidthRadius(0.075);
+        d.setPointer(p);
+        
+        p = new DialPointer.Pointer(2);
+        p.setRadius(0.5);
+        p.setFillPaint(Color.GREEN);
+        p.setWidthRadius(0.025);
+        d.setPointer(p);
     }
     
     // -------- Layout and Redrawing -------- //
@@ -493,7 +535,8 @@ public class ElasticTreeManager extends PZLayoutManager {
     public void setPowerData(int cur, int traditional, int max) {
         dialPower.setValue(0, cur);
         dialPower.setValue(1, traditional);
-        dialPower.setMax(max);
+        if(dialPower.setMax(max))
+            setPointersFor2PointerDial(dialPower);
     }
     
     public void setExpectedAggregateThroughput(double total_bps) {
@@ -506,9 +549,9 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
 
     public void setLatencyData(int latency_ms_edge, int latency_ms_agg, int latency_ms_core) {
-        dialLatency.setValue(0, latency_ms_edge);
+        dialLatency.setValue(2, latency_ms_edge);
         dialLatency.setValue(1, latency_ms_agg);
-        dialLatency.setValue(2, latency_ms_core);
+        dialLatency.setValue(0, latency_ms_core);
     }
 
     public void noteResult(int num_unplaced_flows) {

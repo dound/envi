@@ -110,7 +110,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         else {
             if(firstConnection) {
                 try {
-                    conn.sendLAVIMessage(new ETSwitchesRequest(6));
+                    conn.sendLAVIMessage(new ETSwitchesRequest(manager.getK()));
                     firstConnection = false;
                 }
                 catch(IOException e) {}

@@ -59,6 +59,11 @@ public class ElasticTreeManager extends PZLayoutManager {
         animationManager.start();
     }
     
+    /** the k-value of the current fat tree */
+    public int getK() {
+        return fatTreeLayout.getK();
+    }
+    
     /**
      * Adds two pointers to the specified dial.  The first is the usual, the 
      * second is a red pointer.

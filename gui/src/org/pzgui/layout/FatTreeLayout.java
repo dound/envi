@@ -123,8 +123,12 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
         int core_x_sep = w / core_size;
         int agg_x_sep  = w / agg_size;
         int edge_x_sep = w / edge_size;
-        int host_x_sep = w / host_size;
         pod_sz = agg_x_sep * k / 2;
+        
+        int edgesPerPod = edge_size / k;
+        int hostsPerPod = host_size / k;
+        int hostsPerEdge = hostsPerPod / edgesPerPod;
+        int host_x_offset = edge_x_sep / 3;
         
         for(int i=0; i<nodeIDs.size(); i++) {
             V v = nodeIDs.get(i);
@@ -143,7 +147,11 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
                 v.setPos(getVertexX(edge_x_sep, edge_id), edge_y);
             }
             else if(host_id < host_size) {
-                v.setPos(getVertexX(host_x_sep, host_id), host_y);
+                int pod = host_id / hostsPerPod;
+                int hostNumInPod = host_id - pod * hostsPerPod;
+                int parentEdge = pod*edgesPerPod + hostNumInPod / hostsPerEdge;
+                int x = getVertexX(edge_x_sep, parentEdge) + (hostNumInPod % hostsPerEdge - 1) * host_x_offset;
+                v.setPos(x, host_y);
             }
         }
         

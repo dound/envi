@@ -97,12 +97,13 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             for(Long d : switchesList)
                 disconnectSwitch(d);
             
+            // if the manager was waiting for a response, it won't be coming
+            tmManager.responseWillNotCome();
+            
             // temporary: usually get d/c atm if backend crashes
             System.exit(-1);
         }
         else {
-            tmManager.start();
-            
             if(firstConnection) {
                 try {
                     conn.sendLAVIMessage(new ETSwitchesRequest(6));
@@ -123,6 +124,8 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             break;
             
         case SWITCHES_ADD:
+            if(!tmManager.isWaitingForResponse())
+                tmManager.start();
             processSwitchesAdd((SwitchesAdd)msg);
             break;
             
@@ -484,6 +487,9 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         /** the next traffic matrix to relay to the server */
         private ETTrafficMatrix tmNext;
         
+        /** whether this manager is waiting for a response */
+        private boolean waiting_for_response = false;
+        
         /** Initializes the manager with the initial traffic matrix to use */
         public TrafficMatrixManager(ETTrafficMatrix tm) {
             setNextTrafficMatrix(tm);
@@ -505,6 +511,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             
             try {
                 conn.sendLAVIMessage(tmOutstanding);
+                waiting_for_response = true;
             } catch (IOException e) {
                 System.err.println("Warning: unable to send traffix matrix update: " + tmOutstanding);
                 return false;
@@ -527,6 +534,21 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
          */
         public void start() {
             sendNextTrafficMatrix();
+        }
+        
+        /**
+         * Whether the manager is currently waiting for a response.
+         */
+        public boolean isWaitingForResponse() {
+            return waiting_for_response;
+        }
+        
+        /** 
+         * Tells the manager it won't receive a reply for the last message it 
+         * sent (the connection died). 
+         */
+        public void responseWillNotCome() {
+            waiting_for_response = false;
         }
     }
     private TrafficMatrixManager tmManager;

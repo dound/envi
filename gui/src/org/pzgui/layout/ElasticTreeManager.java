@@ -184,10 +184,14 @@ public class ElasticTreeManager extends PZLayoutManager {
         int sz = LBL_WIDTH_BIG - o - GAP_X * 2;
         x = x + o;
         y = 3 * LBL_HEIGHT + 5;
+        int y_margin = 10;
+        if((sz+y_margin) * 3 + y > h)
+            sz = (h - y) / 3 - y_margin;
+        
         dialPower.setBounds(x, y, sz, sz);
-        y += sz + 10;
+        y += sz + y_margin;
         dialBandwidth.setBounds(x, y, sz, sz);
-        y += sz + 10;
+        y += sz + y_margin;
         dialLatency.setBounds(x, y, sz, sz);
     }
     

@@ -55,6 +55,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         setPointersFor3PointerDial(dialLatency);
         
         initSidebarPanel();
+        animationManager.start();
     }
     
     /**
@@ -449,10 +450,18 @@ public class ElasticTreeManager extends PZLayoutManager {
     /** called when the animation mode is being changed */
     private void handleAnimationTypeChange() {
         if(optAnimNone.isSelected()) {
-            // to do
+            animationManager.stopAnimation();
         }
         else {
-            // to do
+            AnimationStepType type = null;
+            if(optAnimPulse.isSelected())
+                type = AnimationStepType.PULSE;
+            else if(optAnimSawtooth.isSelected())
+                type = AnimationStepType.SAWTOOTH;
+            else if(optAnimSineWave.isSelected())
+                type = AnimationStepType.SINEWAVE;
+            
+            animationManager.startAnimation(slAnimStepDuration.getValue(), type, slAnimStepSize.getValue()/100.0);
         }
     }
 
@@ -570,6 +579,154 @@ public class ElasticTreeManager extends PZLayoutManager {
             lblResultInfo.setVisible(true);
         }
     }
+    
+    
+    // --------- Animation Handling --------- //
+    // ************************************** //
+    
+    /** types of animation steps */
+    private enum AnimationStepType {
+        PULSE(),
+        SAWTOOTH(),
+        SINEWAVE();
+    }
+    
+    /** handles animating locality variations over time */
+    private class AnimationManager extends Thread {
+        /** whether it is animating */
+        private boolean live = false;
+        
+        /** whether this is the first animation frame */
+        private boolean first;
+        
+        /** time between animation steps */
+        private int period_sec;
+        
+        /** current traffic pattern */
+        private int edge = 0;
+        private int agg  = 0;
+        
+        /** current animation type */
+        private AnimationStepType type;
+        
+        /** current place in the animation */
+        private double step;
+        
+        /** step size */
+        public double stepSize;
+        
+        /** current direction of the animation */
+        private double stepPolarity;
+        
+        /** starts the animation */
+        public synchronized void startAnimation(int period_sec, AnimationStepType type, double stepSize) {
+            // ignore user-input while animating
+            setIgnoreChangesToSliders(true);
+            
+            first = live = true;
+            this.period_sec = period_sec;
+            this.type = type;
+            this.stepSize = stepSize;
+            
+            // start at the beginning with 0.0 (nextFrame() will advance this to 0.0)
+            step = 0.0 - stepSize;
+            stepPolarity = -1.0;
+            
+            // start with all core traffic (=> start with all edge traffic for pulse, doesn't matter for others)
+            this.edge = 0;
+            this.agg = 0;
+        }
+        
+        /** stops the current animation */
+        public synchronized void stopAnimation() {
+            live = false;
+            
+            // re-enable user input
+            setIgnoreChangesToSliders(false);
+        }
+        
+        /** main loop: animate while live */
+        public void run() {
+            while(true) {
+                synchronized(this) {
+                    // wait until it is time to animate
+                    while(!live) {
+                        try {
+                            if(!first)
+                                Thread.sleep(period_sec*1000);
+                            this.wait(); 
+                        } 
+                        catch(InterruptedException e) {}
+                    }
+                
+                    nextFrame();
+                }
+            }
+        }
+        
+        /** render the next set of animation values */
+        private void nextFrame() {
+            // go to the next frame
+            if(type == AnimationStepType.PULSE) {
+                if(edge==100) {
+                    // switch from all edge to all agg
+                    edge = 0;
+                    agg = 100;
+                }
+                else if(edge==0 && agg==100) {
+                    // switch from all agg to all core
+                    agg = 0;
+                }
+                else {
+                    // switch to all edge
+                    edge = 100;
+                    agg = 0;
+                }
+            }
+            else {
+                // switch polarities at the endpoints
+                if(step <= 0.0) {
+                    step = 0.0;
+                    stepPolarity = 1.0; 
+                }
+                else if(step >= 1.0) {
+                    step = 1.0;
+                    stepPolarity = -1.0; 
+                }
+                
+                // advance the step
+                step += stepSize * stepPolarity;
+                if(step > 1.0)
+                    step = 1.0;
+                else if(step < 0.0)
+                    step = 0.0;
+                
+                // compute the next frame: linear or sinewave step
+                double p = (type == AnimationStepType.SAWTOOTH) ? step : Math.sin(step*Math.PI/2);
+                
+                // compute the edge and agg settings
+                if(p <= 0.5) {
+                    // first half of animation is between all edge and all agg
+                    p /= 0.5;
+                    edge = (int)((100 * (1-p)) + (0 * p));
+                    agg = 100 - edge;
+                }
+                else {
+                    // second half of animation is between all agg and all core
+                    p = (p - 0.5) / 0.5;
+                    edge = 0;
+                    agg = (int)((100 * (1-p)) + (0 * p));
+                }
+                
+                // apply the edge and agg settings
+                slEdge.setValue(edge);
+                slAgg.setValue(agg);
+                notifyTrafficMatrixChangeListeners();
+            }
+        }
+    }
+    private AnimationManager animationManager = new AnimationManager();
+    
     
     // --- Traffic Matrix Change Handling --- //
     // ************************************** //

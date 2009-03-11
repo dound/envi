@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.jfree.chart.plot.dial.DialPointer;
 import org.openflow.lavi.drawables.DrawableIcon;
@@ -261,9 +263,9 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JRadioButton optAnimPulse = new JRadioButton("Pulse");
     private JRadioButton optAnimSawtooth = new JRadioButton("Sawtooth");
     private JRadioButton optAnimSineWave = new JRadioButton("Sine Wave");
-    private JLabel lblAnimStepDuration = new JLabel("Step Duration:");
+    private JPanel pnlAnimStepDuration = new JPanel();
     private JSlider slAnimStepDuration = new JSlider(SwingConstants.HORIZONTAL, 1, 60, 5);
-    private JLabel lblAnimStepSize = new JLabel("Step Size (% of Space):");
+    private JPanel pnlAnimStepSize = new JPanel();
     private JSlider slAnimStepSize = new JSlider(SwingConstants.HORIZONTAL, 1, 100, 10);
     
     private JPanel pnlMode = new JPanel();
@@ -396,6 +398,12 @@ public class ElasticTreeManager extends PZLayoutManager {
     private void initAnimPanel() {
         GroupLayout layout = initPanel(pnlAnim, "Animation");
         
+        setPanelTitle(pnlAnimStepDuration, "Step Duration: 5sec", TITLE_BORDER_FONT_SMALL);
+        setPanelTitle(pnlAnimStepSize, "Step Size (% of Space): 10%",  TITLE_BORDER_FONT_SMALL);
+        
+        pnlAnimStepDuration.add(slAnimStepDuration);
+        pnlAnimStepSize.add(slAnimStepSize);
+        
         layout.setHorizontalGroup(
                 layout.createParallelGroup()
                     .addGroup(layout.createSequentialGroup()
@@ -404,11 +412,9 @@ public class ElasticTreeManager extends PZLayoutManager {
                         .addComponent(optAnimSawtooth)
                         .addComponent(optAnimSineWave))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblAnimStepDuration)
-                        .addComponent(slAnimStepDuration))
+                        .addComponent(pnlAnimStepDuration))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblAnimStepSize)
-                        .addComponent(slAnimStepSize))
+                        .addComponent(pnlAnimStepSize))
         );
         
         layout.setVerticalGroup(
@@ -419,11 +425,9 @@ public class ElasticTreeManager extends PZLayoutManager {
                         .addComponent(optAnimSawtooth)
                         .addComponent(optAnimSineWave))
                     .addGroup(layout.createParallelGroup()
-                        .addComponent(lblAnimStepDuration)
-                        .addComponent(slAnimStepDuration))
+                        .addComponent(pnlAnimStepDuration))
                     .addGroup(layout.createParallelGroup()
-                        .addComponent(lblAnimStepSize)
-                        .addComponent(slAnimStepSize))
+                        .addComponent(pnlAnimStepSize))
         );
         
         optgrpAnim.add(optAnimNone);
@@ -434,7 +438,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         animLastSelected = optAnimNone;
         
         layout.linkSize(SwingConstants.VERTICAL, optAnimNone, optAnimPulse, optAnimSawtooth, optAnimSineWave);
-        layout.linkSize(SwingConstants.VERTICAL, lblAnimStepDuration, slAnimStepDuration, lblAnimStepSize, slAnimStepSize);
+        layout.linkSize(SwingConstants.VERTICAL, pnlAnimStepDuration, pnlAnimStepSize);
         
         ActionListener animListener = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -448,6 +452,18 @@ public class ElasticTreeManager extends PZLayoutManager {
         optAnimPulse.addActionListener(animListener);
         optAnimSawtooth.addActionListener(animListener);
         optAnimSineWave.addActionListener(animListener);
+        
+        slAnimStepDuration.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                setPanelTitle(pnlAnimStepDuration, "Step Duration: " + slAnimStepDuration.getValue() + "sec", TITLE_BORDER_FONT_SMALL); 
+            }
+        });
+        
+        slAnimStepSize.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                setPanelTitle(pnlAnimStepSize, "Step Size (% of Space): " + slAnimStepSize.getValue() + "%", TITLE_BORDER_FONT_SMALL); 
+            }
+        });
     }
 
     /** pointer to the animation mode which was most recently selected */

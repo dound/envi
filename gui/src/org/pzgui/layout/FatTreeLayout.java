@@ -110,15 +110,15 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
         int edge_size = size_edge();
         int host_size = size_host();
         
-        int h = getSize().height - 45;
+        int h = getSize().height;
         int w = getSize().width;
         
         int margin_y = 40;
         int hAvail = h - margin_y * 5;
         core_y = margin_y;
         agg_y  = 2 * hAvail / 3;
-        host_y = h - margin_y;
-        edge_y = host_y - 3 * margin_y;
+        host_y = h + margin_y / 4;
+        edge_y = host_y - 2 * margin_y;
         
         int core_x_sep = w / core_size;
         int agg_x_sep  = w / agg_size;

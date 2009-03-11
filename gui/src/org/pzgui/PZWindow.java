@@ -203,7 +203,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     // ************************ //
 
     /** string to prefix to the title in the window bar */
-    private String baseTitle = "Stanford University - LAVI";
+    private String baseTitle = "Stanford University - Elastic Tree";
     
     /** canvas to draw the scene on */
     private final javax.swing.JLabel lblCanvas = new javax.swing.JLabel();

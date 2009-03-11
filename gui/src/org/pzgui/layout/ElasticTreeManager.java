@@ -16,7 +16,6 @@ import org.openflow.util.string.StringOps;
 import org.pzgui.Constants;
 import org.pzgui.Drawable;
 import org.pzgui.PZWindow;
-import org.pzgui.StringDrawer;
 import org.pzgui.icon.GeometricIcon;
 
 /**
@@ -140,25 +139,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         for(DrawableIcon d : liveIcons)
             d.drawObject(gfx);
-        
-        int lw = Link.USAGE_LEGEND.getWidth();
-        int lh = Link.USAGE_LEGEND.getHeight();
-        int x = 5;
-        int y = fatTreeLayout.getSize().height - lh;
-        gfx.drawImage(Link.USAGE_LEGEND, 
-                      x, y,
-                      lw, lh, 
-                      null);
-        
-        // draw the legend
-        gfx.setFont(Constants.FONT_DEFAULT);
-        gfx.setColor(Color.BLACK);
-        y += lh / 2 + 2;
-        int margin_x = 5;
-        gfx.drawString("0%", x + margin_x, y);
-        StringDrawer.drawCenteredString("Link Utilization (%)", gfx, x + lw / 2, y);
-        StringDrawer.drawRightAlignedString("100%", gfx, x + lw - margin_x, y);
-        gfx.setColor(Constants.COLOR_DEFAULT);
     }
     
     public void postRedraw() {}
@@ -214,6 +194,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JLabel lblTrafficMatrixCurrent = new JLabel();
     private JLabel lblTrafficMatrixNext = new JLabel();
     private JLabel lblResultInfo = new JLabel();
+    private JLabel lblLegend = new JLabel();
     
     private JPanel pnlTraffic = new JPanel();
     private JPanel pnlDemand = new JPanel();
@@ -286,6 +267,7 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addGroup(layout.createParallelGroup()
                         .addComponent(pnlAnim)
                         .addComponent(pnlMode)
+                        .addComponent(lblLegend)
                         .addComponent(lblTrafficMatrixCurrent)
                         .addComponent(lblTrafficMatrixNext)
                         .addComponent(lblResultInfo))
@@ -301,6 +283,7 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(pnlAnim)
                         .addComponent(pnlMode)
+                        .addComponent(lblLegend)
                         .addComponent(lblTrafficMatrixCurrent)
                         .addComponent(lblTrafficMatrixNext)
                         .addComponent(lblResultInfo))
@@ -308,6 +291,10 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         lblResultInfo.setVisible(false);        
         lblResultInfo.setForeground(Color.RED);
+        
+        lblLegend.setIcon(new ImageIcon(Link.USAGE_LEGEND));
+        lblLegend.setPreferredSize(new Dimension(Link.USAGE_LEGEND.getWidth(), Link.USAGE_LEGEND.getHeight()));
+        lblLegend.setBorder(new javax.swing.border.LineBorder(Color.BLACK, 1));
         
         layout.linkSize(SwingConstants.HORIZONTAL, dialPower, dialBandwidth, dialLatency);
         layout.linkSize(SwingConstants.VERTICAL, dialPower, dialBandwidth, dialLatency);

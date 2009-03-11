@@ -17,6 +17,7 @@ import org.openflow.protocol.AggregateStatsRequest;
 import org.openflow.protocol.Match;
 import org.pzgui.Constants;
 import org.pzgui.AbstractDrawable;
+import org.pzgui.StringDrawer;
 import org.pzgui.icon.GeometricIcon;
 import org.pzgui.layout.Edge;
 import org.pzgui.math.Vector2f;
@@ -458,5 +459,17 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
             gfx.drawLine(i, 0, i, legendHeight);
         }
         gfx.setPaint(Constants.PAINT_DEFAULT);
+        
+        // draw the explanation on top of the legend
+        gfx.setFont(Constants.FONT_DEFAULT);
+        gfx.setColor(Color.BLACK);
+        int lw = USAGE_LEGEND.getWidth();
+        int lh = USAGE_LEGEND.getHeight();
+        int y = lh / 2 + 5;
+        int margin_x = 5;
+        gfx.drawString("0%", margin_x, y);
+        StringDrawer.drawCenteredString("Link Utilization (%)", gfx, lw / 2, y);
+        StringDrawer.drawRightAlignedString("100%", gfx, lw - margin_x, y);
+        gfx.setColor(Constants.COLOR_DEFAULT);
     }
 }

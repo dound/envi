@@ -255,7 +255,9 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JRadioButton optAnimSawtooth = new JRadioButton("Sawtooth");
     private JRadioButton optAnimSineWave = new JRadioButton("Sine Wave");
     private JLabel lblAnimStepDuration = new JLabel("Step Duration:");
-    private JSlider slAnimStepDuration = new JSlider(SwingConstants.HORIZONTAL, 1, 60, 60);
+    private JSlider slAnimStepDuration = new JSlider(SwingConstants.HORIZONTAL, 1, 5, 60);
+    private JLabel lblAnimStepSize = new JLabel("Step Size (% of Space):");
+    private JSlider slAnimStepSize = new JSlider(SwingConstants.HORIZONTAL, 1, 10, 100);
     
     private JPanel pnlMode = new JPanel();
     private ButtonGroup optgrpMode = new ButtonGroup();
@@ -397,6 +399,9 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(lblAnimStepDuration)
                         .addComponent(slAnimStepDuration))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblAnimStepSize)
+                        .addComponent(slAnimStepSize))
         );
         
         layout.setVerticalGroup(
@@ -409,6 +414,9 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addGroup(layout.createParallelGroup()
                         .addComponent(lblAnimStepDuration)
                         .addComponent(slAnimStepDuration))
+                    .addGroup(layout.createParallelGroup()
+                        .addComponent(lblAnimStepSize)
+                        .addComponent(slAnimStepSize))
         );
         
         optgrpAnim.add(optAnimNone);
@@ -419,7 +427,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         animLastSelected = optAnimNone;
         
         layout.linkSize(SwingConstants.VERTICAL, optAnimNone, optAnimPulse, optAnimSawtooth, optAnimSineWave);
-        layout.linkSize(SwingConstants.VERTICAL, lblAnimStepDuration, slAnimStepDuration);
+        layout.linkSize(SwingConstants.VERTICAL, lblAnimStepDuration, slAnimStepDuration, lblAnimStepSize, slAnimStepSize);
         
         ActionListener animListener = new ActionListener() {
             public void actionPerformed(ActionEvent e) {

@@ -45,6 +45,9 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     /** how often to refresh basic port statistics */
     private int statsRefreshRate_msec = 2000;
     
+    /** whether the GUI is shutting down */
+    private boolean disconnecting = false;
+    
     /** start the LAVI front-end */
     public LAVI(String server, Short port) {
         // ask the user for the NOX controller's IP if it wasn't already given
@@ -76,6 +79,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     
     /** shutdown the connection */
     public void pzClosing(PZManager manager) {
+        disconnecting = true;
         long start = System.currentTimeMillis();
         conn.shutdown();
         Thread.yield();
@@ -422,6 +426,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     
     /** Prints an error message about a missing link. */
     private void logLinkMissing(String msg, String why, long dstDPID, short dstPort, long srcDPID, short srcPort) {
+        if(disconnecting) return;
         System.err.println("Ignoring link " + msg + " message for non-existant " + why + ": " + 
                 DPIDUtil.toString(srcDPID) + ", port " + srcPort + " to " +
                 DPIDUtil.toString(dstDPID) + ", port " + dstPort);

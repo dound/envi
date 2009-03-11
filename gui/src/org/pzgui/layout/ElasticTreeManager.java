@@ -307,6 +307,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         );
         
         lblResultInfo.setVisible(false);        
+        lblResultInfo.setForeground(Color.RED);
         
         layout.linkSize(SwingConstants.HORIZONTAL, dialPower, dialBandwidth, dialLatency);
         layout.linkSize(SwingConstants.VERTICAL, dialPower, dialBandwidth, dialLatency);

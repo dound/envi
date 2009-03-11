@@ -266,9 +266,9 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JRadioButton optAnimSawtooth = new JRadioButton("Sawtooth");
     private JRadioButton optAnimSineWave = new JRadioButton("Sine Wave");
     private JPanel pnlAnimStepDuration = new JPanel();
-    private JSlider slAnimStepDuration = new JSlider(SwingConstants.HORIZONTAL, 1, 60, 5);
+    private JSlider slAnimStepDuration = new JSlider(SwingConstants.HORIZONTAL, 250, 15000, 250);
     private JPanel pnlAnimStepSize = new JPanel();
-    private JSlider slAnimStepSize = new JSlider(SwingConstants.HORIZONTAL, 1, 100, 10);
+    private JSlider slAnimStepSize = new JSlider(SwingConstants.HORIZONTAL, 1, 100, 3);
     
     private JPanel pnlMode = new JPanel();
     private ButtonGroup optgrpMode = new ButtonGroup();
@@ -400,8 +400,8 @@ public class ElasticTreeManager extends PZLayoutManager {
     private void initAnimPanel() {
         GroupLayout layout = initPanel(pnlAnim, "Animation");
         
-        setPanelTitle(pnlAnimStepDuration, "Step Duration: 5sec", TITLE_BORDER_FONT_SMALL);
-        setPanelTitle(pnlAnimStepSize, "Step Size (% of Space): 10%",  TITLE_BORDER_FONT_SMALL);
+        setPanelTitle(pnlAnimStepDuration, "Step Duration: 250msec", TITLE_BORDER_FONT_SMALL);
+        setPanelTitle(pnlAnimStepSize, "Step Size (% of Space): 3%",  TITLE_BORDER_FONT_SMALL);
         
         pnlAnimStepDuration.add(slAnimStepDuration);
         pnlAnimStepSize.add(slAnimStepSize);
@@ -457,7 +457,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         slAnimStepDuration.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                setPanelTitle(pnlAnimStepDuration, "Step Duration: " + slAnimStepDuration.getValue() + "sec", TITLE_BORDER_FONT_SMALL);
+                setPanelTitle(pnlAnimStepDuration, "Step Duration: " + StringOps.formatSecs(slAnimStepDuration.getValue()), TITLE_BORDER_FONT_SMALL);
                 animationManager.setStepDuration(slAnimStepDuration.getValue());
             }
         });
@@ -623,7 +623,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         private boolean live = false;
         
         /** time between animation steps */
-        private int period_sec = 5;
+        private int period_msec = 250;
         
         /** current traffic pattern */
         private int edge = 0;
@@ -676,8 +676,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         }
 
         /** Sets the step duration of an animation frame */
-        public synchronized void setStepDuration(int period_sec) {
-            this.period_sec = period_sec;
+        public synchronized void setStepDuration(int period_msec) {
+            this.period_msec = period_msec;
             animationManager.interrupt();
         }
         
@@ -711,7 +711,7 @@ public class ElasticTreeManager extends PZLayoutManager {
                 
                 // wait in between intervals
                 try {
-                    Thread.sleep(period_sec*1000);
+                    Thread.sleep(period_msec);
                 }
                 catch(InterruptedException e) {}
             }

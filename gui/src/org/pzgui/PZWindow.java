@@ -271,14 +271,27 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     /** how much of the right side of the window is reserved for other content */
     private int reservedWidthRight = 0;
     
+    /** how much of the bottom side of the window is reserved for other content */
+    private int reservedHeightBottom = 0;
+    
     /** gets how much of the right side of the window is reserved for other content */
     public int getReservedWidthRight() {
         return reservedWidthRight;
     }
-    
+
     /** sets how much of the right side of the window is reserved for other content */
     public void setReservedWidthRight(int reservedWidthRight) {
         this.reservedWidthRight = reservedWidthRight;
+    }
+    
+    /** gets how much of the bottom side of the window is reserved for other content */
+    public int getReservedHeightBottom() {
+        return reservedHeightBottom;
+    }
+    
+    /** sets how much of the bottom side of the window is reserved for other content */
+    public void setReservedHeightBottom(int reservedHeightBottom) {
+        this.reservedHeightBottom = reservedHeightBottom;
     }
     
     /** 
@@ -329,10 +342,11 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
         int oldH = img.getHeight();
         
         w -= reservedWidthRight;
+        h -= reservedHeightBottom;
         if(w!=oldW || h!=oldH) {
             float oldMinZoomFactor = Math.min(oldW, oldH);
             float newMinZoomFactor = Math.min(w, h);
-            setMySize(w+reservedWidthRight, h, zoom * newMinZoomFactor / oldMinZoomFactor);
+            setMySize(w+reservedWidthRight, h+reservedHeightBottom, zoom * newMinZoomFactor / oldMinZoomFactor);
         }
     }
 
@@ -342,6 +356,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
         this.zoom = 1.0f; // ET hack
         this.setBounds(getX(), getY(), w, h);
         w -= reservedWidthRight;
+        h -= reservedHeightBottom;
         lblCanvas.setBounds(0, 0, w, h);
         
         synchronized(imgLock) {

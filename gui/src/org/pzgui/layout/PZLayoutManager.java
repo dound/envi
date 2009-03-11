@@ -179,7 +179,7 @@ public class PZLayoutManager extends org.pzgui.PZManager {
                 minY = Math.min(minY, w.getY());
                 
                 maxX = Math.max(maxX, w.getX() + w.getWidth() - w.getReservedWidthRight());
-                maxY = Math.max(maxY, w.getY() + w.getHeight());
+                maxY = Math.max(maxY, w.getY() + w.getHeight() - w.getReservedHeightBottom());
             }
         }
         

@@ -337,7 +337,7 @@ public class PZManager extends Thread {
 
         // clear the drawing space
         gfx.setBackground(Constants.BG_DEFAULT);
-        gfx.clearRect(0, 0, window.getWidth() - window.getReservedWidthRight(), window.getHeight());
+        gfx.clearRect(0, 0, window.getWidth() - window.getReservedWidthRight(), window.getHeight() - window.getReservedHeightBottom());
         gfx.setFont(Constants.FONT_DEFAULT);
         gfx.setPaint(Constants.PAINT_DEFAULT);
     }

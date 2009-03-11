@@ -12,12 +12,14 @@ import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 
 import org.openflow.lavi.drawables.DrawableIcon;
+import org.openflow.lavi.drawables.Link;
 import org.openflow.lavi.drawables.OpenFlowSwitch;
 import org.openflow.lavi.net.protocol.ETTrafficMatrix;
 import org.openflow.util.string.StringOps;
 import org.pzgui.Constants;
 import org.pzgui.Drawable;
 import org.pzgui.PZWindow;
+import org.pzgui.StringDrawer;
 import org.pzgui.icon.GeometricIcon;
 
 /**
@@ -201,6 +203,25 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         for(DrawableIcon d : liveIcons)
             d.drawObject(gfx);
+        
+        int lw = Link.USAGE_LEGEND.getWidth();
+        int lh = Link.USAGE_LEGEND.getHeight();
+        int x = 5;
+        int y = fatTreeLayout.getSize().height - lh;
+        gfx.drawImage(Link.USAGE_LEGEND, 
+                      x, y,
+                      lw, lh, 
+                      null);
+        
+        // draw the legend
+        gfx.setFont(Constants.FONT_DEFAULT);
+        gfx.setColor(Color.BLACK);
+        y += lh / 2 + 2;
+        int margin_x = 5;
+        gfx.drawString("0%", x + margin_x, y);
+        StringDrawer.drawCenteredString("Link Utilization (%)", gfx, x + lw / 2, y);
+        StringDrawer.drawRightAlignedString("100%", gfx, x + lw - margin_x, y);
+        gfx.setColor(Constants.COLOR_DEFAULT);
     }
     
     public void postRedraw() {}

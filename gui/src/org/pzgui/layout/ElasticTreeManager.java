@@ -457,13 +457,15 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         slAnimStepDuration.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                setPanelTitle(pnlAnimStepDuration, "Step Duration: " + slAnimStepDuration.getValue() + "sec", TITLE_BORDER_FONT_SMALL); 
+                setPanelTitle(pnlAnimStepDuration, "Step Duration: " + slAnimStepDuration.getValue() + "sec", TITLE_BORDER_FONT_SMALL);
+                animationManager.setStepDuration(slAnimStepDuration.getValue());
             }
         });
         
         slAnimStepSize.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                setPanelTitle(pnlAnimStepSize, "Step Size (% of Space): " + slAnimStepSize.getValue() + "%", TITLE_BORDER_FONT_SMALL); 
+                setPanelTitle(pnlAnimStepSize, "Step Size (% of Space): " + slAnimStepSize.getValue() + "%", TITLE_BORDER_FONT_SMALL);
+                animationManager.setStepDuration(slAnimStepSize.getValue());
             }
         });
     }
@@ -485,7 +487,7 @@ public class ElasticTreeManager extends PZLayoutManager {
             else if(optAnimSineWave.isSelected())
                 type = AnimationStepType.SINEWAVE;
             
-            animationManager.startAnimation(slAnimStepDuration.getValue(), type, slAnimStepSize.getValue()/100.0);
+            animationManager.startAnimation(type);
         }
     }
 
@@ -621,7 +623,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         private boolean live = false;
         
         /** time between animation steps */
-        private int period_sec;
+        private int period_sec = 5;
         
         /** current traffic pattern */
         private int edge = 0;
@@ -634,20 +636,17 @@ public class ElasticTreeManager extends PZLayoutManager {
         private double step;
         
         /** step size */
-        public double stepSize;
+        public double stepSize = 0.10;
         
         /** current direction of the animation */
         private double stepPolarity;
         
         /** starts the animation */
-        public synchronized void startAnimation(int period_sec, AnimationStepType type, double stepSize) {
+        public synchronized void startAnimation(AnimationStepType type) {
             // ignore user-input while animating
             setIgnoreChangesToSliders(true);
             
-            live = true;
-            this.period_sec = period_sec;
             this.type = type;
-            this.stepSize = stepSize;
             
             // start at the beginning with 0.0 (nextFrame() will advance this to 0.0)
             step = 0.0 - stepSize;
@@ -656,6 +655,7 @@ public class ElasticTreeManager extends PZLayoutManager {
             // start with all core traffic (=> start with all edge traffic for pulse, doesn't matter for others)
             this.edge = 0;
             this.agg = 0;
+            live = true;
             
             // tell the thread it can have the lock
             animationManager.notifyAll();
@@ -672,6 +672,20 @@ public class ElasticTreeManager extends PZLayoutManager {
             setIgnoreChangesToSliders(false);
             
             // wake the thread up so we don't continue to sleep
+            animationManager.interrupt();
+        }
+
+        /** Sets the step duration of an animation frame */
+        public synchronized void setStepDuration(int period_sec) {
+            this.period_sec = period_sec;
+            animationManager.interrupt();
+        }
+        
+        /** Sets the step size of the animation */
+        public synchronized void setStepSize(int stepSize) {
+            this.stepSize = stepSize / 100.0;
+            if(this.stepSize <= 0 || this.stepSize > 1.0)
+                throw new IllegalArgumentException("bad argument to setStepSize: " + stepSize);
             animationManager.interrupt();
         }
         

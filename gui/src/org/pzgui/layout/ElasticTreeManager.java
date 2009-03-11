@@ -274,8 +274,10 @@ public class ElasticTreeManager extends PZLayoutManager {
             super(orientation, min, max, value);
         }
         public void setValue(int i) {
-            super.setValue(i);
-            notifyTrafficMatrixChangeListeners();
+            if(i != getValue()) {
+                super.setValue(i);
+                notifyTrafficMatrixChangeListeners();
+            }
         }
     }
     

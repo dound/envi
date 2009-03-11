@@ -397,13 +397,13 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     private void disconnectLink(long dstDPID, short dstPort, long srcDPID, short srcPort) {
         OpenFlowSwitch srcSwitch = switchesMap.get(srcDPID);
         if(srcSwitch == null) {
-            logLinkMissing("src switch", dstDPID, dstPort, srcDPID, srcPort);
+            logLinkMissing("delete", "src switch", dstDPID, dstPort, srcDPID, srcPort);
             return;
         }
         
         OpenFlowSwitch dstSwitch = switchesMap.get(dstDPID);
         if(dstSwitch == null) {
-            logLinkMissing("dst switch", dstDPID, dstPort, srcDPID, srcPort);
+            logLinkMissing("delete", "dst switch", dstDPID, dstPort, srcDPID, srcPort);
             return;
         }
         
@@ -417,12 +417,12 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             }
         }
         else
-            logLinkMissing("link", dstDPID, dstPort, srcDPID, srcPort);
+            logLinkMissing("delete", "link", dstDPID, dstPort, srcDPID, srcPort);
     }
     
     /** Prints an error message about a missing link. */
-    private void logLinkMissing(String why, long dstDPID, short dstPort, long srcDPID, short srcPort) {
-        System.err.println("Ignoring link delete message for non-existant " + why + ": " + 
+    private void logLinkMissing(String msg, String why, long dstDPID, short dstPort, long srcDPID, short srcPort) {
+        System.err.println("Ignoring link " + msg + " message for non-existant " + why + ": " + 
                 DPIDUtil.toString(srcDPID) + ", port " + srcPort + " to " +
                 DPIDUtil.toString(dstDPID) + ", port " + dstPort);
     }
@@ -575,13 +575,13 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     private double processLinkUtil(long dstDPID, short dstPort, long srcDPID, short srcPort, float util, long when) {
         OpenFlowSwitch srcSwitch = switchesMap.get(srcDPID);
         if(srcSwitch == null) {
-            logLinkMissing("src switch", dstDPID, dstPort, srcDPID, srcPort);
+            logLinkMissing("util", "src switch", dstDPID, dstPort, srcDPID, srcPort);
             return 0;
         }
         
         OpenFlowSwitch dstSwitch = switchesMap.get(dstDPID);
         if(dstSwitch == null) {
-            logLinkMissing("dst switch", dstDPID, dstPort, srcDPID, srcPort);
+            logLinkMissing("util", "dst switch", dstDPID, dstPort, srcDPID, srcPort);
             return 0;
         }
         
@@ -599,7 +599,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             return bps;
         }
         else {
-            logLinkMissing("link", dstDPID, dstPort, srcDPID, srcPort);
+            logLinkMissing("util", "link", dstDPID, dstPort, srcDPID, srcPort);
             return 0;
         }
     }

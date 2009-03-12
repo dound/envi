@@ -49,7 +49,7 @@ public class ETLinkUtilsList extends LAVIMessage {
             u.write(out);
     }
     
-    public String toString() {
+    public String toStringFull() {
         String strUtils;
         if(utils.length > 0)
             strUtils = utils[0].toString();

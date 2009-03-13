@@ -3,6 +3,8 @@ package org.pzgui.layout;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.HashSet;
 import java.util.LinkedList;
 import javax.swing.*;
@@ -20,6 +22,7 @@ import org.pzgui.Constants;
 import org.pzgui.Drawable;
 import org.pzgui.PZWindow;
 import org.pzgui.icon.GeometricIcon;
+import org.tame.swing.slider.MThumbSlider;
 
 /**
  * Elastic Tree GUI manager.
@@ -252,13 +255,13 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JPanel pnlTraffic = new JPanel();
     private JPanel pnlDemand = new JPanel();
     private JSlider slDemand = new MyJSlider(SwingConstants.HORIZONTAL, 0, 1000*1000*1000, 1000*1000*1000);
-    private JPanel pnlEdge = new JPanel();
-    private JSlider slEdge   = new MyJSlider(SwingConstants.HORIZONTAL, 0, 100, 100);
-    private JPanel pnlAgg = new JPanel();
-    private JSlider slAgg    = new MyJSlider(SwingConstants.HORIZONTAL, 0, 100, 100);
+    private JPanel pnlLocality = new JPanel();
+    private MThumbSlider slLocality = new MThumbSlider(2);
     private JPanel pnlPLen = new JPanel();
     private JSlider slPLen    = new MyJSlider(SwingConstants.HORIZONTAL, 64, 1514, 1514);
     private JCheckBox chkSplit = new JCheckBox("May split flows", false);
+    private static final int THUMB_EDGE = 0;
+    private static final int THUMB_AGG = 1;
     
     private JPanel pnlAnim = new JPanel();
     private ButtonGroup optgrpAnim = new ButtonGroup();
@@ -362,7 +365,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         layout.linkSize(SwingConstants.HORIZONTAL, dialPower, dialBandwidth, dialLatency);
         layout.linkSize(SwingConstants.VERTICAL, dialPower, dialBandwidth, dialLatency);
         layout.linkSize(SwingConstants.VERTICAL, lblTrafficMatrixCurrent, lblTrafficMatrixNext, lblResultInfo);
-        layout.linkSize(SwingConstants.HORIZONTAL, pnlTraffic, lblLegend);
         layout.linkSize(SwingConstants.HORIZONTAL, pnlAnim, pnlMode);
         
         initTrafficPanel();
@@ -375,20 +377,21 @@ public class ElasticTreeManager extends PZLayoutManager {
         GroupLayout layout = initPanel(pnlTraffic, "Traffic Control");
         
         setPanelTitle(pnlDemand, "Demand",            TITLE_BORDER_FONT_SMALL);
-        setPanelTitle(pnlAgg,    "Aggregation Layer", TITLE_BORDER_FONT_SMALL);
-        setPanelTitle(pnlEdge,   "Edge Layer",        TITLE_BORDER_FONT_SMALL);
+        setPanelTitle(pnlLocality, "Locality: edge=100% agg=0% core=0%",  TITLE_BORDER_FONT_SMALL);
         setPanelTitle(pnlPLen,   "Packet Length",     TITLE_BORDER_FONT_SMALL);
         
         pnlDemand.add(slDemand);
-        pnlAgg.add(slAgg);
-        pnlEdge.add(slEdge);
+        pnlLocality.add(slLocality);
         pnlPLen.add(slPLen);
+
+        Dimension d = pnlLocality.getPreferredSize();
+        d.width = Math.max(265, d.width);
+        pnlLocality.setPreferredSize(d);
         
         layout.setHorizontalGroup(
                 layout.createParallelGroup()
+                    .addComponent(pnlLocality)    
                     .addComponent(pnlDemand)
-                    .addComponent(pnlAgg)
-                    .addComponent(pnlEdge)
                     .addComponent(pnlPLen)
                     .addComponent(chkSplit)
         );
@@ -396,9 +399,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         layout.setVerticalGroup(
                 layout.createSequentialGroup()
                     .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0)
+                    .addComponent(pnlLocality)
                     .addComponent(pnlDemand)
-                    .addComponent(pnlAgg)
-                    .addComponent(pnlEdge)
                     .addComponent(pnlPLen)
                     .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0)
                     .addComponent(chkSplit)
@@ -406,14 +408,91 @@ public class ElasticTreeManager extends PZLayoutManager {
 
         );
         
-        layout.linkSize(SwingConstants.HORIZONTAL, pnlDemand, pnlAgg, pnlEdge, pnlPLen, chkSplit);
-        layout.linkSize(SwingConstants.VERTICAL, pnlDemand, pnlAgg, pnlEdge, pnlPLen, chkSplit);
+        layout.linkSize(SwingConstants.HORIZONTAL, pnlDemand, pnlLocality, pnlPLen, chkSplit);
+        layout.linkSize(SwingConstants.VERTICAL, pnlDemand, pnlLocality, pnlPLen, chkSplit);
+
+        slLocality.setValueAt(100, THUMB_EDGE);
+        slLocality.setFillColorAt(Color.GREEN,  THUMB_EDGE);
+        slLocality.setValueAt(100, THUMB_AGG);
+        slLocality.setFillColorAt(Color.YELLOW, THUMB_AGG); 
+        slLocality.setTrackFillColor(Color.RED);
+        slLocality.putClientProperty("JSlider.isFilled", Boolean.TRUE);
+        slLocality.addMouseListener(new MouseAdapter() {
+            public void mouseExited(MouseEvent e) {
+                validateLocality();
+            }
+            
+            public void mouseReleased(MouseEvent e) {
+                validateLocality();
+                notifyTrafficMatrixChangeListeners();
+            }
+        });
         
         chkSplit.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 notifyTrafficMatrixChangeListeners();
             }
         });
+    }
+    
+    /** 
+     * Gets the amount of traffic which the server has been asked to send 
+     * through the edge layer. 
+     */
+    private float getLocalityEdge() {
+        return slLocality.getValueAt(THUMB_EDGE) / 100.0f;
+    }
+    
+    /** 
+     * Gets the amount of traffic which the server has been asked to send 
+     * through the aggregation layer.
+     */
+    private float getLocalityAgg() {
+        return  slLocality.getValueAt(THUMB_AGG) / 100.0f - getLocalityEdge();
+    }
+    
+    /** 
+     * Gets the amount of traffic which the server has been asked to send 
+     * through the core layer.
+     */
+    private float getLocalityCore() {
+        return 1.0f - getLocalityAgg() - getLocalityEdge();
+    }
+
+    /** 
+     * Sets the amount of traffic which the server should send through both the 
+     * edge and aggregation layers.
+     */
+    private void setLocality(float edge, float agg) {
+        if(edge < 0.0f) edge = 0.0f; else if(edge > 100.0f) edge = 100.0f;
+        if(agg  < 0.0f) agg  = 0.0f; else if(agg  > 100.0f) agg  = 100.0f;
+        slLocality.setValueAt((int)(edge * 100), THUMB_EDGE);
+        slLocality.setValueAt((int)(agg  * 100), THUMB_AGG);
+        validateLocality();
+    }
+    
+    /** tracks the previous value for the aggregation slider */
+    private int lastAggValue = 100;
+    
+    /** 
+     * Ensures that the edge locality slider does not go past the 
+     * aggregation locality slider. 
+     */
+    private void validateLocality() {
+        int edge = slLocality.getValueAt(THUMB_EDGE);
+        int agg = slLocality.getValueAt(THUMB_AGG);
+        
+        // prevent the thumbs from crossing
+        if(edge > agg) {
+            if(slLocality.getValueAt(THUMB_AGG) == lastAggValue) {
+                // edge is moving, so move agg to edge
+                slLocality.setValueAt(edge, THUMB_AGG);
+            }
+            else
+                slLocality.setValueAt(agg, THUMB_EDGE);
+        }
+        
+        lastAggValue = slLocality.getValueAt(THUMB_AGG);
     }
     
     /** layout and initialize the animation panel and its components */
@@ -680,8 +759,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         private int period_msec = 250;
         
         /** current traffic pattern */
-        private int edge = 0;
-        private int agg  = 0;
+        private float edge = 0.0f;
+        private float agg  = 0.0f;
         
         /** current demand */
         private int demand = 0;
@@ -716,8 +795,8 @@ public class ElasticTreeManager extends PZLayoutManager {
             if(varyDemand)
                 this.demand = 0;
             else {
-                this.edge = 0;
-                this.agg = 0;
+                this.edge = 0.0f;
+                this.agg = 0.0f;
             }
             setLive(true);
             
@@ -758,7 +837,11 @@ public class ElasticTreeManager extends PZLayoutManager {
             if(varyDemand != b) {
                 varyDemand = b;
                 if(varyDemand) {
-                    edge = slEdge.getValue();
+                    edge = getLocalityEdge();
+                    agg = getLocalityAgg();
+                }
+                else {
+                    demand = slDemand.getValue();
                 }
                 setSliderStatus();
             }
@@ -783,8 +866,7 @@ public class ElasticTreeManager extends PZLayoutManager {
                         slDemand.setValue(demand);
                     }
                     else {
-                        slEdge.setValue(edge);
-                        slAgg.setValue(agg);
+                        setLocality(edge, agg);
                     }
                     notifyTrafficMatrixChangeListeners();
                 }
@@ -824,7 +906,7 @@ public class ElasticTreeManager extends PZLayoutManager {
                 // compute the next frame: linear or sinewave step
                 double p = (type == AnimationStepType.SAWTOOTH) ? step : Math.sin(step*Math.PI/2);
                 
-                nextStep(p);
+                nextStep((float)p);
             }
         }
         
@@ -842,19 +924,16 @@ public class ElasticTreeManager extends PZLayoutManager {
             if(live) {
                 if(varyDemand) {
                     slDemand.setEnabled(false);
-                    slEdge.setEnabled(true);
-                    slAgg.setEnabled(true);
+                    slLocality.setEnabled(true);
                 }
                 else {
                     slDemand.setEnabled(true);
-                    slEdge.setEnabled(false);
-                    slAgg.setEnabled(false);
+                    slLocality.setEnabled(false);
                 }
             }
             else {
                 slDemand.setEnabled(true);
-                slEdge.setEnabled(true);
-                slAgg.setEnabled(true);
+                slLocality.setEnabled(true);
             }
         }
         
@@ -868,24 +947,24 @@ public class ElasticTreeManager extends PZLayoutManager {
                     demand = 0;
             }
             else {
-                if(edge==100) {
+                if(edge==1.0f) {
                     // switch from all edge to all agg
-                    edge = 0;
-                    agg = 100;
+                    edge =  0.0f;
+                    agg  = 1.0f;
                 }
-                else if(edge==0 && agg==100) {
+                else if(edge==0.0f && agg==1.0f) {
                     // switch from all agg to all core
-                    agg = 0;
+                    agg = 0.0f;
                 }
                 else {
                     // switch to all edge
-                    edge = 100;
-                    agg = 0;
+                    edge = 1.0f;
+                    agg  = 0.0f;
                 }
             }
         }
         
-        private void nextStep(double p) {
+        private void nextStep(float p) {
             // compute the edge and agg settings
             if(varyDemand) {
                 demand = (int)(p * 1000 * 1000 * 1000); 
@@ -894,14 +973,14 @@ public class ElasticTreeManager extends PZLayoutManager {
                 if(p <= 0.5) {
                     // first half of animation is between all edge and all agg
                     p /= 0.5;
-                    edge = (int)((100 * (1-p)) + (0 * p));
-                    agg = 100 - edge;
+                    edge = (1.0f * (1-p)) + (0.0f * p);
+                    agg = 1.0f - edge;
                 }
                 else {
                     // second half of animation is between all agg and all core
-                    p = (p - 0.5) / 0.5;
-                    edge = 0;
-                    agg = (int)((100 * (1-p)) + (0 * p));
+                    p = (p - 0.5f) / 0.5f;
+                    edge = 0.0f;
+                    agg = (1.0f * (1-p)) + (0.0f * p);
                 }
             }
         }
@@ -932,12 +1011,8 @@ public class ElasticTreeManager extends PZLayoutManager {
     /** gets the current traffic matrix */
     public ETTrafficMatrix getCurrentTrafficMatrix() {
         float demand = slDemand.getValue() / (float)slDemand.getMaximum();
-        float edge = slEdge.getValue() / (float)slEdge.getMaximum();
-        float aggDef = slAgg.getValue() / (float)slAgg.getMaximum();
-        float agg = Math.min(1.0f-edge, aggDef);
-        if(agg != aggDef) {
-            slAgg.setValue((int)(100*agg));
-        }
+        float edge = getLocalityEdge();
+        float agg = getLocalityAgg();
         return new ETTrafficMatrix(optModeHW.isSelected(), chkSplit.isSelected(), fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
     }
     
@@ -958,9 +1033,12 @@ public class ElasticTreeManager extends PZLayoutManager {
      * Updates the slider labels and notify those listening for traffic matrix changes.
      */
     public void notifyTrafficMatrixChangeListeners() {
+        int edge = (int)(100 * getLocalityEdge());
+        int agg = (int)(100 * getLocalityAgg());
+        int core = (int)(100 * getLocalityCore());
+        
         setPanelTitle(pnlDemand, "Demand: " + StringOps.formatBitsPerSec(slDemand.getValue()), TITLE_BORDER_FONT_SMALL);
-        setPanelTitle(pnlAgg,    "Aggregation Layer: " + slAgg.getValue() + "%", TITLE_BORDER_FONT_SMALL);
-        setPanelTitle(pnlEdge,   "Edge Layer: " + slEdge.getValue() + "%", TITLE_BORDER_FONT_SMALL);
+        setPanelTitle(pnlLocality, "Locality: edge=" + edge + "% agg=" + agg + "% core=" + core + "%", TITLE_BORDER_FONT_SMALL);
         setPanelTitle(pnlPLen,   "Packet Length: " + slPLen.getValue() + "B", TITLE_BORDER_FONT_SMALL);
         
         ETTrafficMatrix tm = getCurrentTrafficMatrix();

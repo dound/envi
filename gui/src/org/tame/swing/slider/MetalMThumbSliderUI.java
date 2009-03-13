@@ -83,6 +83,10 @@ public class MetalMThumbSliderUI extends MetalSliderUI {
   
   protected void calculateThumbLocation() {}
     
+  public void recalculateThumbLocations() {
+      additonalUi.calculateThumbsLocation();
+  }
+    
   
   Icon thumbRenderer;
   

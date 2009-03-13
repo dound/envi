@@ -64,6 +64,9 @@ public class MThumbSlider extends JSlider {
   
   public void setValueAt(int n, int index) {
     getModelAt(index).setValue(n);
+    
+    // redraw the thumb in the correct spot 
+    ((MetalMThumbSliderUI)this.getUI()).recalculateThumbLocations();
   }
   
   public int getMinimum() {

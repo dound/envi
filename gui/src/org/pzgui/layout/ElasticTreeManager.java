@@ -269,6 +269,10 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JSlider slAnimStepDuration = new JSlider(SwingConstants.HORIZONTAL, 250, 15000, 250);
     private JPanel pnlAnimStepSize = new JPanel();
     private JSlider slAnimStepSize = new JSlider(SwingConstants.HORIZONTAL, 1, 100, 3);
+    private JLabel lblAnimVary = new JLabel("Vary: ");
+    private ButtonGroup optgrpAnimVary = new ButtonGroup();
+    private JRadioButton optAnimVaryDemand = new JRadioButton("Demand");
+    private JRadioButton optAnimVaryLocality = new JRadioButton("Locality");
     
     private JPanel pnlMode = new JPanel();
     private ButtonGroup optgrpMode = new ButtonGroup();
@@ -318,11 +322,11 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addComponent(dialBandwidth)
                     .addComponent(dialLatency)
                     .addGroup(layout.createParallelGroup()
-                        .addComponent(pnlTraffic))
+                        .addComponent(pnlTraffic)
+                        .addComponent(lblLegend))
                     .addGroup(layout.createParallelGroup()
                         .addComponent(pnlAnim)
                         .addComponent(pnlMode)
-                        .addComponent(lblLegend)
                         .addComponent(lblTrafficMatrixCurrent)
                         .addComponent(lblTrafficMatrixNext)
                         .addComponent(lblResultInfo))
@@ -334,11 +338,11 @@ public class ElasticTreeManager extends PZLayoutManager {
                         .addComponent(dialBandwidth)
                         .addComponent(dialLatency)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(pnlTraffic))
+                        .addComponent(pnlTraffic)
+                        .addComponent(lblLegend))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(pnlAnim)
                         .addComponent(pnlMode)
-                        .addComponent(lblLegend)
                         .addComponent(lblTrafficMatrixCurrent)
                         .addComponent(lblTrafficMatrixNext)
                         .addComponent(lblResultInfo))
@@ -414,10 +418,12 @@ public class ElasticTreeManager extends PZLayoutManager {
                         .addComponent(optAnimPulse)
                         .addComponent(optAnimSawtooth)
                         .addComponent(optAnimSineWave))
+                    .addComponent(pnlAnimStepDuration)
+                    .addComponent(pnlAnimStepSize)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(pnlAnimStepDuration))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(pnlAnimStepSize))
+                            .addComponent(lblAnimVary)
+                            .addComponent(optAnimVaryDemand)
+                            .addComponent(optAnimVaryLocality))
         );
         
         layout.setVerticalGroup(
@@ -427,10 +433,12 @@ public class ElasticTreeManager extends PZLayoutManager {
                         .addComponent(optAnimPulse)
                         .addComponent(optAnimSawtooth)
                         .addComponent(optAnimSineWave))
+                    .addComponent(pnlAnimStepDuration)
+                    .addComponent(pnlAnimStepSize)
                     .addGroup(layout.createParallelGroup()
-                        .addComponent(pnlAnimStepDuration))
-                    .addGroup(layout.createParallelGroup()
-                        .addComponent(pnlAnimStepSize))
+                            .addComponent(lblAnimVary)
+                            .addComponent(optAnimVaryDemand)
+                            .addComponent(optAnimVaryLocality))
         );
         
         optgrpAnim.add(optAnimNone);
@@ -440,7 +448,12 @@ public class ElasticTreeManager extends PZLayoutManager {
         optAnimNone.setSelected(true);
         animLastSelected = optAnimNone;
         
-        layout.linkSize(SwingConstants.VERTICAL, optAnimNone, optAnimPulse, optAnimSawtooth, optAnimSineWave);
+        optgrpAnimVary.add(optAnimVaryDemand);
+        optgrpAnimVary.add(optAnimVaryLocality);
+        optAnimVaryDemand.setSelected(true);
+        animVaryLastSelected = optAnimVaryDemand;
+        
+        layout.linkSize(SwingConstants.VERTICAL, optAnimNone, optAnimPulse, optAnimSawtooth, optAnimSineWave, optAnimVaryDemand, optAnimVaryLocality, lblAnimVary);
         layout.linkSize(SwingConstants.VERTICAL, pnlAnimStepDuration, pnlAnimStepSize);
         
         ActionListener animListener = new ActionListener() {
@@ -469,6 +482,17 @@ public class ElasticTreeManager extends PZLayoutManager {
                 animationManager.setStepDuration(slAnimStepSize.getValue());
             }
         });
+        
+        ActionListener animVaryListener = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if(animVaryLastSelected != e.getSource()) {
+                    animVaryLastSelected = e.getSource();
+                    handleAnimationVaryChange();
+                }
+            }
+        };
+        optAnimVaryDemand.addActionListener(animVaryListener);
+        optAnimVaryLocality.addActionListener(animVaryListener);
     }
 
     /** pointer to the animation mode which was most recently selected */
@@ -492,6 +516,14 @@ public class ElasticTreeManager extends PZLayoutManager {
         }
     }
 
+    /** pointer to the animation variation which was most recently selected */
+    private Object animVaryLastSelected = null;
+    
+    /** called when the animation variation is being changed */
+    private void handleAnimationVaryChange() {
+        animationManager.setVaryDemand(optAnimVaryDemand.isSelected());
+    }
+    
     /** layout and initialize the mode panel and its components */
     private void initModePanel() {
         GroupLayout layout = initPanel(pnlMode, "Mode");
@@ -633,6 +665,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         private int edge = 0;
         private int agg  = 0;
         
+        /** current demand */
+        private int demand = 0;
+        
         /** current animation type */
         private AnimationStepType type;
         
@@ -644,6 +679,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         /** current direction of the animation */
         private double stepPolarity;
+        
+        /** whether demand is being varied (else locality is varied) */
+        private boolean varyDemand = true;
         
         /** starts the animation */
         public synchronized void startAnimation(AnimationStepType type) {
@@ -657,9 +695,13 @@ public class ElasticTreeManager extends PZLayoutManager {
             stepPolarity = -1.0;
             
             // start with all core traffic (=> start with all edge traffic for pulse, doesn't matter for others)
-            this.edge = 0;
-            this.agg = 0;
-            live = true;
+            if(varyDemand)
+                this.demand = 0;
+            else {
+                this.edge = 0;
+                this.agg = 0;
+            }
+            setLive(true);
             
             // tell the thread it can have the lock
             animationManager.notifyAll();
@@ -670,7 +712,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         /** stops the current animation */
         public synchronized void stopAnimation() {
-            live = false;
+            setLive(false);
             
             // re-enable user input
             setIgnoreChangesToSliders(false);
@@ -693,6 +735,17 @@ public class ElasticTreeManager extends PZLayoutManager {
             animationManager.interrupt();
         }
         
+        /** Sets which parameter to vary (true => demand, false => locality. */
+        public void setVaryDemand(boolean b) {
+            if(varyDemand != b) {
+                varyDemand = b;
+                if(varyDemand) {
+                    edge = slEdge.getValue();
+                }
+                setSliderStatus();
+            }
+        }
+        
         /** main loop: animate while live */
         public void run() {
             while(true) {
@@ -708,8 +761,13 @@ public class ElasticTreeManager extends PZLayoutManager {
     
                     // compute apply the edge and agg settings for the next step
                     nextFrame();
-                    slEdge.setValue(edge);
-                    slAgg.setValue(agg);
+                    if(varyDemand) {
+                        slDemand.setValue(demand);
+                    }
+                    else {
+                        slEdge.setValue(edge);
+                        slAgg.setValue(agg);
+                    }
                     notifyTrafficMatrixChangeListeners();
                 }
                 
@@ -725,20 +783,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         private void nextFrame() {
             // go to the next frame
             if(type == AnimationStepType.PULSE) {
-                if(edge==100) {
-                    // switch from all edge to all agg
-                    edge = 0;
-                    agg = 100;
-                }
-                else if(edge==0 && agg==100) {
-                    // switch from all agg to all core
-                    agg = 0;
-                }
-                else {
-                    // switch to all edge
-                    edge = 100;
-                    agg = 0;
-                }
+                nextPulse();
             }
             else {
                 // switch polarities at the endpoints
@@ -761,7 +806,73 @@ public class ElasticTreeManager extends PZLayoutManager {
                 // compute the next frame: linear or sinewave step
                 double p = (type == AnimationStepType.SAWTOOTH) ? step : Math.sin(step*Math.PI/2);
                 
-                // compute the edge and agg settings
+                nextStep(p);
+            }
+        }
+        
+        /** 
+         * Sets whether the animation is live and enables/disables sliders as 
+         * appropriate for the current animation. 
+         */
+        private void setLive(boolean b) {
+            this.live = b;
+            setSliderStatus();
+        }
+        
+        /** Enables/disables sliders as appropriate for the current animation. */ 
+        private void setSliderStatus() {
+            if(live) {
+                if(varyDemand) {
+                    slDemand.setEnabled(false);
+                    slEdge.setEnabled(true);
+                    slAgg.setEnabled(true);
+                }
+                else {
+                    slDemand.setEnabled(true);
+                    slEdge.setEnabled(false);
+                    slAgg.setEnabled(false);
+                }
+            }
+            else {
+                slDemand.setEnabled(true);
+                slEdge.setEnabled(true);
+                slAgg.setEnabled(true);
+            }
+        }
+        
+        private void nextPulse() {
+            if(varyDemand) {
+                if(demand == 0)
+                    demand = 500 * 1000 * 1000;
+                else if(demand == 500 * 1000 * 1000)
+                    demand = 1000 * 1000 * 1000;
+                else
+                    demand = 0;
+            }
+            else {
+                if(edge==100) {
+                    // switch from all edge to all agg
+                    edge = 0;
+                    agg = 100;
+                }
+                else if(edge==0 && agg==100) {
+                    // switch from all agg to all core
+                    agg = 0;
+                }
+                else {
+                    // switch to all edge
+                    edge = 100;
+                    agg = 0;
+                }
+            }
+        }
+        
+        private void nextStep(double p) {
+            // compute the edge and agg settings
+            if(varyDemand) {
+                demand = (int)(p * 1000 * 1000 * 1000); 
+            }
+            else {
                 if(p <= 0.5) {
                     // first half of animation is between all edge and all agg
                     p /= 0.5;
@@ -823,8 +934,6 @@ public class ElasticTreeManager extends PZLayoutManager {
      */
     private void setIgnoreChangesToSliders(boolean b) {
         ignoreChangesToSliders = b;
-        slEdge.setEnabled(!b);
-        slAgg.setEnabled(!b);
     }
     
     /**

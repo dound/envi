@@ -355,7 +355,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         layout.linkSize(SwingConstants.HORIZONTAL, dialPower, dialBandwidth, dialLatency);
         layout.linkSize(SwingConstants.VERTICAL, dialPower, dialBandwidth, dialLatency);
         layout.linkSize(SwingConstants.VERTICAL, lblTrafficMatrixCurrent, lblTrafficMatrixNext, lblResultInfo);
-        layout.linkSize(SwingConstants.HORIZONTAL, pnlTraffic, pnlAnim, pnlMode);
+        layout.linkSize(SwingConstants.HORIZONTAL, pnlTraffic, lblLegend);
+        layout.linkSize(SwingConstants.HORIZONTAL, pnlAnim, pnlMode);
         
         initTrafficPanel();
         initAnimPanel();

@@ -344,9 +344,11 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(pnlAnim)
                         .addComponent(pnlMode)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0)
                         .addComponent(lblTrafficMatrixCurrent)
                         .addComponent(lblTrafficMatrixNext)
-                        .addComponent(lblResultInfo))
+                        .addComponent(lblResultInfo)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0))
         );
         
         lblResultInfo.setVisible(false);        
@@ -393,10 +395,12 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         layout.setVerticalGroup(
                 layout.createSequentialGroup()
+                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0)
                     .addComponent(pnlDemand)
                     .addComponent(pnlAgg)
                     .addComponent(pnlEdge)
                     .addComponent(pnlPLen)
+                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0)
                     .addComponent(chkSplit)
                     .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 5, 5)
 
@@ -439,6 +443,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         layout.setVerticalGroup(
                 layout.createSequentialGroup()
+                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0)
                     .addGroup(layout.createParallelGroup()
                         .addComponent(optAnimNone)
                         .addComponent(optAnimPulse)
@@ -547,10 +552,12 @@ public class ElasticTreeManager extends PZLayoutManager {
         );
         
         layout.setVerticalGroup(
-                layout.createParallelGroup()
-                    .addComponent(optModeHW)
-                    .addComponent(optModeSW)
-                    .addComponent(cboModeK)
+                layout.createSequentialGroup()
+                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0)
+                    .addGroup(layout.createParallelGroup()
+                        .addComponent(optModeHW)
+                        .addComponent(optModeSW)
+                        .addComponent(cboModeK))
         );
         
         optgrpMode.add(optModeHW);

@@ -11,7 +11,7 @@ import javax.swing.plaf.metal.*;
 /**
  * @version 1.0 09/08/99
  */
-public class MetalMThumbSliderUI extends MetalSliderUI {
+public class MetalMThumbSliderUI extends MetalSliderUI implements MThumbSliderAdditional {
 
   MThumbSliderAdditionalUI additonalUi;
   MouseInputAdapter mThumbTrackListener;

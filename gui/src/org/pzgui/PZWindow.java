@@ -68,18 +68,16 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
             
             public void mouseReleased(MouseEvent evt) {
                 synchronized(manager) {
-                    if(evt.isControlDown()) {
-                        Drawable d = manager.getSelected();
-                        if(d instanceof OpenFlowSwitch) {
-                            OpenFlowSwitch o = (OpenFlowSwitch)d;
-                            o.setFailed(!o.isFailed());
-                            manager.fireDrawableEvent(d, "failure");
-                        }
-                        else if(d instanceof Link) {
-                            Link l = (Link)d;
-                            l.setFailed(!l.isFailed());
-                            manager.fireDrawableEvent(d, "failure");
-                        }
+                    Drawable d = manager.getSelected();
+                    if(d instanceof OpenFlowSwitch) {
+                        OpenFlowSwitch o = (OpenFlowSwitch)d;
+                        o.setFailed(!o.isFailed());
+                        manager.fireDrawableEvent(d, "failure");
+                    }
+                    else if(d instanceof Link) {
+                        Link l = (Link)d;
+                        l.setFailed(!l.isFailed());
+                        manager.fireDrawableEvent(d, "failure");
                     }
                     
                     manager.noteMouseUp();

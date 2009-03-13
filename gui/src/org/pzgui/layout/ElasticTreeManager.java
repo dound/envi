@@ -258,7 +258,8 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JSlider slAgg    = new MyJSlider(SwingConstants.HORIZONTAL, 0, 100, 100);
     private JPanel pnlPLen = new JPanel();
     private JSlider slPLen    = new MyJSlider(SwingConstants.HORIZONTAL, 64, 1514, 1514);
-
+    private JCheckBox chkSplit = new JCheckBox("May split flows", false);
+    
     private JPanel pnlAnim = new JPanel();
     private ButtonGroup optgrpAnim = new ButtonGroup();
     private JRadioButton optAnimNone = new JRadioButton("None");
@@ -387,6 +388,7 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addComponent(pnlAgg)
                     .addComponent(pnlEdge)
                     .addComponent(pnlPLen)
+                    .addComponent(chkSplit)
         );
         
         layout.setVerticalGroup(
@@ -395,10 +397,17 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addComponent(pnlAgg)
                     .addComponent(pnlEdge)
                     .addComponent(pnlPLen)
+                    .addComponent(chkSplit)
         );
         
-        layout.linkSize(SwingConstants.HORIZONTAL, pnlDemand, pnlAgg, pnlEdge, pnlPLen);
-        layout.linkSize(SwingConstants.VERTICAL, pnlDemand, pnlAgg, pnlEdge, pnlPLen);
+        layout.linkSize(SwingConstants.HORIZONTAL, pnlDemand, pnlAgg, pnlEdge, pnlPLen, chkSplit);
+        layout.linkSize(SwingConstants.VERTICAL, pnlDemand, pnlAgg, pnlEdge, pnlPLen, chkSplit);
+        
+        chkSplit.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                notifyTrafficMatrixChangeListeners();
+            }
+        });
     }
     
     /** layout and initialize the animation panel and its components */
@@ -920,7 +929,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         if(agg != aggDef) {
             slAgg.setValue((int)(100*agg));
         }
-        return new ETTrafficMatrix(optModeHW.isSelected(), fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
+        return new ETTrafficMatrix(optModeHW.isSelected(), chkSplit.isSelected(), fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
     }
     
     /** Gets whether slider changes are being ignored. */

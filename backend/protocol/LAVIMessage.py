@@ -323,9 +323,10 @@ class ETTrafficMatrix(LAVIMessage):
     def get_type():
         return 0xF0
 
-    def __init__(self, use_hw, k, demand, edge, agg, plen, xid=0):
+    def __init__(self, use_hw, may_split_flows, k, demand, edge, agg, plen, xid=0):
         LAVIMessage.__init__(self, xid)
-        self.use_hw = int(use_hw)
+        self.use_hw = bool(use_hw)
+        self.may_split_flows = bool(may_split_flows)
         self.k      = int(k)
         self.demand = float(demand)
         self.edge   = float(edge)
@@ -340,21 +341,21 @@ class ETTrafficMatrix(LAVIMessage):
                 self.agg = 1.0 - self.edge
 
     def length(self):
-        return LAVIMessage.SIZE + 24
+        return LAVIMessage.SIZE + 22
 
     def pack(self):
-        return LAVIMessage.pack(self) + struct.pack('> 2I 3f I', self.use_hw, self.k, self.demand, self.edge, self.agg, self.plen)
+        return LAVIMessage.pack(self) + struct.pack('> 2B I 3f I', self.use_hw, self.may_split_flows, self.k, self.demand, self.edge, self.agg, self.plen)
 
     @staticmethod
     def unpack(body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        t = struct.unpack('> 2I 3f I', body[:24])
-        return ETTrafficMatrix(t[0], t[1], t[2], t[3], t[4], t[5], xid)
+        t = struct.unpack('> 2B I 3f I', body[:22])
+        return ETTrafficMatrix(t[0], t[1], t[2], t[3], t[4], t[5], t[6], xid)
 
     def __str__(self):
-        fmt = 'ET_TRAFFIC_MATRIX: ' + LAVIMessage.__str__(self) + " use_hw=%u k=%u demand=%u edge=%u agg=%u plen=%u"
-        return fmt % (self.use_hw, self.k, self.demand, self.edge, self.agg, self.plen)
+        fmt = 'ET_TRAFFIC_MATRIX: ' + LAVIMessage.__str__(self) + " hw=%u split=%u k=%u demand=%u edge=%u agg=%u plen=%u"
+        return fmt % (self.use_hw, self.may_split_flows, self.k, self.demand, self.edge, self.agg, self.plen)
 
 class ETLinkUtil(Link):
     SIZE = Link.SIZE + 4

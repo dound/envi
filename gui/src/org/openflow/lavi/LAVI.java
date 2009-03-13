@@ -507,10 +507,10 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         /** 
          * Sets the next traffic matrix to use.  Overwrites any enqueued traffic
          * matrix.  The next matrix will be sent to the server as soon as the 
-         * previous run is complte.
+         * previous run is complete.
          */
         public synchronized void setNextTrafficMatrix(ETTrafficMatrix tm) {
-            this.tmNext = new ETTrafficMatrix(tm.use_hw, tm.k, tm.demand, tm.edge, tm.agg, tm.plen);;
+            this.tmNext = new ETTrafficMatrix(tm.use_hw, tm.may_split_flows, tm.k, tm.demand, tm.edge, tm.agg, tm.plen);;
         }
         
         /** Sends the next traffic matrix to the server. */

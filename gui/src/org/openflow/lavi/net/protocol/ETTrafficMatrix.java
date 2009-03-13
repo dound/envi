@@ -13,13 +13,14 @@ import org.openflow.util.string.StringOps;
  */
 public class ETTrafficMatrix extends LAVIMessage {
     public final boolean use_hw;
+    public final boolean may_split_flows;
     public final int k;
     public final float demand;
     public final float edge;
     public final float agg;
     public final int plen;
     
-    public ETTrafficMatrix(boolean use_hw, int k, float demand, float edge, float agg, int plen) {
+    public ETTrafficMatrix(boolean use_hw, boolean may_split_flows, int k, float demand, float edge, float agg, int plen) {
         super(LAVIMessageType.ET_TRAFFIX_MATRIX, 0);
         if(demand<0 || demand>1)
             throw new IllegalArgumentException("demand must be between 0.0 and 1.0 inclusive");
@@ -30,6 +31,7 @@ public class ETTrafficMatrix extends LAVIMessage {
         if(edge + agg > 1.0)
             throw new IllegalArgumentException("edge + agg must be less than 1.0 when summed");
         this.use_hw = use_hw;
+        this.may_split_flows = may_split_flows;
         this.k = k;
         this.demand = demand;
         this.edge = edge;
@@ -39,13 +41,14 @@ public class ETTrafficMatrix extends LAVIMessage {
     
     /** This returns the maximum length of this message */
     public int length() {
-        return super.length() + 24;
+        return super.length() + 22;
     }
     
     /** Writes the header (via super.write()), and this message */
     public void write(DataOutput out) throws IOException {
         super.write(out);
-        out.writeInt(use_hw ? 1 : 0);
+        out.writeBoolean(use_hw);
+        out.writeBoolean(may_split_flows);
         out.writeInt(k);
         out.writeFloat(demand);
         out.writeFloat(edge);
@@ -70,7 +73,7 @@ public class ETTrafficMatrix extends LAVIMessage {
     }
     
     public String toString() {
-        return super.toString() + TSSEP + toStringShort();
+        return super.toString() + TSSEP + toStringShort() + " hw=" + use_hw + " split=" + may_split_flows + " k=" + k;
     }
 
     public String toStringShort() {

@@ -398,6 +398,8 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addComponent(pnlEdge)
                     .addComponent(pnlPLen)
                     .addComponent(chkSplit)
+                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 5, 5)
+
         );
         
         layout.linkSize(SwingConstants.HORIZONTAL, pnlDemand, pnlAgg, pnlEdge, pnlPLen, chkSplit);

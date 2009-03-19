@@ -167,18 +167,29 @@ public class ElasticTreeManager extends PZLayoutManager {
      */
     public void setLayoutSize(int w, int h) {
         super.setLayoutSize(w, h);
-        relayout();
+        relayout();     
+        int margin = 20;
+        
+        // relayout the custom part of the GUI 
+        pnlCustom.setBounds(0, h + margin, w, RESERVED_HEIGHT_BOTTOM - 2 * margin);
         
         // choose a reasonable size for the dials based on the available width
-        int margin = 20;
-        int sz = Math.min(RESERVED_HEIGHT_BOTTOM - 3 * margin, w/4);
+        boolean showLatency;
+        int sz;
+        if(w < 1280) {
+            showLatency = false;
+            sz = (w - (pnlAnim.getWidth() + pnlMode.getWidth() - margin * 2)) / 2 - 35;
+        }
+        else {
+            showLatency = true;
+            sz = (w - (pnlAnim.getWidth() + pnlMode.getWidth() - margin * 2)) / 3 - 25;
+        }
+        
         Dimension prefDialSize = new Dimension(sz, sz);
         dialPower.setPreferredSize(prefDialSize);
         dialBandwidth.setPreferredSize(prefDialSize);
         dialLatency.setPreferredSize(prefDialSize);
-        
-        // relayout the custom part of the GUI 
-        pnlCustom.setBounds(0, h + margin, w, RESERVED_HEIGHT_BOTTOM - 2 * margin);
+        dialLatency.setVisible(showLatency);
     }
     
     /**

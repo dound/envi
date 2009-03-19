@@ -184,6 +184,7 @@ public class ElasticTreeManager extends PZLayoutManager {
             showLatency = true;
             sz = (w - (pnlAnim.getWidth() + pnlMode.getWidth() - margin * 2)) / 3 - 25;
         }
+        sz = Math.min(sz, RESERVED_HEIGHT_BOTTOM - 2 * margin);
         
         Dimension prefDialSize = new Dimension(sz, sz);
         dialPower.setPreferredSize(prefDialSize);

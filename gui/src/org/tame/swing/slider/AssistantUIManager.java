@@ -81,10 +81,8 @@ public class AssistantUIManager {
       sb.append( lookAndFeelName );    
       sb.append( key );    
       
-      System.err.println("would update the UI manager wtih: " + key + " => " + sb.toString());
       UIManager.put("MThumbSliderUI", "org.tame.swing.slider.MetalMThumbSliderUI");
       UIManager.put("MThumbSliderUI", "org.tame.swing.slider.MetalMThumbSliderUI");
-      //UIManager.put(key, sb.toString());
     }       
   }
   

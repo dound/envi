@@ -60,6 +60,12 @@ public class AssistantUIManager {
 
   
   public static void setUIName(JComponent c) {
+    try {
+        UIManager.setLookAndFeel(new javax.swing.plaf.metal.MetalLookAndFeel());
+    } catch (Exception e) {
+        System.err.println("UI not found");
+    }
+      
     String key = c.getUIClassID();
     String uiClassName = (String)UIManager.get(key);
     
@@ -74,7 +80,11 @@ public class AssistantUIManager {
       }
       sb.append( lookAndFeelName );    
       sb.append( key );    
-      UIManager.put(key, sb.toString());      
+      
+      System.err.println("would update the UI manager wtih: " + key + " => " + sb.toString());
+      UIManager.put("MThumbSliderUI", "org.tame.swing.slider.MetalMThumbSliderUI");
+      UIManager.put("MThumbSliderUI", "org.tame.swing.slider.MetalMThumbSliderUI");
+      //UIManager.put(key, sb.toString());
     }       
   }
   

@@ -124,7 +124,8 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
 
     /** Handles messages received from the LAVI backend */
     public void process(final LAVIMessage msg) {
-        System.out.println("recv: " + msg.toString());
+        if(LAVIConnection.PRINT_LAVI_MESSAGES)
+            System.out.println("recv: " + msg.toString());
         
         switch(msg.type) {
         case AUTH_REQUEST:

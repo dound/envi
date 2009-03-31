@@ -20,6 +20,9 @@ public class LAVIConnection extends Thread {
     /** default port to connect to LAVI over */
     public static final short DEFAULT_PORT = 2503;
     
+    /** whether to print LAVI messages we send and receive */
+    public static final boolean PRINT_LAVI_MESSAGES = false;
+    
     /** how much time to remember a request before expiring it */
     private static final long REQUEST_LIFETIME_MSEC = 2000;
     
@@ -363,7 +366,8 @@ public class LAVIConnection extends Thread {
         
         m.write(out);
         
-        System.out.println("sent: " + m.toString());
+        if(PRINT_LAVI_MESSAGES)
+            System.out.println("sent: " + m.toString());
     }
     
     /** 

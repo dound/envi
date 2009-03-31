@@ -20,6 +20,9 @@ public class LAVIConnection extends Thread {
     /** default port to connect to LAVI over */
     public static final short DEFAULT_PORT = 2503;
     
+    /** how much time to remember a request before expiring it */
+    private static final long REQUEST_LIFETIME_MSEC = 2000;
+    
     /** maximum time to wait between tries to get connected */
     public static final int RETRY_WAIT_MSEC_MAX = 2 * 60 * 1000; // two minutes
     
@@ -187,11 +190,10 @@ public class LAVIConnection extends Thread {
      */
     public void run() {
         // start a thread to scrub expired cached stateful requests
-        final LAVIConnection me = this;
         new Thread() {
             public void run() {
                 scrubExpiredStatefulRequests();
-                try { Thread.sleep(me.getRequestLifetime()); }
+                try { Thread.sleep(REQUEST_LIFETIME_MSEC); }
                 catch(InterruptedException e) {}
             }
         };
@@ -321,9 +323,6 @@ public class LAVIConnection extends Thread {
     /** next transaction ID to use */
     private int nextXID = 1;
     
-    /** how much time to remember a request before expiring it */
-    private long requestLifetime_msec = 2000;
-    
     /** messages which are expecting a stateful response */
     protected ConcurrentHashMap<Integer, LAVIMessage> outstandingStatefulRequests = new ConcurrentHashMap<Integer, LAVIMessage>();
     
@@ -378,23 +377,13 @@ public class LAVIConnection extends Thread {
         return (m != null) ? m : outstandingStatefulRequests.remove(xid);
     }
     
-    /** Gets the number of milliseconds a stateful request will be stored */
-    public long getRequestLifetime() {
-        return requestLifetime_msec;
-    }
-
-    /** Sets the number of milliseconds a stateful request will be stored */
-    public void setRequestLifetime(long msec) {
-        requestLifetime_msec = msec;
-    }
-    
     /** Remove cached stateful requests which have been cached for longer than getRequestLifetime() */
     protected void scrubExpiredStatefulRequests() {
         long now = System.currentTimeMillis();
         
         Iterator<LAVIMessage> itr = outstandingStatefulRequests.values().iterator();
         while(itr.hasNext())
-            if(now - itr.next().timeCreated() > requestLifetime_msec)
+            if(now - itr.next().timeCreated() > REQUEST_LIFETIME_MSEC)
                 itr.remove();
     }
     

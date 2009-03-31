@@ -156,7 +156,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
                 gfx.drawString(serial_num, x, y);
         }
         
-        if(isOff() && !isFailed())
+        if(c != null)
             gfx.setComposite(c);
     }
     

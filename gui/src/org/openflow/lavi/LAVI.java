@@ -31,7 +31,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             server = args[0];
         
         Short port = null;
-        new LAVI(server, port);
+        new LAVI(server, port, true, true);
     }
     
     /** connection to the backend */
@@ -49,8 +49,16 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     /** whether the GUI is shutting down */
     private boolean disconnecting = false;
     
-    /** start the LAVI front-end */
-    public LAVI(String server, Short port) {
+    /** 
+     * Start the LAVI front-end.
+     * 
+     * @param server  the IP or hostname where the back-end is located
+     * @param port    the port the back-end is listening on
+     * @param subscribeSwitches  whether to subscribe to switch changes
+     * @param subscribeLinks     whether to subscribe to link changes 
+     */
+    public LAVI(String server, Short port,
+                boolean subscribeSwitches, boolean subscribeLinks) {
         // ask the user for the NOX controller's IP if it wasn't already given
         if(server == null || server.length()==0)
             server = DialogHelper.getInput("What is the IP or hostname of the NOX server?", "127.0.0.1");
@@ -62,7 +70,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         
         if(port == null)
             port = LAVIConnection.DEFAULT_PORT;
-        conn = new LAVIConnection(this, server, port, false, false);
+        conn = new LAVIConnection(this, server, port, subscribeSwitches, subscribeLinks);
 
         // fire up the GUI
         manager = new ElasticTreeManager(6);

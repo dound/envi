@@ -357,8 +357,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         stats.clear();
     }
     
+    /** whether to hide links which we have never received statistics about */
+    public static boolean HIDE_LINKS_WITHOUT_STATS = false;
+    
     /** the color to draw the link */
-    private Color curDrawColor = null;
+    private Color curDrawColor = (HIDE_LINKS_WITHOUT_STATS ? null : Color.BLACK);
     
     /** 
      * Returns the current bandwidth being sent through the link in ps or a 

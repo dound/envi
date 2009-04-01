@@ -11,6 +11,7 @@ import org.openflow.lavi.et.TrafficMatrixChangeListener;
 import org.openflow.lavi.net.*;
 import org.openflow.lavi.net.protocol.*;
 import org.openflow.lavi.net.protocol.auth.*;
+import org.openflow.lavi.net.protocol.et.*;
 import org.openflow.lavi.stats.PortStatsRates;
 import org.openflow.protocol.*;
 import org.openflow.util.string.DPIDUtil;
@@ -581,7 +582,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     
     private void processLinkUtils(ETLinkUtilsList msg) {
         double total_bps = 0;
-        for(org.openflow.lavi.net.protocol.ETLinkUtil x : msg.utils)
+        for(ETLinkUtil x : msg.utils)
             total_bps += processLinkUtil(x.srcDPID, x.srcPort, x.dstDPID, x.dstPort, x.util, msg.timeCreated);
         manager.setExpectedAggregateThroughput(total_bps);
     }

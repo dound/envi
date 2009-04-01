@@ -6,6 +6,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.openflow.lavi.drawables.*;
 import org.openflow.lavi.drawables.Link;
 import org.openflow.lavi.drawables.Link.LinkExistsException;
+import org.openflow.lavi.et.ElasticTreeManager;
+import org.openflow.lavi.et.TrafficMatrixChangeListener;
 import org.openflow.lavi.net.*;
 import org.openflow.lavi.net.protocol.*;
 import org.openflow.lavi.net.protocol.auth.*;
@@ -17,8 +19,6 @@ import org.pzgui.Drawable;
 import org.pzgui.DrawableEventListener;
 import org.pzgui.PZClosing;
 import org.pzgui.PZManager;
-import org.pzgui.layout.ElasticTreeManager;
-import org.pzgui.layout.TrafficMatrixChangeListener;
 
 public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChangeListener, DrawableEventListener {
     public static final boolean ENABLE_AUTO_REQUESTS = false;

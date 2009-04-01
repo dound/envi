@@ -6,13 +6,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.openflow.lavi.drawables.*;
 import org.openflow.lavi.drawables.Link;
 import org.openflow.lavi.drawables.Link.LinkExistsException;
-import org.openflow.lavi.et.ElasticTreeManager;
-import org.openflow.lavi.et.TrafficMatrixChangeListener;
 import org.openflow.lavi.net.*;
 import org.openflow.lavi.net.protocol.*;
 import org.openflow.lavi.net.protocol.auth.*;
-import org.openflow.lavi.net.protocol.et.*;
-import org.openflow.lavi.stats.PortStatsRates;
 import org.openflow.protocol.*;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
@@ -20,10 +16,11 @@ import org.pzgui.Drawable;
 import org.pzgui.DrawableEventListener;
 import org.pzgui.PZClosing;
 import org.pzgui.PZManager;
+import org.pzgui.layout.Edge;
+import org.pzgui.layout.PZLayoutManager;
+import org.pzgui.layout.Vertex;
 
-public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChangeListener, DrawableEventListener {
-    public static final boolean ENABLE_AUTO_REQUESTS = false;
-    
+public class LAVI<MANAGER extends PZLayoutManager> implements LAVIMessageProcessor, PZClosing, DrawableEventListener {
     /** run the LAVI front-end */
     public static void main(String args[]) {
         String server = null;
@@ -31,34 +28,64 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             server = args[0];
         
         Short port = null;
-        new LAVI(server, port, true, true);
+        
+        PZLayoutManager manager = new PZLayoutManager();
+        new LAVI<PZLayoutManager>(manager, server, port, true);
+        
+        // layout the nodes with the spring algorithm by default
+        manager.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(manager.getGraph()));
     }
     
     /** connection to the backend */
-    private final LAVIConnection conn;
-    
-    /** whether we have been connected before */
-    private boolean firstConnection = true;
+    protected final LAVIConnection conn;
     
     /** the GUI window manager */
-    private final ElasticTreeManager manager;
+    protected final MANAGER manager;
+    
+    /** whether to automatically request link info for all new switches */
+    private boolean autoRequestLinkInfoForNewSwitch;
+    
+    /** whether to automatically request that link stats be periodically sent for all new links */
+    private boolean autoTrackStatsForNewLink;
     
     /** how often to refresh basic port statistics */
-    private int statsRefreshRate_msec = 2000;
+    private int statsRefreshRate_msec;
     
     /** whether the GUI is shutting down */
     private boolean disconnecting = false;
+
+    /**
+     * Start the LAVI front-end.
+     * 
+     * @param manager  the object for managing this GUI 
+     * @param server   the IP or hostname where the back-end is located
+     * @param port     the port the back-end is listening on
+     * @param auto     whether subscribeSwitches/Links and auto requests should 
+     *                 be on or off (like calling the full LAVI constructor with
+     *                 auto for all boolean arguments)
+     */
+    public LAVI(MANAGER manager, String server, Short port, boolean auto) {
+        this(manager, server, port, auto, auto, auto, auto, 2000);
+    }
     
     /** 
      * Start the LAVI front-end.
      * 
-     * @param server  the IP or hostname where the back-end is located
-     * @param port    the port the back-end is listening on
-     * @param subscribeSwitches  whether to subscribe to switch changes
-     * @param subscribeLinks     whether to subscribe to link changes 
+     * @param manager                          the object for managing this GUI 
+     * @param server                           the IP or hostname where the back-end is located
+     * @param port                             the port the back-end is listening on
+     * @param subscribeSwitches                whether to subscribe to switch changes
+     * @param subscribeLinks                   whether to subscribe to link changes
+     * @param autoRequestLinkInfoForNewSwitch  whether to automatically request link info for all new switches
+     * @param autoTrackStatsForNewLink         whether to automatically request that link stats be periodically sent for all new links
+     * @param statsRefreshRate_msec            how often to refresh basic port statistics (irrelevant if autoTrackStatsForNewLink is false)
      */
-    public LAVI(String server, Short port,
-                boolean subscribeSwitches, boolean subscribeLinks) {
+    public LAVI(MANAGER manager,
+                String server, Short port,
+                boolean subscribeSwitches, boolean subscribeLinks,
+                boolean autoRequestLinkInfoForNewSwitch,
+                boolean autoTrackStatsForNewLink,
+                int statsRefreshRate_msec) {
         // ask the user for the NOX controller's IP if it wasn't already given
         if(server == null || server.length()==0)
             server = DialogHelper.getInput("What is the IP or hostname of the NOX server?", "127.0.0.1");
@@ -72,15 +99,14 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             port = LAVIConnection.DEFAULT_PORT;
         conn = new LAVIConnection(this, server, port, subscribeSwitches, subscribeLinks);
 
-        // fire up the GUI
-        manager = new ElasticTreeManager(6);
-        manager.addClosingListener(this);
-        manager.addDrawableEventListener(this);
-        manager.addTrafficMatrixChangeListener(this);
-        manager.start();
+        // set defaults
+        this.autoRequestLinkInfoForNewSwitch = autoRequestLinkInfoForNewSwitch;
+        this.autoTrackStatsForNewLink = autoTrackStatsForNewLink;
+        this.statsRefreshRate_msec = statsRefreshRate_msec;
         
-        // setup the object which manages the sending of traffic matrix commands to the server
-        tmManager = new TrafficMatrixManager(manager.getCurrentTrafficMatrix());
+        // fire up the GUI
+        this.manager = manager;
+        manager.start();
         
         // try to connect to the backend
         conn.start();
@@ -97,38 +123,24 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         while(!conn.isShutdown() && System.currentTimeMillis()-start<1000) {}
     }
     
-    /** a drawable has fired an event */
-    public void drawableEvent(Drawable d, String event) {
-        if(event.equals("mouse_released"))
-            processFailEvent(d);
-    }
+    /** a drawable has fired an event (this method does nothing by default) */
+    public void drawableEvent(Drawable d, String event) {}
     
     /** Called when the LAVI backend has been disconnected or reconnected */
     public void connectionStateChange() {
         if(!conn.isConnected()) {
             cleanup();
-            
-            // temporary: usually get d/c atm if backend crashes
-            System.exit(-1);
-        }
-        else {
-            if(firstConnection) {
-                try {
-                    conn.sendLAVIMessage(new ETSwitchesRequest(manager.getK()));
-                    firstConnection = false;
-                }
-                catch(IOException e) {}
-            }
         }
     }
     
-    private void cleanup() {
+    /**
+     * Cleanup state.  Called by the LAVI object whenever it becomes disconnected
+     * from the backend.  Will remove all switches.
+     */
+    protected void cleanup() {
         // remove all switches when we get disconnected
         for(Long d : switchesList)
             disconnectSwitch(d);
-        
-        // if the manager was waiting for a response, it won't be coming
-        tmManager.responseWillNotCome();
     }
 
     /** Handles messages received from the LAVI backend */
@@ -142,8 +154,6 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             break;
             
         case SWITCHES_ADD:
-            if(!tmManager.isWaitingForResponse())
-                tmManager.start();
             processSwitchesAdd((SwitchesAdd)msg);
             break;
             
@@ -163,38 +173,10 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             processStatReply((StatsHeader)msg);
             break;
             
-        case ET_LINK_UTILS:
-            processLinkUtils((ETLinkUtilsList)msg);
-            break;
-            
-        case ET_POWER_USAGE:
-            processPowerUsage((ETPowerUsage)msg);
-            break;
-        
-        case ET_SWITCHES_OFF:
-            processSwitchesOff((ETSwitchesOff)msg);
-            break;
-        
-        case ET_BANDWIDTH:
-            processBandwidthData((ETBandwidth)msg);
-            break;
-            
-        case ET_LATENCY:
-            processLatencyData((ETLatency)msg);
-            break;
-            
-        case ET_COMPUTATION_DONE:
-            processComputationDone((ETComputationDone)msg);
-            break;
-            
         case AUTH_REPLY:
         case SWITCHES_REQUEST:
         case LINKS_REQUEST:
         case STAT_REQUEST:
-        case ET_TRAFFIX_MATRIX:
-        case ET_SWITCHES_REQUEST:
-        case ET_SWITCH_FAILURES:
-        case ET_LINK_FAILURES:
             System.err.println("Received unexpected message type: " + msg.type.toString());
             
         default:
@@ -230,11 +212,11 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     }
 
     /** switches in the topology */
-    private final ConcurrentHashMap<Long, OpenFlowSwitch> switchesMap = new ConcurrentHashMap<Long, OpenFlowSwitch>();
-    private final CopyOnWriteArrayList<Long> switchesList = new CopyOnWriteArrayList<Long>();
+    protected final ConcurrentHashMap<Long, OpenFlowSwitch> switchesMap = new ConcurrentHashMap<Long, OpenFlowSwitch>();
+    protected final CopyOnWriteArrayList<Long> switchesList = new CopyOnWriteArrayList<Long>();
     
     /** list of switches which should be displayed as one or more virtual switches */
-    private final ConcurrentHashMap<Long, VirtualSwitchSpecification> virtualSwitches = new ConcurrentHashMap<Long, VirtualSwitchSpecification>();
+    protected final ConcurrentHashMap<Long, VirtualSwitchSpecification> virtualSwitches = new ConcurrentHashMap<Long, VirtualSwitchSpecification>();
     
     /** add a new display virtualization scheme for a switch */
     public void addVirtualizedSwitchDisplay(VirtualSwitchSpecification v) {
@@ -287,7 +269,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         s.setPos((int)Math.random()*500, (int)Math.random()*500);
         addSwitchDrawable(s);
         
-        if(!ENABLE_AUTO_REQUESTS)
+        if(!autoRequestLinkInfoForNewSwitch)
             return s;
         
         // get the links associated with this switch
@@ -388,7 +370,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
                 if(l == null)
                     continue;
                 
-                if(!ENABLE_AUTO_REQUESTS)
+                if(!autoTrackStatsForNewLink)
                     continue;
                 
                 // tell the backend to keep us updated on the link's utilization
@@ -439,7 +421,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     }
     
     /** Prints an error message about a missing link. */
-    private void logLinkMissing(String msg, String why, long dstDPID, short dstPort, long srcDPID, short srcPort) {
+    protected void logLinkMissing(String msg, String why, long dstDPID, short dstPort, long srcDPID, short srcPort) {
         if(disconnecting) return;
         System.err.println("Ignoring link " + msg + " message for non-existant " + why + ": " + 
                 DPIDUtil.toString(srcDPID) + ", port " + srcPort + " to " +
@@ -494,197 +476,5 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
             s.setSwitchDescription(msg);
         else
             System.err.println("Warning: received switch description for unknown switch " + DPIDUtil.toString(msg.dpid));
-    }
-
-    // ------- Traffic Matrix Sending ------- //
-    // ************************************** //
-    
-    private class TrafficMatrixManager {
-        /** the most recent traffic matrix command relayed to the server */
-        private ETTrafficMatrix tmOutstanding  = null;
-        
-        /** the next traffic matrix to relay to the server */
-        private ETTrafficMatrix tmNext;
-        
-        /** whether this manager is waiting for a response */
-        private boolean waiting_for_response = false;
-        
-        /** Initializes the manager with the initial traffic matrix to use */
-        public TrafficMatrixManager(ETTrafficMatrix tm) {
-            setNextTrafficMatrix(tm);
-        }
-        
-        /** 
-         * Sets the next traffic matrix to use.  Overwrites any enqueued traffic
-         * matrix.  The next matrix will be sent to the server as soon as the 
-         * previous run is complete.
-         */
-        public synchronized void setNextTrafficMatrix(ETTrafficMatrix tm) {
-            this.tmNext = new ETTrafficMatrix(tm.use_hw, tm.may_split_flows, tm.k, tm.demand, tm.edge, tm.agg, tm.plen);;
-        }
-        
-        /** Sends the next traffic matrix to the server. */
-        private synchronized boolean sendNextTrafficMatrix() {
-            if(tmOutstanding != null && tmOutstanding.k != tmNext.k) {
-                try {
-                    cleanup();
-                    conn.sendLAVIMessage(new ETSwitchesRequest(tmNext.k));
-                }
-                catch(IOException e) {}
-            }
-            tmOutstanding = tmNext;
-            manager.setNextTrafficMatrixText(tmOutstanding);
-            
-            try {
-                conn.sendLAVIMessage(tmOutstanding);
-                waiting_for_response = true;
-            } catch (IOException e) {
-                System.err.println("Warning: unable to send traffix matrix update: " + tmOutstanding);
-                return false;
-            }
-            return true;
-        }
-        
-        /**
-         * Tells the traffic matrix manager that the outstanding request has
-         * been completed so that it can send the next request. 
-         */
-        public synchronized void completedLastTrafficMatrix() {
-            manager.setCurrentTrafficMatrixText(tmOutstanding);
-            sendNextTrafficMatrix();
-        }
-
-        /**
-         * Starts the traffic matrix loop by sending a command to the server.  
-         * This should be called whenever the connection to the server is setup.
-         */
-        public void start() {
-            sendNextTrafficMatrix();
-        }
-        
-        /**
-         * Whether the manager is currently waiting for a response.
-         */
-        public boolean isWaitingForResponse() {
-            return waiting_for_response;
-        }
-        
-        /** 
-         * Tells the manager it won't receive a reply for the last message it 
-         * sent (the connection died). 
-         */
-        public void responseWillNotCome() {
-            waiting_for_response = false;
-        }
-    }
-    private TrafficMatrixManager tmManager;
-
-    public void trafficMatrixChanged(ETTrafficMatrix tm) {
-        if(tmManager != null)
-            tmManager.setNextTrafficMatrix(tm);
-    }
-    
-    
-    // --- Elastic Tree Message Processing -- //
-    // ************************************** //    
-    
-    private void processLinkUtils(ETLinkUtilsList msg) {
-        double total_bps = 0;
-        for(ETLinkUtil x : msg.utils)
-            total_bps += processLinkUtil(x.srcDPID, x.srcPort, x.dstDPID, x.dstPort, x.util, msg.timeCreated);
-        manager.setExpectedAggregateThroughput(total_bps);
-    }
-    
-    /**
-     * Updates the throughput data of the link described by these parameters.
-     */
-    private double processLinkUtil(long dstDPID, short dstPort, long srcDPID, short srcPort, float util, long when) {
-        OpenFlowSwitch srcSwitch = switchesMap.get(srcDPID);
-        if(srcSwitch == null) {
-            logLinkMissing("util", "src switch", dstDPID, dstPort, srcDPID, srcPort);
-            return 0;
-        }
-        
-        OpenFlowSwitch dstSwitch = switchesMap.get(dstDPID);
-        if(dstSwitch == null) {
-            logLinkMissing("util", "dst switch", dstDPID, dstPort, srcDPID, srcPort);
-            return 0;
-        }
-        
-        Link existingLink = dstSwitch.getLinkTo(dstPort, srcSwitch, srcPort);
-        if(existingLink != null) {
-            PortStatsRates psr = existingLink.getStats(Match.MATCH_ALL);
-            if(psr == null)
-                psr = existingLink.trackStats(Match.MATCH_ALL);
-            
-            double bps = util * existingLink.getMaximumDataRate();
-            double pps = bps / (1500*8); // assumes 1500B packets
-            psr.setRates(pps, bps, 0, when);
-            
-            existingLink.setColor();
-            return bps;
-        }
-        else {
-            logLinkMissing("util", "link", dstDPID, dstPort, srcDPID, srcPort);
-            return 0;
-        }
-    }
-
-    private void processPowerUsage(ETPowerUsage msg) {
-        manager.setPowerData(msg.watts_current, msg.watts_traditional, msg.watts_traditional);
-    }
-
-    private void processSwitchesOff(ETSwitchesOff msg) {
-        // turn everything back on
-        for(OpenFlowSwitch o : switchesMap.values())
-            o.setOff(false);
-        
-        // turn off the specified switches
-        for(long dpid : msg.dpids) {
-            OpenFlowSwitch o = switchesMap.get(dpid);
-            if(o != null)
-                o.setOff(true);
-        }
-    }
-
-    private void processBandwidthData(ETBandwidth msg) {
-        manager.setAchievedAggregateThroughput(msg.bandwidth_achieved_mbps);
-    }
-
-    private void processLatencyData(ETLatency msg) {
-        manager.setLatencyData(msg.latency_ms_edge, msg.latency_ms_agg, msg.latency_ms_core);
-    }
-
-    private void processComputationDone(ETComputationDone msg) {
-        tmManager.completedLastTrafficMatrix();
-        manager.noteResult(msg.num_unplaced_flows);
-    }
-    
-    private void processFailEvent(Drawable d) {
-        if(d instanceof OpenFlowSwitch) {
-            OpenFlowSwitch o = (OpenFlowSwitch)d;
-            o.setFailed(!o.isFailed());
-            
-            try {
-                conn.sendLAVIMessage(new ETSwitchFailureChange(o.getDatapathID(), o.isFailed()));    
-            }
-            catch(IOException e) {
-                System.err.println("failed to send switch failure");
-            }
-        }
-        else if(d instanceof Link) {
-            Link l = (Link)d;
-            l.setFailed(!l.isFailed());
-            try {
-                conn.sendLAVIMessage(new ETLinkFailureChange(new org.openflow.lavi.net.protocol.Link(
-                        l.getSource().getDatapathID(),
-                        l.getMyPort(l.getSource()),
-                        l.getDestination().getDatapathID(),
-                        l.getMyPort(l.getDestination())), l.isFailed()));    
-            }
-            catch(IOException e) {
-                System.err.println("failed to send link failure");
-            }
-        }
     }
 }

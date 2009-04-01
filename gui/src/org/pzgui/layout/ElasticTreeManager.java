@@ -13,6 +13,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.jfree.chart.plot.dial.DialPointer;
+import org.openflow.lavi.chart.MultiPointerDial;
 import org.openflow.lavi.drawables.DrawableIcon;
 import org.openflow.lavi.drawables.Link;
 import org.openflow.lavi.drawables.OpenFlowSwitch;

@@ -1,4 +1,4 @@
-package org.pzgui.layout;
+package org.openflow.lavi.chart;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -11,6 +11,11 @@ import org.jfree.data.general.DefaultValueDataset;
 import org.jfree.ui.GradientPaintTransformType;
 import org.jfree.ui.StandardGradientPaintTransformer;
 
+/**
+ * A dial which may have more than one pointer. 
+ * 
+ * @author David Underhill
+ */
 public class MultiPointerDial extends ChartPanel {
     /** chart title */
     private String title;

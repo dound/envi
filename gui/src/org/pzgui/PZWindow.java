@@ -169,7 +169,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
                     screenshot();
                 }
                 else if(e.getKeyCode() == KeyEvent.VK_H || e.getKeyChar()=='?') {
-                    System.out.println(baseTitle + "\n" +
+                    System.out.println(getTitle() + "\n" +
                                        "    right-click + drag = move a switch\n" +
                                        "    arrow keys         = pan the view\n" +
                                        "    alt + arrow keys   = zoom in/out\n" +
@@ -187,7 +187,10 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     // ************************ //
 
     /** string to prefix to the title in the window bar */
-    private String baseTitle = "Stanford University - LAVI";
+    public static String BASE_TITLE = "OpenFlow GUI";
+    
+    /** custom string to use for the title (if null, BASE_TITLE will be used) */ 
+    public String customTitle = null;
     
     /** canvas to draw the scene on */
     private final javax.swing.JLabel lblCanvas = new javax.swing.JLabel();
@@ -201,6 +204,26 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     /** if non-null, a screenshot will be saved to the specified filename */
     private String saveScreenshotName = null;
     
+    /** Gets the title of this window bar */
+    public String getTitle() {
+        if(customTitle == null)
+            return BASE_TITLE;
+        else
+            return customTitle;
+    }
+    
+    /** Gets the custom title of this window bar */
+    public String getCustomTitle() {
+        return customTitle;
+    }
+    
+    /** Sets the custom title of this window bar */
+    public void setCustomTitle(String title) {
+        customTitle = title;
+        if(customTitle != null)
+            setTitle(customTitle);
+    }
+    
     /** Returns the canvas on which the scene will be drawn for this window */
     public javax.swing.JLabel getCanvas() {
         return lblCanvas;
@@ -212,11 +235,13 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
 
     public void redraw() {
         // update the title of the GUI
-        int id = manager.getWindowIndex(this);
-        if(id != 0)
-            setTitle(baseTitle + " (view " + (id+1) + ")");
-        else
-            setTitle(baseTitle);
+        if(getCustomTitle() == null) {
+            int id = manager.getWindowIndex(this);
+            if(id != 0)
+                setTitle(getTitle() + " (view " + (id+1) + ")");
+            else
+                setTitle(getTitle());
+        }
 
         synchronized(imgLock) {
             // redraw the scene

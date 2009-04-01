@@ -490,7 +490,6 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     /** set the current zoom */
     public void setZoom(float z) {
         zoom = z;
-        zoom = 1.0f; // ET hack
     }
 
     /** zoom in by the standard amount */

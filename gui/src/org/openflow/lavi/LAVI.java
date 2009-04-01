@@ -91,7 +91,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     
     /** a drawable has fired an event */
     public void drawableEvent(Drawable d, String event) {
-        if(event.equals("failure"))
+        if(event.equals("mouse_released"))
             processFailEvent(d);
     }
     
@@ -655,6 +655,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
     private void processFailEvent(Drawable d) {
         if(d instanceof OpenFlowSwitch) {
             OpenFlowSwitch o = (OpenFlowSwitch)d;
+            o.setFailed(!o.isFailed());
             
             try {
                 conn.sendLAVIMessage(new ETSwitchFailureChange(o.getDatapathID(), o.isFailed()));    
@@ -665,6 +666,7 @@ public class LAVI  implements LAVIMessageProcessor, PZClosing, TrafficMatrixChan
         }
         else if(d instanceof Link) {
             Link l = (Link)d;
+            l.setFailed(!l.isFailed());
             try {
                 conn.sendLAVIMessage(new ETLinkFailureChange(new org.openflow.lavi.net.protocol.Link(
                         l.getSource().getDatapathID(),

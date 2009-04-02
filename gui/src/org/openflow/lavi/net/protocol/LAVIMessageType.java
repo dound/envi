@@ -3,6 +3,7 @@ package org.openflow.lavi.net.protocol;
 import java.io.DataInput;
 import java.io.IOException;
 import org.openflow.lavi.net.protocol.auth.AuthType;
+import org.openflow.lavi.net.protocol.et.*;
 import org.openflow.protocol.StatsType;
 
 /**
@@ -66,6 +67,58 @@ public enum LAVIMessageType {
      */
     STAT_REPLY((byte)0x21),
 
+    /**
+     * Tells the Elastic Tree backend what kind of traffic matrix to generate.
+     */
+    ET_TRAFFIX_MATRIX((byte)0xF0),
+    
+    /**
+     * Tells the Elastic Tree GUI how utilized every link is.
+     */
+    ET_LINK_UTILS((byte)0xF1),
+    
+    /**
+     * Tells the Elastic Tree GUI the current power usage of the system.
+     */
+    ET_POWER_USAGE((byte)0xF2),
+    
+    /**
+     * Tells the Elastic Tree GUI which switches are powered off.
+     */
+    ET_SWITCHES_OFF((byte)0xF3),
+
+    /**
+     * Tells the Elastic Tree GUI about the achieved bandwidth.
+     */
+    ET_BANDWIDTH((byte)0xF4),
+
+    /**
+     * Tells the Elastic Tree GUI about latency data.
+     */
+    ET_LATENCY((byte)0xF5),
+
+    /**
+     * Asks the Elastic Tree backend to tells us which switches are in a fat 
+     * tree of a particular size.
+     */
+    ET_SWITCHES_REQUEST((byte)0xF6),
+    
+    /**
+     * Tells the Elastic Tree backend about switch failures.
+     */
+    ET_SWITCH_FAILURES((byte)0xF7),
+
+    /**
+     * Tells the Elastic Tree backend about link failures.
+     */
+    ET_LINK_FAILURES((byte)0xF8),
+    
+    /**
+     * Tells the Elastic Tree GUI when a computation resulting from the last
+     * ET_TRAFFIC_MATRIX message has completed.
+     */
+    ET_COMPUTATION_DONE((byte)0xFF),
+    
     ;
 
     /** the special value used to identify messages of this type */
@@ -134,6 +187,24 @@ public enum LAVIMessageType {
             case STAT_REPLY:
                 return StatsType.decode(len, t, xid, in);
 
+            case ET_BANDWIDTH:
+                return new ETBandwidth(len, xid, in);
+            
+            case ET_LATENCY:
+                return new ETLatency(len, xid, in);
+            
+            case ET_LINK_UTILS:
+                return new ETLinkUtilsList(len, xid, in);
+            
+            case ET_POWER_USAGE:
+                return new ETPowerUsage(len, xid, in);
+            
+            case ET_SWITCHES_OFF:
+                return new ETSwitchesOff(len, xid, in);
+            
+            case ET_COMPUTATION_DONE:
+                return new ETComputationDone(len, xid, in);
+                
             case DISCONNECT:
             case AUTH_REPLY:
             case POLL_START:
@@ -141,6 +212,10 @@ public enum LAVIMessageType {
             case SWITCHES_REQUEST:
             case LINKS_REQUEST:
             case STAT_REQUEST:
+            case ET_TRAFFIX_MATRIX:
+            case ET_SWITCHES_REQUEST:
+            case ET_SWITCH_FAILURES:
+            case ET_LINK_FAILURES:
                 throw new IOException("Received unexpected message type: " + t.toString());
                 
             default:

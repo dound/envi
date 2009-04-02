@@ -7,7 +7,7 @@
   <property name="bin.dir"    value="bin"/>
   <property name="lib.dir"    value="lib"/>
   <property name="jarfile"    value="lavi_gui.jar"/>
-  <property name="main-class" value="org.openflow.lavi.LAVI"/>
+  <property name="main-class" value="org.openflow.lavi.et.ElasticTree"/>
 
   <path id="classpath">
     <fileset dir="${lib.dir}" includes="*.jar"/>

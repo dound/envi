@@ -30,7 +30,7 @@ public class LAVI<MANAGER extends PZLayoutManager> implements LAVIMessageProcess
         Short port = null;
         
         PZLayoutManager manager = new PZLayoutManager();
-        new LAVI<PZLayoutManager>(manager, server, port, true);
+        new LAVI<PZLayoutManager>(manager, server, port, true).startConnection();
         
         // layout the nodes with the spring algorithm by default
         manager.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(manager.getGraph()));
@@ -107,7 +107,10 @@ public class LAVI<MANAGER extends PZLayoutManager> implements LAVIMessageProcess
         // fire up the GUI
         this.manager = manager;
         manager.start();
-        
+    }
+   
+    /** start the connection - should only be called once */
+    public void startConnection() {
         // try to connect to the backend
         conn.start();
     }

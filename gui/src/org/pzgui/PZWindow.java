@@ -66,6 +66,10 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
             
             public void mouseReleased(MouseEvent evt) {
                 synchronized(manager) {
+                    Drawable d = manager.getSelected();
+                    if(d != null)
+                        manager.fireDrawableEvent(d, "mouse_released");
+                    
                     manager.noteMouseUp();
 
                     // apply new panning, if any
@@ -245,6 +249,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
 
         synchronized(imgLock) {
             // redraw the scene
+            manager.preRedraw(this);
             manager.redraw(this);
 
             // copy the image buffer into the JLabel on the JFrame
@@ -276,6 +281,32 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     // ------- Window Position and Size ------- //
     // **************************************** //
 
+    /** how much of the right side of the window is reserved for other content */
+    private int reservedWidthRight = 0;
+    
+    /** how much of the bottom side of the window is reserved for other content */
+    private int reservedHeightBottom = 0;
+    
+    /** gets how much of the right side of the window is reserved for other content */
+    public int getReservedWidthRight() {
+        return reservedWidthRight;
+    }
+
+    /** sets how much of the right side of the window is reserved for other content */
+    public void setReservedWidthRight(int reservedWidthRight) {
+        this.reservedWidthRight = reservedWidthRight;
+    }
+    
+    /** gets how much of the bottom side of the window is reserved for other content */
+    public int getReservedHeightBottom() {
+        return reservedHeightBottom;
+    }
+    
+    /** sets how much of the bottom side of the window is reserved for other content */
+    public void setReservedHeightBottom(int reservedHeightBottom) {
+        this.reservedHeightBottom = reservedHeightBottom;
+    }
+    
     /** 
      * How this window is docked to the previous window; 0=not docked, else see
      * SwingConstants (TOP, BOTTOM, LEFT, or RIGHT)
@@ -323,17 +354,22 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
         int oldW = img.getWidth();
         int oldH = img.getHeight();
         
+        w -= reservedWidthRight;
+        h -= reservedHeightBottom;
         if(w!=oldW || h!=oldH) {
             float oldMinZoomFactor = Math.min(oldW, oldH);
             float newMinZoomFactor = Math.min(w, h);
-            setMySize(w, h, zoom * newMinZoomFactor / oldMinZoomFactor);
+            setMySize(w+reservedWidthRight, h+reservedHeightBottom, zoom * newMinZoomFactor / oldMinZoomFactor);
         }
     }
 
     /** set the height, width, and zoom of this window */
     public void setMySize(int w, int h, float zoom) {
         this.zoom = zoom;
+        this.zoom = 1.0f; // ET hack
         this.setBounds(getX(), getY(), w, h);
+        w -= reservedWidthRight;
+        h -= reservedHeightBottom;
         lblCanvas.setBounds(0, 0, w, h);
         
         synchronized(imgLock) {

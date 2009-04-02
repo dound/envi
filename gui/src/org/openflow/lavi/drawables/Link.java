@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Stroke;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import org.openflow.lavi.net.LAVIConnection;
@@ -16,6 +17,8 @@ import org.openflow.protocol.AggregateStatsRequest;
 import org.openflow.protocol.Match;
 import org.pzgui.Constants;
 import org.pzgui.AbstractDrawable;
+import org.pzgui.StringDrawer;
+import org.pzgui.icon.GeometricIcon;
 import org.pzgui.layout.Edge;
 import org.pzgui.math.Vector2f;
 
@@ -37,6 +40,17 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     private int numOtherLinks = 0;
     private Polygon boundingBox = null;
+    
+    /** whether the link is off because it "failed" */
+    private boolean failed = false;
+    
+    public boolean isFailed() {
+        return failed;
+    }
+    
+    public void setFailed(boolean b) {
+        failed = b;
+    }
     
     /**
      * This exception is thrown if a link which already exists is tried to be 
@@ -77,6 +91,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     }
     
     public void drawObject(Graphics2D gfx) {
+        if(curDrawColor == null)
+            return;
+        
         Stroke s = gfx.getStroke();
         
         int ocount = ((numOtherLinks+1)/2)*2;
@@ -102,14 +119,17 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         gfx.drawLine(src.getX()+offsetX, src.getY()+offsetY, 
                      dst.getX()+offsetX, dst.getY()+offsetY);
         
+        if(failed)
+            GeometricIcon.X.draw(gfx, (src.getX()+dst.getX())/2+offsetX, (src.getY()+dst.getY())/2+offsetY);
+        
         // draw the port numbers
         if(DRAW_PORT_NUMBERS) {
             double alpha = 0.9;
-            gfx.setPaint(Color.RED);
+            gfx.setPaint(Constants.cmap(Color.RED));
             int srcPortX = (int)(alpha*src.getX() + (1.0-alpha)*dst.getX() + offsetX);
             int srcPortY = (int)(alpha*src.getY() + (1.0-alpha)*dst.getY() + offsetY);
             gfx.drawString(Short.toString(this.srcPort), srcPortX, srcPortY);
-            gfx.setPaint(Color.GREEN.darker());
+            gfx.setPaint(Constants.cmap(Color.GREEN.darker()));
             int dstPortX = (int)(alpha*dst.getX() + (1.0-alpha)*src.getX() + offsetX);
             int dstPortY = (int)(alpha*dst.getY() + (1.0-alpha)*src.getY() + offsetY);
             gfx.drawString(Short.toString(this.dstPort), dstPortX, dstPortY);
@@ -284,9 +304,28 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         else
             conn.sendLAVIMessage(req);
         
+        trackStats(m, req.xid, isPolling);
+    }
+    
+    /**
+     * Tells the link to setup stats for specified Match but do not acquire them automatically.
+     * @param m  the match to setup stats for
+     */
+    public PortStatsRates trackStats(Match m) {
+        return trackStats(m, 0, false);
+    }
+    
+    /**
+     * Tells the link to setup stats for specified Match but do not acquire them automatically.
+     * @param m  the match to setup stats for
+     * @param xid  the xid of the request which is acquiring stats for m
+     * @param isPolling  whether the stats are being polled with xid
+     */
+    public PortStatsRates trackStats(Match m, int xid, boolean isPolling) {
         // remember that we are interested in these stats
-        LinkStatsInfo lsi = new LinkStatsInfo(req.xid, isPolling, new PortStatsRates(m));
+        LinkStatsInfo lsi = new LinkStatsInfo(xid, isPolling, new PortStatsRates(m));
         stats.put(m, lsi);
+        return lsi.stats;
     }
     
     /**
@@ -318,8 +357,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         stats.clear();
     }
     
+    /** whether to hide links which we have never received statistics about */
+    public static boolean HIDE_LINKS_WITHOUT_STATS = false;
+    
     /** the color to draw the link */
-    private Color curDrawColor = Color.BLACK;
+    private Color curDrawColor = (HIDE_LINKS_WITHOUT_STATS ? null : Color.BLACK);
     
     /** 
      * Returns the current bandwidth being sent through the link in ps or a 
@@ -360,15 +402,77 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     }
     
     /** sets the color this link will be drawn based on the current utilization */
-    private void setColor() {
+    public void setColor() {
         float usage = (float)getCurrentUtilization();
+        this.curDrawColor = getUsageColor(usage);
+    }
+    
+    /**
+     * Gets the color associated with a particular usage value.
+     */
+    public static Color getUsageColor(float usage) {
         if(usage < 0) {
-            this.curDrawColor = Color.BLUE; // indicate that we don't know the util
-            return;
+            return Color.BLUE; // indicates that we don't know the utilization
         }
         else if (usage > 1)
             usage = 1;
         
-        this.curDrawColor = new Color(usage, 0f, 0f); 
+        return USAGE_COLORS[(int)(usage * (NUM_USAGE_COLORS-1))];
+    }
+    
+    /**
+     * Computes the color associated with a particular usage value.
+     */
+    private static Color computeUsageColor(float usage) {
+        if(usage == 0.0f)
+            return new Color(0.3f, 0.3f, 0.3f, 0.5f); // faded gray
+        else {
+            float mid = 1.5f / 3.0f;
+            
+            if(usage < mid) {
+                // blend green + yellow
+                float alpha = usage / mid;
+                return new Color(1.0f*alpha+0.0f*(1.0f-alpha),
+                                 1.0f*alpha+1.0f*(1.0f-alpha),
+                                 0.0f);
+            }
+            else {
+                // blend red + yellow
+                float alpha = (usage - mid) / mid;
+                return new Color(1.0f*alpha+1.0f*(1.0f-alpha),
+                                 0.0f*alpha+1.0f*(1.0f-alpha),
+                                 0.0f);
+            }
+        }
+    }
+    
+    /** precomputed usage colors for performance reasons */
+    public static final int NUM_USAGE_COLORS = 256;
+    public static final Color[] USAGE_COLORS;
+    public static final  BufferedImage USAGE_LEGEND;
+    
+    static {
+        USAGE_COLORS = new Color[NUM_USAGE_COLORS];
+        int legendHeight = 20;
+        USAGE_LEGEND = new BufferedImage(NUM_USAGE_COLORS, legendHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D gfx = (Graphics2D)USAGE_LEGEND.getGraphics();
+        for(int i=0; i<NUM_USAGE_COLORS; i++) {
+            USAGE_COLORS[i] = computeUsageColor(i / (float)(NUM_USAGE_COLORS-1));
+            gfx.setPaint(USAGE_COLORS[i]);
+            gfx.drawLine(i, 0, i, legendHeight);
+        }
+        gfx.setPaint(Constants.PAINT_DEFAULT);
+        
+        // draw the explanation on top of the legend
+        gfx.setFont(Constants.FONT_DEFAULT);
+        gfx.setColor(Color.BLACK);
+        int lw = USAGE_LEGEND.getWidth();
+        int lh = USAGE_LEGEND.getHeight();
+        int y = lh / 2 + 5;
+        int margin_x = 5;
+        gfx.drawString("0%", margin_x, y);
+        StringDrawer.drawCenteredString("Link Utilization (%)", gfx, lw / 2, y);
+        StringDrawer.drawRightAlignedString("100%", gfx, lw - margin_x, y);
+        gfx.setColor(Constants.COLOR_DEFAULT);
     }
 }

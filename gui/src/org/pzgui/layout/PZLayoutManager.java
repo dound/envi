@@ -116,10 +116,10 @@ public class PZLayoutManager extends org.pzgui.PZManager {
      * @param layout  the new layout, or null to turn off auto-layout
      */
     public synchronized void setLayout(Layout<Vertex, Edge> layout) {
-        if(this.layout != null)
-            this.layout.setGraph(null);
-        
         this.layout = layout;
+        if(this.layout == null)
+            return;
+        
         this.layout.setGraph(graph);
         this.layout.setSize(maxLayoutSize);
         this.layout.reset();
@@ -178,8 +178,8 @@ public class PZLayoutManager extends org.pzgui.PZManager {
                 minX = Math.min(minX, w.getX());
                 minY = Math.min(minY, w.getY());
                 
-                maxX = Math.max(maxX, w.getX() + w.getWidth());
-                maxY = Math.max(maxY, w.getY() + w.getHeight());
+                maxX = Math.max(maxX, w.getX() + w.getWidth() - w.getReservedWidthRight());
+                maxY = Math.max(maxY, w.getY() + w.getHeight() - w.getReservedHeightBottom());
             }
         }
         

@@ -4,7 +4,6 @@ import org.pzgui.icon.Icon;
 import org.pzgui.icon.TemporalIcon;
 import org.pzgui.icon.TextIcon;
 import org.pzgui.math.Vector2i;
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -326,6 +325,22 @@ public class PZManager extends Thread {
             catch(InterruptedException e) { /* ignore */ }
         }
     }
+
+    /** 
+     * This method is called before each redraw.
+     */
+    protected void preRedraw(PZWindow window) {
+        // get GUI fields which affect the drawing process
+        Graphics2D gfx = window.getDisplayGfx();
+        if(gfx == null)
+            return;
+
+        // clear the drawing space
+        gfx.setBackground(Constants.BG_DEFAULT);
+        gfx.clearRect(0, 0, window.getWidth() - window.getReservedWidthRight(), window.getHeight() - window.getReservedHeightBottom());
+        gfx.setFont(Constants.FONT_DEFAULT);
+        gfx.setPaint(Constants.PAINT_DEFAULT);
+    }
     
     /** 
      * This method is called after each redraw.  This implementation is a no-op
@@ -356,12 +371,6 @@ public class PZManager extends Thread {
         Graphics2D gfx = window.getDisplayGfx();
         if(gfx == null)
             return;
-
-        // clear the drawing space
-        gfx.setBackground(Color.WHITE);
-        gfx.clearRect(0, 0, window.getWidth(), window.getHeight());
-        gfx.setFont(Constants.FONT_DEFAULT);
-        gfx.setPaint(Constants.PAINT_DEFAULT);
 
         // setup the view based on the pan and zoom settings
         Vector2i offset = new Vector2i(window.getDrawOffsetX(), window.getDrawOffsetY());
@@ -570,5 +579,31 @@ public class PZManager extends Thread {
             if(d != null)
                 d.setHovered(true);
         }
+    }
+
+
+    // ------ Drawable Event Handling ------- //
+    // ************************************** //
+    
+    /** closing event listeners */
+    private final LinkedList<DrawableEventListener> drawableEventListeners = new LinkedList<DrawableEventListener>();
+    
+    /** adds a listener to be notified when the traffic matrix has changed */
+    public void addDrawableEventListener(DrawableEventListener del) {
+        if(!drawableEventListeners.contains(del))
+            drawableEventListeners.add(del);
+    }
+
+    /** removes the specified traffic matrix change listener */
+    public void removeDrawableEventListener(DrawableEventListener del) {
+        drawableEventListeners.remove(del);
+    }
+        
+    /**
+     * Updates the slider labels and notify those listening for traffic matrix changes.
+     */
+    public void fireDrawableEvent(Drawable d, String event) {
+        for(DrawableEventListener del : drawableEventListeners)
+            del.drawableEvent(d, event);
     }
 }

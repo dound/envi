@@ -12,13 +12,15 @@ import org.openflow.lavi.net.protocol.auth.*;
 import org.openflow.protocol.*;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
+import org.pzgui.Drawable;
+import org.pzgui.DrawableEventListener;
 import org.pzgui.PZClosing;
 import org.pzgui.PZManager;
 import org.pzgui.layout.Edge;
 import org.pzgui.layout.PZLayoutManager;
 import org.pzgui.layout.Vertex;
 
-public class LAVI implements LAVIMessageProcessor, PZClosing {
+public class LAVI<MANAGER extends PZLayoutManager> implements LAVIMessageProcessor, PZClosing, DrawableEventListener {
     /** run the LAVI front-end */
     public static void main(String args[]) {
         String server = null;
@@ -26,23 +28,67 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             server = args[0];
         
         Short port = null;
-        new LAVI(server, port);
+        
+        PZLayoutManager manager = new PZLayoutManager();
+        new LAVI<PZLayoutManager>(manager, server, port, true).startConnection();
+        
+        // layout the nodes with the spring algorithm by default
+        manager.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(manager.getGraph()));
     }
     
     /** connection to the backend */
-    private final LAVIConnection conn;
+    protected final LAVIConnection conn;
     
     /** the GUI window manager */
-    private final PZLayoutManager manager;
+    protected final MANAGER manager;
+    
+    /** whether to automatically request link info for all new switches */
+    private boolean autoRequestLinkInfoForNewSwitch;
+    
+    /** whether to automatically request that link stats be periodically sent for all new links */
+    private boolean autoTrackStatsForNewLink;
     
     /** how often to refresh basic port statistics */
-    private int statsRefreshRate_msec = 2000;
+    private int statsRefreshRate_msec;
     
-    /** start the LAVI front-end */
-    public LAVI(String server, Short port) {
+    /** whether the GUI is shutting down */
+    private boolean disconnecting = false;
+
+    /**
+     * Start the LAVI front-end.
+     * 
+     * @param manager  the object for managing this GUI 
+     * @param server   the IP or hostname where the back-end is located
+     * @param port     the port the back-end is listening on
+     * @param auto     whether subscribeSwitches/Links and auto requests should 
+     *                 be on or off (like calling the full LAVI constructor with
+     *                 auto for all boolean arguments)
+     */
+    public LAVI(MANAGER manager, String server, Short port, boolean auto) {
+        this(manager, server, port, auto, auto, auto, auto, 2000);
+    }
+    
+    /** 
+     * Start the LAVI front-end.
+     * 
+     * @param manager                          the object for managing this GUI 
+     * @param server                           the IP or hostname where the back-end is located
+     * @param port                             the port the back-end is listening on
+     * @param subscribeSwitches                whether to subscribe to switch changes
+     * @param subscribeLinks                   whether to subscribe to link changes
+     * @param autoRequestLinkInfoForNewSwitch  whether to automatically request link info for all new switches
+     * @param autoTrackStatsForNewLink         whether to automatically request that link stats be periodically sent for all new links
+     * @param statsRefreshRate_msec            how often to refresh basic port statistics (irrelevant if autoTrackStatsForNewLink is false)
+     */
+    public LAVI(MANAGER manager,
+                String server, Short port,
+                boolean subscribeSwitches, boolean subscribeLinks,
+                boolean autoRequestLinkInfoForNewSwitch,
+                boolean autoTrackStatsForNewLink,
+                int statsRefreshRate_msec) {
         // ask the user for the NOX controller's IP if it wasn't already given
         if(server == null || server.length()==0)
-            server = DialogHelper.getInput("What is the IP or hostname of the NOX server?", "mvm-nox2.stanford.edu");
+            server = DialogHelper.getInput("What is the IP or hostname of the NOX server?", "127.0.0.1");
 
         if(server == null) {
             System.out.println("Goodbye");
@@ -50,24 +96,28 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         }
         
         if(port == null)
-            conn = new LAVIConnection(this, server);
-        else
-            conn = new LAVIConnection(this, server, port);
+            port = LAVIConnection.DEFAULT_PORT;
+        conn = new LAVIConnection(this, server, port, subscribeSwitches, subscribeLinks);
 
-        // fire up the GUI
-        manager = new PZLayoutManager();
-        manager.addClosingListener(this);
-        manager.start();
+        // set defaults
+        this.autoRequestLinkInfoForNewSwitch = autoRequestLinkInfoForNewSwitch;
+        this.autoTrackStatsForNewLink = autoTrackStatsForNewLink;
+        this.statsRefreshRate_msec = statsRefreshRate_msec;
         
+        // fire up the GUI
+        this.manager = manager;
+        manager.start();
+    }
+   
+    /** start the connection - should only be called once */
+    public void startConnection() {
         // try to connect to the backend
         conn.start();
-        
-        // layout the nodes with the spring algorithm by default
-        manager.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(manager.getGraph()));
     }
     
     /** shutdown the connection */
     public void pzClosing(PZManager manager) {
+        disconnecting = true;
         long start = System.currentTimeMillis();
         conn.shutdown();
         Thread.yield();
@@ -76,18 +126,30 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         while(!conn.isShutdown() && System.currentTimeMillis()-start<1000) {}
     }
     
+    /** a drawable has fired an event (this method does nothing by default) */
+    public void drawableEvent(Drawable d, String event) {}
+    
     /** Called when the LAVI backend has been disconnected or reconnected */
     public void connectionStateChange() {
         if(!conn.isConnected()) {
-            // remove all switches when we get disconnected
-            for(Long d : switchesList)
-                disconnectSwitch(d);
+            cleanup();
         }
+    }
+    
+    /**
+     * Cleanup state.  Called by the LAVI object whenever it becomes disconnected
+     * from the backend.  Will remove all switches.
+     */
+    protected void cleanup() {
+        // remove all switches when we get disconnected
+        for(Long d : switchesList)
+            disconnectSwitch(d);
     }
 
     /** Handles messages received from the LAVI backend */
     public void process(final LAVIMessage msg) {
-        System.out.println("recv: " + msg.toString());
+        if(LAVIConnection.PRINT_LAVI_MESSAGES)
+            System.out.println("recv: " + msg.toString());
         
         switch(msg.type) {
         case AUTH_REQUEST:
@@ -124,7 +186,7 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             System.err.println("Unhandled type received: " + msg.type.toString());
         }
     }
-    
+
     private void processAuthRequest(AuthHeader msg) {
         switch(msg.authType) {
         case PLAIN_TEXT:
@@ -153,11 +215,11 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     }
 
     /** switches in the topology */
-    private final ConcurrentHashMap<Long, OpenFlowSwitch> switchesMap = new ConcurrentHashMap<Long, OpenFlowSwitch>();
-    private final CopyOnWriteArrayList<Long> switchesList = new CopyOnWriteArrayList<Long>();
+    protected final ConcurrentHashMap<Long, OpenFlowSwitch> switchesMap = new ConcurrentHashMap<Long, OpenFlowSwitch>();
+    protected final CopyOnWriteArrayList<Long> switchesList = new CopyOnWriteArrayList<Long>();
     
     /** list of switches which should be displayed as one or more virtual switches */
-    private final ConcurrentHashMap<Long, VirtualSwitchSpecification> virtualSwitches = new ConcurrentHashMap<Long, VirtualSwitchSpecification>();
+    protected final ConcurrentHashMap<Long, VirtualSwitchSpecification> virtualSwitches = new ConcurrentHashMap<Long, VirtualSwitchSpecification>();
     
     /** add a new display virtualization scheme for a switch */
     public void addVirtualizedSwitchDisplay(VirtualSwitchSpecification v) {
@@ -209,6 +271,9 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
         switchesList.add(dpid);
         s.setPos((int)Math.random()*500, (int)Math.random()*500);
         addSwitchDrawable(s);
+        
+        if(!autoRequestLinkInfoForNewSwitch)
+            return s;
         
         // get the links associated with this switch
         try {
@@ -308,6 +373,9 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
                 if(l == null)
                     continue;
                 
+                if(!autoTrackStatsForNewLink)
+                    continue;
+                
                 // tell the backend to keep us updated on the link's utilization
                 try {
                     l.trackStats(statsRefreshRate_msec, Match.MATCH_ALL, conn);
@@ -332,13 +400,13 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
     private void disconnectLink(long dstDPID, short dstPort, long srcDPID, short srcPort) {
         OpenFlowSwitch srcSwitch = switchesMap.get(srcDPID);
         if(srcSwitch == null) {
-            logLinkMissing("src switch", dstDPID, dstPort, srcDPID, srcPort);
+            logLinkMissing("delete", "src switch", dstDPID, dstPort, srcDPID, srcPort);
             return;
         }
         
         OpenFlowSwitch dstSwitch = switchesMap.get(dstDPID);
         if(dstSwitch == null) {
-            logLinkMissing("dst switch", dstDPID, dstPort, srcDPID, srcPort);
+            logLinkMissing("delete", "dst switch", dstDPID, dstPort, srcDPID, srcPort);
             return;
         }
         
@@ -352,12 +420,13 @@ public class LAVI implements LAVIMessageProcessor, PZClosing {
             }
         }
         else
-            logLinkMissing("link", dstDPID, dstPort, srcDPID, srcPort);
+            logLinkMissing("delete", "link", dstDPID, dstPort, srcDPID, srcPort);
     }
     
     /** Prints an error message about a missing link. */
-    private void logLinkMissing(String why, long dstDPID, short dstPort, long srcDPID, short srcPort) {
-        System.err.println("Ignoring link delete message for non-existant " + why + ": " + 
+    protected void logLinkMissing(String msg, String why, long dstDPID, short dstPort, long srcDPID, short srcPort) {
+        if(disconnecting) return;
+        System.err.println("Ignoring link " + msg + " message for non-existant " + why + ": " + 
                 DPIDUtil.toString(srcDPID) + ", port " + srcPort + " to " +
                 DPIDUtil.toString(dstDPID) + ", port " + dstPort);
     }

@@ -9,7 +9,7 @@ import java.util.LinkedList;
  * @author David Underhill
  */
 public abstract class StringOps {
-    public String formatBits( long num_bits, boolean toBytes  ) {
+    public static String formatBits( long num_bits, boolean toBytes  ) {
         long bytes = num_bits / (toBytes ? 8 : 1);
         int units = 0;
         while( bytes >= 10000 ) {
@@ -28,6 +28,32 @@ public abstract class StringOps {
         }
         
         return Long.toString( bytes ) + strUnit + (toBytes ? "B" : "b");
+    }
+    
+    public static String formatBitsPerSec(long num_bits, boolean toBytes) {
+        return formatBits(num_bits, toBytes) + "ps";
+    }
+    
+    public static String formatBitsPerSec(long num_bits) {
+        return formatBitsPerSec(num_bits, false);
+    }
+    
+    public static String formatBitsPerSec(float util, long max_rate) {
+        return formatBitsPerSec((int)(max_rate * util), false);
+    }
+    
+    public static String formatSecs(int num_msecs) {
+        int hours = num_msecs / 3600000; num_msecs -= 3600000 * hours;
+        int mins = num_msecs / 60000; num_msecs -= 60000 * mins;
+        int secs = num_msecs / 1000; num_msecs -= 1000 * secs;
+        
+        if(hours > 0)
+            return hours + "h:" + mins + "m:" + secs + "." + num_msecs + "sec";
+        if(mins > 0)
+            return mins + "m:" + secs + "." + num_msecs + "sec";
+        if(secs > 0)
+            return secs + "." + num_msecs + "sec";
+        return num_msecs + "msec";
     }
     
   /**

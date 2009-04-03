@@ -250,7 +250,7 @@ public class ElasticTree extends LAVI<ElasticTreeManager>
             return 0;
         }
         
-        Link existingLink = dstSwitch.getLinkTo(dstPort, srcSwitch, srcPort);
+        Link existingLink = dstSwitch.getDirectedLinkTo(dstPort, srcSwitch, srcPort, false);
         if(existingLink != null) {
             PortStatsRates psr = existingLink.getStats(Match.MATCH_ALL);
             if(psr == null)

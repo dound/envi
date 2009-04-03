@@ -138,6 +138,9 @@ public abstract class NodeWithPorts extends Node {
     
     /** Returns a link from this node to the requested node if such a link exists */
     public Link getDirectedLinkTo(short myPort, NodeWithPorts n, short nPort, boolean nIsDestination) {
+        if(!Link.USE_DIRECTED_LINKS)
+            return getLinkTo(myPort, n, nPort);
+        
         for(Link l : links)
             if((nIsDestination && l.getDestination()==n) || (!nIsDestination && l.getSource()==n))
                 if(l.getMyPort(this)==myPort && l.getMyPort(n)==nPort)

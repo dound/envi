@@ -90,7 +90,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     protected short dstPort;
     
     /** whether this link is wired (else it is wireless) */
-    private boolean wired;
+    private boolean wired = true;
 
     /** maximum capacity of the link */
     private double maxDataRate_bps = 1 * 1000 * 1000 * 1000; 
@@ -214,7 +214,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** the color to draw the link (if null, then this link will not be drawn) */
     private Color curDrawColor = Color.BLACK;
     
-    /** how much to offset the link drawng in the x axis */
+    /** how much to offset the link drawing in the x axis */
     private int offsetX;
     
     /** how much to offset the link drawing in the y axis */

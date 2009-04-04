@@ -14,7 +14,7 @@ import java.util.HashMap;
  * @author David Underhill
  */
 public class ShapeIcon extends Icon {
-    private Shape shape;
+    private final Shape shape;
     private Paint fillColor;
     private Paint outlineColor;
     private final Dimension size;
@@ -45,20 +45,23 @@ public class ShapeIcon extends Icon {
     }
     
     public void draw(Graphics2D gfx, int x, int y, int w, int h, Paint fill, Paint outline) {
+        Shape s;
+        
         // get an appropriately sized shape if we don't have it already
         if(size.getWidth()!=w || size.getHeight()!=h) {
             Dimension d = new Dimension(w, h);
-            Shape s = resampledShapes.get(d);
+            s = resampledShapes.get(d);
             if(s == null) {
                 // have to make a new shape of the requested size
                 AffineTransform af = new AffineTransform();
                 af.setToScale(w / (double)size.getWidth(), h / (double)size.getHeight());
                 s = af.createTransformedShape(shape);
             }
-            shape = s;
         }
+        else
+            s = shape;
         
-        draw(gfx, shape, fill, outline, x, y);
+        draw(gfx, s, fill, outline, x, y);
     }
     
     public static void draw( Graphics2D gfx, Shape s, Paint fill, Paint outline, int x, int y) {

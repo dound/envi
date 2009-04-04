@@ -2,8 +2,9 @@ package org.openflow.protocol;
 
 import java.io.DataInput;
 import java.io.IOException;
-import org.openflow.lavi.net.protocol.LAVIMessageType;
-import org.openflow.lavi.net.protocol.StatsHeader;
+
+import org.openflow.gui.net.protocol.OFGMessageType;
+import org.openflow.gui.net.protocol.StatsHeader;
 
 /**
  * Enumerates what types of stats are in the OpenFlow protocol.  Equivalent 
@@ -42,7 +43,7 @@ public enum StatsType {
         return typeID;
     }
 
-    /** Returns the LAVIMessageType constant associated with typeID, if any */
+    /** Returns the OFGMessageType constant associated with typeID, if any */
     public static StatsType typeValToStatsType(short typeID) {
         for(StatsType t : StatsType.values())
             if(t.getTypeID() == typeID)
@@ -53,11 +54,11 @@ public enum StatsType {
     
     /**
      * Constructs the object representing the received message.  The message is 
-     * known to be of length len and len - LAVIMessage.SIZEOF bytes representing
+     * known to be of length len and len - OFGMessage.SIZEOF bytes representing
      * the rest of the message should be extracted from buf.
      */
-    public static StatsHeader decode(int len, LAVIMessageType t, int xid, DataInput in) throws IOException {
-        if(t != LAVIMessageType.STAT_REPLY)
+    public static StatsHeader decode(int len, OFGMessageType t, int xid, DataInput in) throws IOException {
+        if(t != OFGMessageType.STAT_REPLY)
             throw new IOException("StatsType.decode was unexpectedly asked to decode type " + t.toString());
         
         // parse the stats header

@@ -1,21 +1,21 @@
-"""Defines the LAVI-based Elastic Tree protocol."""
+"""Defines the OpenFlow GUI-based Elastic Tree protocol."""
 
 import struct
 
 from twisted.internet import reactor
 
-from LAVIMessage import dpidstr, LAVIMessage, LAVI_MESSAGES, Link, SwitchesList, run_lavi_server
+from OFGMessage import dpidstr, OFGMessage, OFG_MESSAGES, Link, SwitchesList, run_ofg_server
 from ltprotocol.ltprotocol import LTProtocol
 
 ET_MESSAGES = []
 
-class ETTrafficMatrix(LAVIMessage):
+class ETTrafficMatrix(OFGMessage):
     @staticmethod
     def get_type():
         return 0xF0
 
     def __init__(self, use_hw, may_split_flows, k, demand, edge, agg, plen, xid=0):
-        LAVIMessage.__init__(self, xid)
+        OFGMessage.__init__(self, xid)
         self.use_hw = bool(use_hw)
         self.may_split_flows = bool(may_split_flows)
         self.k      = int(k)
@@ -32,10 +32,10 @@ class ETTrafficMatrix(LAVIMessage):
                 self.agg = 1.0 - self.edge
 
     def length(self):
-        return LAVIMessage.SIZE + 22
+        return OFGMessage.SIZE + 22
 
     def pack(self):
-        return LAVIMessage.pack(self) + struct.pack('> 2B I 3f I', self.use_hw, self.may_split_flows, self.k, self.demand, self.edge, self.agg, self.plen)
+        return OFGMessage.pack(self) + struct.pack('> 2B I 3f I', self.use_hw, self.may_split_flows, self.k, self.demand, self.edge, self.agg, self.plen)
 
     @staticmethod
     def unpack(body):
@@ -45,7 +45,7 @@ class ETTrafficMatrix(LAVIMessage):
         return ETTrafficMatrix(t[0], t[1], t[2], t[3], t[4], t[5], t[6], xid)
 
     def __str__(self):
-        fmt = 'ET_TRAFFIC_MATRIX: ' + LAVIMessage.__str__(self) + " hw=%u split=%u k=%u demand=%u edge=%u agg=%u plen=%u"
+        fmt = 'ET_TRAFFIC_MATRIX: ' + OFGMessage.__str__(self) + " hw=%u split=%u k=%u demand=%u edge=%u agg=%u plen=%u"
         return fmt % (self.use_hw, self.may_split_flows, self.k, self.demand, self.edge, self.agg, self.plen)
 ET_MESSAGES.append(ETTrafficMatrix)
 
@@ -64,20 +64,20 @@ class ETLinkUtil(Link):
         t = struct.unpack('> QHQHf', buf[:24])
         return Link(t[0], t[1], t[2], t[3], t[4])
 
-class ETLinkUtils(LAVIMessage):
+class ETLinkUtils(OFGMessage):
     @staticmethod
     def get_type():
         return 0xF1
 
     def __init__(self, utils, xid=0):
-        LAVIMessage.__init__(self, xid)
+        OFGMessage.__init__(self, xid)
         self.utils = utils
 
     def length(self):
-        return LAVIMessage.SIZE + self.utils * ETLinkUtil.SIZE
+        return OFGMessage.SIZE + self.utils * ETLinkUtil.SIZE
 
     def pack(self):
-        hdr = LAVIMessage.pack(self)
+        hdr = OFGMessage.pack(self)
         return hdr + ''.join([util.pack() for util in self.utils])
 
     @staticmethod
@@ -92,26 +92,26 @@ class ETLinkUtils(LAVIMessage):
         return ETLinkUtils(utils, xid)
 
     def __str__(self):
-        return 'ET_LINK_UTILS: ' + LAVIMessage.__str__(self) + ' utils=%s' % str(self.utils)
+        return 'ET_LINK_UTILS: ' + OFGMessage.__str__(self) + ' utils=%s' % str(self.utils)
 ET_MESSAGES.append(ETLinkUtils)
 
-class ETPowerUsage(LAVIMessage):
+class ETPowerUsage(OFGMessage):
     @staticmethod
     def get_type():
         return 0xF2
 
     def __init__(self, watts_current, watts_traditional, watts_max=None, xid=0):
-        LAVIMessage.__init__(self, xid)
+        OFGMessage.__init__(self, xid)
         self.watts_current = int(watts_current)
         self.watts_traditional = int(watts_traditional)
         self.watts_max = int(watts_max if watts_max is not None else watts_traditional)
 
     def length(self):
-        return LAVIMessage.SIZE + 12
+        return OFGMessage.SIZE + 12
 
     def pack(self):
         body = struct.pack('> 3I', self.watts_current, self.watts_traditional, self.watts_max)
-        return LAVIMessage.pack(self) + body
+        return OFGMessage.pack(self) + body
 
     @staticmethod
     def unpack(body):
@@ -125,7 +125,7 @@ class ETPowerUsage(LAVIMessage):
         return ETPowerUsage(watts_current, watts_traditional, watts_max, xid)
 
     def __str__(self):
-        fmt = 'ET_POWER_USAGE: ' + LAVIMessage.__str__(self) + " cur=%u trad=%u max=%u"
+        fmt = 'ET_POWER_USAGE: ' + OFGMessage.__str__(self) + " cur=%u trad=%u max=%u"
         return fmt % (self.watts_current, self.watts_traditional, self.watts_max)
 ET_MESSAGES.append(ETPowerUsage)
 
@@ -141,21 +141,21 @@ class ETSwitchesOff(SwitchesList):
         return 'SWITCHES_OFF: ' + SwitchesList.__str__(self)
 ET_MESSAGES.append(ETSwitchesOff)
 
-class ETBandwidth(LAVIMessage):
+class ETBandwidth(OFGMessage):
     @staticmethod
     def get_type():
         return 0xF4
 
     def __init__(self, bandwidth_achieved_mbps, xid=0):
-        LAVIMessage.__init__(self, xid)
+        OFGMessage.__init__(self, xid)
         self.bandwidth_achieved_mbps = int(bandwidth_achieved_mbps)
 
     def length(self):
-        return LAVIMessage.SIZE + 4
+        return OFGMessage.SIZE + 4
 
     def pack(self):
         body = struct.pack('> I', self.bandwidth_achieved_mbps)
-        return LAVIMessage.pack(self) + body
+        return OFGMessage.pack(self) + body
 
     @staticmethod
     def unpack(body):
@@ -165,27 +165,27 @@ class ETBandwidth(LAVIMessage):
         return ETPowerUsage(bandwidth_achieved_mbps, xid)
 
     def __str__(self):
-        fmt = 'ET_BANDWIDTH_ACHIEVED: ' + LAVIMessage.__str__(self) + " %u Mbps"
+        fmt = 'ET_BANDWIDTH_ACHIEVED: ' + OFGMessage.__str__(self) + " %u Mbps"
         return fmt % self.bandwidth_achieved_mbps
 ET_MESSAGES.append(ETBandwidth)
 
-class ETLatency(LAVIMessage):
+class ETLatency(OFGMessage):
     @staticmethod
     def get_type():
         return 0xF5
 
     def __init__(self, latency_ms_edge, latency_ms_agg, latency_ms_core, xid=0):
-        LAVIMessage.__init__(self, xid)
+        OFGMessage.__init__(self, xid)
         self.latency_ms_edge = int(latency_ms_edge)
         self.latency_ms_agg = int(latency_ms_agg)
         self.latency_ms_core = int(latency_ms_core)
 
     def length(self):
-        return LAVIMessage.SIZE + 12
+        return OFGMessage.SIZE + 12
 
     def pack(self):
         body = struct.pack('> 3I', self.latency_ms_edge, self.latency_ms_agg, self.latency_ms_core)
-        return LAVIMessage.pack(self) + body
+        return OFGMessage.pack(self) + body
 
     @staticmethod
     def unpack(body):
@@ -199,24 +199,24 @@ class ETLatency(LAVIMessage):
         return ETLatency(latency_ms_edge, latency_ms_agg, latency_ms_core, xid)
 
     def __str__(self):
-        fmt = 'ET_LATENCY: ' + LAVIMessage.__str__(self) + " edge_ms=%u agg_ms=%u core_ms=%u"
+        fmt = 'ET_LATENCY: ' + OFGMessage.__str__(self) + " edge_ms=%u agg_ms=%u core_ms=%u"
         return fmt % (self.latency_ms_edge, self.latency_ms_agg, self.latency_ms_core)
 ET_MESSAGES.append(ETLatency)
 
-class ETSwitchesRequest(LAVIMessage):
+class ETSwitchesRequest(OFGMessage):
     @staticmethod
     def get_type():
         return 0xF6
 
     def __init__(self, k, xid=0):
-        LAVIMessage.__init__(self, xid)
+        OFGMessage.__init__(self, xid)
         self.k = int(k)
 
     def length(self):
-        return LAVIMessage.SIZE + 4
+        return OFGMessage.SIZE + 4
 
     def pack(self):
-        return LAVIMessage.pack(self) + struct.pack('> I', self.k)
+        return OFGMessage.pack(self) + struct.pack('> I', self.k)
 
     @staticmethod
     def unpack(body):
@@ -226,24 +226,24 @@ class ETSwitchesRequest(LAVIMessage):
         return ETSwitchesRequest(k, xid)
 
     def __str__(self):
-        return 'ET_SWITCHES_REQUEST: ' + LAVIMessage.__str__(self) + ' k=%u' % self.k
+        return 'ET_SWITCHES_REQUEST: ' + OFGMessage.__str__(self) + ' k=%u' % self.k
 ET_MESSAGES.append(ETSwitchesRequest)
 
-class ETSwitchFailureChange(LAVIMessage):
+class ETSwitchFailureChange(OFGMessage):
     @staticmethod
     def get_type():
         return 0xF7
 
     def __init__(self, dpid, failed, xid=0):
-        LAVIMessage.__init__(self, xid)
+        OFGMessage.__init__(self, xid)
         self.dpid = long(dpid)
         self.failed = failed
 
     def length(self):
-        return LAVIMessage.SIZE + 8 + 1
+        return OFGMessage.SIZE + 8 + 1
 
     def pack(self):
-        return LAVIMessage.pack(self) + struct.pack('> QB', self.dpid, (1 if self.failed else 0))
+        return OFGMessage.pack(self) + struct.pack('> QB', self.dpid, (1 if self.failed else 0))
 
     @staticmethod
     def unpack(body):
@@ -256,24 +256,24 @@ class ETSwitchFailureChange(LAVIMessage):
 
     def __str__(self):
         what = ' ' if self.failed else ' un'
-        return 'ET_SWITCH_FAILURE_CHANGE: ' + LAVIMessage.__str__(self) + dpidstr(self.dpid) + ' => ' + what + 'fail'
+        return 'ET_SWITCH_FAILURE_CHANGE: ' + OFGMessage.__str__(self) + dpidstr(self.dpid) + ' => ' + what + 'fail'
 ET_MESSAGES.append(ETSwitchFailureChange)
 
-class ETLinkFailureChange(LAVIMessage):
+class ETLinkFailureChange(OFGMessage):
     @staticmethod
     def get_type():
         return 0xF8
 
     def __init__(self, link, failed, xid=0):
-        LAVIMessage.__init__(self, xid)
+        OFGMessage.__init__(self, xid)
         self.link = link
         self.failed = failed
 
     def length(self):
-        return LAVIMessage.SIZE + Link.SIZE + 1
+        return OFGMessage.SIZE + Link.SIZE + 1
 
     def pack(self):
-        return LAVIMessage.pack(self) + self.link.pack() + struct.pack('> B', (1 if self.failed else 0))
+        return OFGMessage.pack(self) + self.link.pack() + struct.pack('> B', (1 if self.failed else 0))
 
     @staticmethod
     def unpack(body):
@@ -286,24 +286,24 @@ class ETLinkFailureChange(LAVIMessage):
 
     def __str__(self):
         what = ' ' if self.failed else ' un'
-        return 'ET_LINK_FAILURE_CHANGE: ' + LAVIMessage.__str__(self) + str(self.link) + ' => ' + what + 'fail'
+        return 'ET_LINK_FAILURE_CHANGE: ' + OFGMessage.__str__(self) + str(self.link) + ' => ' + what + 'fail'
 ET_MESSAGES.append(ETLinkFailureChange)
 
-class ETComputationDone(LAVIMessage):
+class ETComputationDone(OFGMessage):
     @staticmethod
     def get_type():
         return 0xFF
 
     def __init__(self, num_unplaced_flows, xid=0):
-        LAVIMessage.__init__(self, xid)
+        OFGMessage.__init__(self, xid)
         self.num_unplaced_flows = int(num_unplaced_flows)
 
     def length(self):
-        return LAVIMessage.SIZE + 4
+        return OFGMessage.SIZE + 4
 
     def pack(self):
         body = struct.pack('> I', self.num_unplaced_flows)
-        return LAVIMessage.pack(self) + body
+        return OFGMessage.pack(self) + body
 
     @staticmethod
     def unpack(body):
@@ -313,11 +313,11 @@ class ETComputationDone(LAVIMessage):
         return ETPowerUsage(num_unplaced_flows, xid)
 
     def __str__(self):
-        fmt = 'ET_COMPUTATION_DONE: ' + LAVIMessage.__str__(self) + " %u flows could not be placed"
+        fmt = 'ET_COMPUTATION_DONE: ' + OFGMessage.__str__(self) + " %u flows could not be placed"
         return fmt % self.num_unplaced_flows
 ET_MESSAGES.append(ETComputationDone)
 
-ET_PROTOCOL = LTProtocol(LAVI_MESSAGES + ET_MESSAGES, 'H', 'B')
+ET_PROTOCOL = LTProtocol(OFG_MESSAGES + ET_MESSAGES, 'H', 'B')
 
 def run_et_server(port, recv_callback):
     """Starts a server which listens for Elastic Tree clients on the specified port.

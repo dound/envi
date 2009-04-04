@@ -37,13 +37,6 @@ public class OpenFlowSwitch extends NodeWithPorts {
     private Dimension size = SIZE;
     private Paint fillColor = FILL_COLOR_B;
     
-    /** whether the switch is off because it is not needed */
-    private boolean off = false;
-    
-    /** whether the switch is off because it "failed" */
-    private boolean failed = false;
-    
-    
     public OpenFlowSwitch(long dpid) {
         this("", 0, 0, dpid);
     }
@@ -51,22 +44,6 @@ public class OpenFlowSwitch extends NodeWithPorts {
     public OpenFlowSwitch(String name, int x, int y, long dpid) {
         super(name, x, y);
         this.datapathID = dpid;
-    }
-
-    public boolean isOff() {
-        return off;
-    }
-    
-    public void setOff(boolean b) {
-        off = b;
-    }
-
-    public boolean isFailed() {
-        return failed;
-    }
-    
-    public void setFailed(boolean b) {
-        failed = b;
     }
     
     /** Move the switch when it is dragged */
@@ -110,7 +87,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
         gfx.setPaint(fillColor);
         gfx.fillOval(x, y, size.width, size.height);
         
-        if(failed) {
+        if(isFailed()) {
             int w=size.width, dx=0;
             if(GeometricIcon.X.getWidth() > w) {
                 dx = (GeometricIcon.X.getWidth() - w) / 2;

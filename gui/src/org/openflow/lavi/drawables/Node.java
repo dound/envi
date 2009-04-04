@@ -65,6 +65,29 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
         
         return( x>=left && x<left+sz.width && y>=top && y<top+sz.height);
     }
+
+    /** whether the node is off because it is not needed */
+    private boolean off = false;
+    
+    /** whether the node is off because it "failed" */
+    private boolean failed = false;
+    
+    public boolean isOff() {
+        return off;
+    }
+    
+    public void setOff(boolean b) {
+        off = b;
+    }
+
+    public boolean isFailed() {
+        return failed;
+    }
+    
+    public void setFailed(boolean b) {
+        failed = b;
+    }
+    
     
     public String toString() {
         return getName();

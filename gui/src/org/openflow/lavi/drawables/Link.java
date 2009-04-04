@@ -2,9 +2,15 @@ package org.openflow.lavi.drawables;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.Polygon;
+import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,6 +26,8 @@ import org.pzgui.AbstractDrawable;
 import org.pzgui.StringDrawer;
 import org.pzgui.icon.GeometricIcon;
 import org.pzgui.layout.Edge;
+import org.pzgui.math.IntersectionFinder;
+import org.pzgui.math.Line;
 import org.pzgui.math.Vector2f;
 
 /**
@@ -80,6 +88,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     /** the port to which this link connects on the destination node */
     protected short dstPort;
+    
+    /** whether this link is wired (else it is wireless) */
+    private boolean wired;
 
     /** maximum capacity of the link */
     private double maxDataRate_bps = 1 * 1000 * 1000 * 1000; 
@@ -137,6 +148,21 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         else
             return srcPort;
     }
+    
+    /** returns true if the link is a wired link */
+    public boolean isWired() {
+        return wired;
+    }
+    
+    /** returns true if the link is a wireless link */
+    public boolean isWireless() {
+        return !wired;
+    }
+    
+    /** sets whether the link is a wired link */
+    public void setWired(boolean wired) {
+        this.wired = wired;
+    }
 
     /** returns the maximum bandwidth which can be sent through the link in bps */
     public double getMaximumDataRate() {
@@ -170,68 +196,266 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** whether to draw port numbers each link is attached to */
     public static boolean DRAW_PORT_NUMBERS = false;
     
-    /** the color to draw the link */
+    /** alpha channel of port numbers */
+    public static double DEFAULT_PORT_NUM_ALPHA = 0.9;
+    
+    /** thickness of a tunnel */
+    private static final int DEFAULT_TUNNEL_WIDTH = LINE_WIDTH * 10;
+    
+    /** gap between a tunnel and an endpoint */
+    private static final int TUNNEL_DIST_FROM_BOX = DEFAULT_TUNNEL_WIDTH * 2;
+    
+    /** dark tunnel color*/
+    public static final Color TUNNEL_PAINT_DARK = new Color(180, 180, 180);
+    
+    /** light tunnel color */
+    public static final Color TUNNEL_PAINT_LIGHT = new Color(196, 196, 196);
+    
+    /** the color to draw the link (if null, then this link will not be drawn) */
     private Color curDrawColor = Color.BLACK;
     
-    /** 
-     * Tracks how many other links also share the same endpoints and have 
-     * already ben drawn.  This enables the drawObject() to offset such links so
-     * that they do not overlap. 
-     */
-    private int numOtherLinks = 0;
+    /** how much to offset the link drawng in the x axis */
+    private int offsetX;
+    
+    /** how much to offset the link drawing in the y axis */
+    private int offsetY;
     
     /** Bounds the area in which a link is drawn. */
     private Polygon boundingBox = null;
     
     /** Draws the link */
     public void drawObject(Graphics2D gfx) {
+        // draw nothing if there is no current draw color for the link
         if(curDrawColor == null)
             return;
         
         Stroke s = gfx.getStroke();
         
-        int ocount = ((numOtherLinks+1)/2)*2;
-        if(ocount == numOtherLinks)
-            ocount = -ocount;
-        
-        int offsetX = (LINE_WIDTH+2) * ocount;
-        int offsetY = (LINE_WIDTH+2) * ocount;
-        
-        updateBoundingBox(src.getX()+offsetX, src.getY()+offsetY, 
-                          dst.getX()+offsetX, dst.getY()+offsetY);
-        
-        // outline the link if it is being hovered over
-        if(isHovered()) {
-            gfx.draw(boundingBox);
-            gfx.setPaint(Constants.COLOR_HOVERING);
-            gfx.fill(boundingBox);
-        }
+        // outline the link if it is being hovered over or is selected
+        if(isHovered())
+            drawOutline(gfx, Constants.COLOR_HOVERING, 1.25);
+        else if(isSelected())
+            drawOutline(gfx, Constants.COLOR_SELECTED, 1.25);
         
         // draw the simple link as a line
-        gfx.setStroke(LINE_DEFAULT_STROKE);
-        gfx.setPaint(curDrawColor);
-        gfx.drawLine(src.getX()+offsetX, src.getY()+offsetY, 
-                     dst.getX()+offsetX, dst.getY()+offsetY);
+        if(isWired())
+            drawWiredLink(gfx);
+        else
+            drawWirelessLink(gfx);
         
-        if(failed)
-            GeometricIcon.X.draw(gfx, (src.getX()+dst.getX())/2+offsetX, (src.getY()+dst.getY())/2+offsetY);
+        // draw the failure indicator if the link has failed
+        if(isFailed())
+            drawFailed(gfx);
         
         // draw the port numbers
-        if(DRAW_PORT_NUMBERS) {
-            double alpha = 0.9;
-            gfx.setPaint(Constants.cmap(Color.RED));
-            int srcPortX = (int)(alpha*src.getX() + (1.0-alpha)*dst.getX() + offsetX);
-            int srcPortY = (int)(alpha*src.getY() + (1.0-alpha)*dst.getY() + offsetY);
-            gfx.drawString(Short.toString(this.srcPort), srcPortX, srcPortY);
-            gfx.setPaint(Constants.cmap(Color.GREEN.darker()));
-            int dstPortX = (int)(alpha*dst.getX() + (1.0-alpha)*src.getX() + offsetX);
-            int dstPortY = (int)(alpha*dst.getY() + (1.0-alpha)*src.getY() + offsetY);
-            gfx.drawString(Short.toString(this.dstPort), dstPortX, dstPortY);
-        }
+        if(DRAW_PORT_NUMBERS)
+            drawPortNumbers(gfx, DEFAULT_PORT_NUM_ALPHA);
         
         // restore the defaults
         gfx.setStroke(s);
         gfx.setPaint(Constants.PAINT_DEFAULT);
+    }
+    
+    /** draw an "X" over the node to indicate failure */
+    protected void drawFailed(Graphics2D gfx) {
+        GeometricIcon.X.draw(gfx, 
+                             (src.getX() + dst.getX())/2 + offsetX, 
+                             (src.getY() + dst.getY())/2 + offsetY);
+    }
+    
+    /**
+     * Draw an outline around the link.
+     * 
+     * @param gfx           where to draw
+     * @param outlineColor  color of the outline
+     * @param ratio         how big to make the outline (relative to the 
+     *                      bounding box of this link)
+     */
+    public void drawOutline(Graphics2D gfx, Paint outlineColor, double ratio) {
+        AffineTransform af = new AffineTransform();
+        af.setToScale(ratio, ratio);
+        Shape s = af.createTransformedShape(boundingBox);
+        
+        gfx.draw(s);
+        gfx.setPaint(outlineColor);
+        gfx.fill(s);
+    }
+    
+    /** draws port numbers by the link drawing's endpoints with the specified alpha */
+    public void drawPortNumbers(Graphics2D gfx, double alpha) {
+        gfx.setPaint(Constants.cmap(Color.RED));
+        int srcPortX = (int)(alpha*src.getX() + (1.0-alpha)*dst.getX() + offsetX);
+        int srcPortY = (int)(alpha*src.getY() + (1.0-alpha)*dst.getY() + offsetY);
+        gfx.drawString(Short.toString(this.srcPort), srcPortX, srcPortY);
+        
+        gfx.setPaint(Constants.cmap(Color.GREEN.darker()));
+        int dstPortX = (int)(alpha*dst.getX() + (1.0-alpha)*src.getX() + offsetX);
+        int dstPortY = (int)(alpha*dst.getY() + (1.0-alpha)*src.getY() + offsetY);
+        gfx.drawString(Short.toString(this.dstPort), dstPortX, dstPortY);
+    }
+    
+    /** sets up the stroke and color information for the link prior to it being drawn */
+    private void drawLinkPreparation(Graphics2D gfx) {
+        gfx.setStroke(LINE_DEFAULT_STROKE);
+        if(curDrawColor != null)
+            gfx.setPaint(curDrawColor);
+    }
+    
+    /** draws the link as a wired link between endpoints */
+    public void drawWiredLink(Graphics2D gfx) {
+        drawLinkPreparation(gfx);
+        gfx.drawLine(src.getX() + offsetX, src.getY() + offsetY, 
+                     dst.getX() + offsetX, dst.getY() + offsetY);
+    }
+    
+    /** draws the link as a wireless link between endpoints */
+    public void drawWirelessLink(Graphics2D gfx) {
+        drawLinkPreparation(gfx);
+        
+        double m = (dst.getY() - src.getY()) / (double)(dst.getX() - src.getX());
+        double d = 10;
+        double dy = Math.sqrt((d * d) / (m * m + 1));
+        if( dst.getY() < src.getY() ) dy = -dy;
+        double dx = m * dy;
+        boolean greater = src.getX() < dst.getX();
+        
+        int offset = 10;
+        double x = src.getX() - offset;
+        double y = src.getY();
+        if( Math.abs(dx) > Math.abs(dy) ) {
+            if( Math.abs(m) > 1.0 ) {
+                double t = dy;
+                dy = dx;
+                dx = t;
+            }
+        }
+        else if( Math.abs(dx) < Math.abs(dy) ) {
+            if( Math.abs(m) < 1.0 ) {
+                double t = dy;
+                dy = dx;
+                dx = t;
+            }
+        }
+        boolean right = false;
+        if( greater && dx<0 )  { dx = -dx; dy = -dy; right = true; }
+        if( !greater && dx>0 ) { dx = -dx; dy = -dy; right = true; }
+        
+        while( (greater && (x+offset) < dst.getX()) || (!greater && (x+offset) > dst.getX()) ) {
+            x += dx;
+            y += dy;
+            gfx.drawArc((int)x, (int)y, (int)30, (int)10, right?180:270, 90);
+        }
+    }
+    
+    /** draws a tunnel in the area used by the middle of the link */
+    public void drawTunnel(Graphics2D gfx, int linkWidth) {
+        // find the endpoints of the link based on the intersection of the link with its surrounding box
+        Line linkLine = new Line(src.getX(), src.getY(), dst.getX(), dst.getY());
+        Vector2f i1 = IntersectionFinder.intersectBox(linkLine, src);
+        Vector2f i2 = IntersectionFinder.intersectBox(linkLine, dst);
+        
+        if(i1 == null) {
+            Dimension dimSrc = src.getIcon().getSize();
+            i1 = new Vector2f(src.getX()-dimSrc.width/2, src.getY()-dimSrc.height/2);
+        }
+         
+        if(i2 == null) {
+            Dimension dimDst = dst.getIcon().getSize();
+            i2 = new Vector2f(dst.getX()-dimDst.width/2, dst.getY()-dimDst.height/2);
+        }
+
+        // determine the endpoints of the pipe as a fixed distance from the node/box
+        float x1, y1, x2, y2;
+        float d = TUNNEL_DIST_FROM_BOX;
+        {
+            float sx = i1.x;
+            float sy = i1.y;
+            float dx = i2.x;
+            float dy = i2.y;
+            float denom = (float)Math.sqrt(Math.pow(dx-sx,2) + Math.pow(sy-dy,2));
+            x1 = sx + (dx - sx) * d / denom;
+            y1 = sy - (sy - dy) * d / denom;
+        }
+        {
+            float sx = i2.x;
+            float sy = i2.y;
+            float dx = i1.x;
+            float dy = i1.y;
+            float denom = (float)Math.sqrt(Math.pow(dx-sx,2) + Math.pow(sy-dy,2));
+            x2 = sx + (dx - sx) * d / denom;
+            y2 = sy - (sy - dy) * d / denom;
+        }
+        
+        // center the tunnel on the coords
+        int tw = DEFAULT_TUNNEL_WIDTH;
+        x1 -= tw / 2;
+        y1 -= tw / 2;
+        x2 -= tw / 2;
+        y2 -= tw / 2;
+        
+        // determine where to orient the corners of the rectangular portion of the cylinder
+        Vector2f unitV = Vector2f.makeUnit(new Vector2f(x2-x1, y2-y1)).multiply(-tw/2);
+        float t = unitV.x; unitV.x = unitV.y; unitV.y = t;
+        int[] xs = new int[]{(int)(x1-unitV.x), (int)(x1+unitV.x), (int)(x2+unitV.x), (int)(x2-unitV.x)};
+        int[] ys = new int[]{(int)(y1+unitV.y), (int)(y1-unitV.y), (int)(y2-unitV.y), (int)(y2+unitV.y)};
+        for(int i=0; i<4; i++) {
+            xs[i] += tw / 2;
+            ys[i] += tw / 2;
+        }
+        
+        // create the shapes representing pieces of the pipe
+        Ellipse2D.Double circle1 = new Ellipse2D.Double(x1, y1, tw, tw);
+        Ellipse2D.Double circle2 = new Ellipse2D.Double(x2, y2, tw, tw);
+        Polygon pipe = new Polygon(xs, ys, 4);
+        
+        // build the paint for the gradient of the pipe
+        Paint pipePaint = new GradientPaint((int)x1, (int)y1, TUNNEL_PAINT_DARK, (int)x2, (int)y2, TUNNEL_PAINT_LIGHT );
+        
+        // draw the pipe endpoints
+        gfx.setPaint(pipePaint);
+        gfx.fill(circle1);
+        gfx.setPaint(Constants.PAINT_DEFAULT);
+        gfx.draw(circle1);
+        
+        // draw the body of the pipe
+        gfx.setPaint(pipePaint);
+        gfx.fill(pipe);
+        gfx.setPaint( Constants.PAINT_DEFAULT );
+        gfx.drawLine( xs[0], ys[0], xs[3], ys[3] ); // long sides
+        gfx.drawLine( xs[1], ys[1], xs[2], ys[2] );
+        gfx.drawLine( xs[0], ys[0], xs[1], ys[1] ); // short sides
+        gfx.drawLine( xs[2], ys[2], xs[3], ys[3] );
+        
+        // draw the pipe endpoints
+        gfx.setPaint(pipePaint);
+        
+        // cover up the inner half of the first circle so the pipe looks 3D
+        gfx.setStroke(Constants.STROKE_THICK);
+        gfx.drawLine( xs[0], ys[0], xs[1], ys[1] );
+        gfx.setStroke(Constants.STROKE_DEFAULT);
+        
+        gfx.fill(circle2);
+        gfx.setPaint( Constants.PAINT_DEFAULT );
+        gfx.draw(circle2);
+        
+        // extend the link into and out of the pipe
+        BasicStroke strokeOutline = new BasicStroke( linkWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER );
+        gfx.setStroke( strokeOutline );
+        gfx.drawLine( (int)i2.x, (int)i2.y, (int)x2 + tw / 2, (int)y2 + tw / 2 );
+        gfx.setStroke( Constants.STROKE_DEFAULT );
+    }
+
+    /** sets how many other links between the same endpoints have already been drawn */
+    void setOffset(int numOtherLinks) {
+        int ocount = ((numOtherLinks + 1) / 2) * 2;
+        if(ocount == numOtherLinks)
+            ocount = -ocount;
+        
+        offsetX = (LINE_WIDTH+2) * ocount;
+        offsetY = (LINE_WIDTH+2) * ocount;
+        
+        updateBoundingBox(src.getX()+offsetX, src.getY()+offsetY, 
+                          dst.getX()+offsetX, dst.getY()+offsetY);
     }
     
     /** updates the bounding box for this link */
@@ -247,11 +471,6 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         int[] bx = new int[]{ (int)(x1 - perp.x + o), (int)(x1 + perp.x + o), (int)(x2 + perp.x + o), (int)(x2 - perp.x + o) };
         int[] by = new int[]{ (int)(y1 - perp.y + o), (int)(y1 + perp.y + o), (int)(y2 + perp.y + o), (int)(y2 - perp.y + o) };
         boundingBox = new Polygon(bx, by, bx.length);
-    }
-    
-    /** sets how many other links between the same endpoints have already been drawn */
-    void setOffset(int numOtherLinks) {
-        this.numOtherLinks = numOtherLinks;
     }
     
 

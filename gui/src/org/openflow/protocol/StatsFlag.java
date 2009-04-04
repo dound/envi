@@ -22,7 +22,7 @@ public enum StatsFlag {
         return typeID;
     }
 
-    /** Returns the LAVIMessageType constant associated with typeID, if any */
+    /** Returns the OFGMessageType constant associated with typeID, if any */
     public static StatsFlag typeValToStatsFlag(short typeID) {
         for(StatsFlag t : StatsFlag.values())
             if(t.getTypeID() == typeID)

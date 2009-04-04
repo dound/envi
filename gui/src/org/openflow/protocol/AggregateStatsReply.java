@@ -3,7 +3,8 @@ package org.openflow.protocol;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import org.openflow.lavi.net.protocol.StatsHeader;
+
+import org.openflow.gui.net.protocol.StatsHeader;
 
 /**
  * A reply with aggregate statistics.

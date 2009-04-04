@@ -67,7 +67,7 @@ public class IntersectionFinder {
      * Returns an intersection point of l and the area of the specified Icon or
      * null if they do not intersection 
      */
-    public static Vector2f intersectBox(Line l, org.openflow.lavi.drawables.Node n) {
+    public static Vector2f intersectBox(Line l, org.openflow.gui.drawables.Node n) {
         Dimension d = n.getIcon().getSize();
         return intersectBox(l, 
                             n.getX() - d.width / 2, 

@@ -3,11 +3,11 @@ package org.openflow.protocol;
 import java.io.DataInput;
 import java.io.IOException;
 
-import org.openflow.lavi.net.SocketConnection;
-import org.openflow.lavi.net.protocol.StatsHeader;
+import org.openflow.gui.net.SocketConnection;
+import org.openflow.gui.net.protocol.StatsHeader;
 
 /**
- * Message containing information about a switch.  It is the response to
+ * OFGMessage containing information about a switch.  It is the response to
  * OFPST_DESC statistics request.
  * 
  * @author David Underhill

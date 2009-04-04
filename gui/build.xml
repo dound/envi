@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project basedir="." default="jar" name="lavi_gui">
+<project basedir="." default="jar" name="openflow_gui">
   <property name="debug"      value="true"/>
   <property name="debuglevel" value="source,lines,vars"/>
   <property name="target"     value="1.6"/>
   <property name="source"     value="1.6"/>
   <property name="bin.dir"    value="bin"/>
   <property name="lib.dir"    value="lib"/>
-  <property name="jarfile"    value="lavi_gui.jar"/>
-  <property name="main-class" value="org.openflow.lavi.LAVI"/>
+  <property name="jarfile"    value="openflow_gui.jar"/>
+  <property name="main-class" value="org.openflow.gui.OpenFlowGUI"/>
 
   <path id="classpath">
     <fileset dir="${lib.dir}" includes="*.jar"/>
@@ -55,6 +55,6 @@
   </target>
 
   <target name="javadoc">
-    <javadoc access="private" author="true" classpath="lib/jung2-layout-min.jar" destdir="doc" doctitle="of_gui" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" source="1.6" sourcepath="src" splitindex="true" use="true" version="true"/>
+    <javadoc access="protected" author="true" classpath="lib/jung2-layout-min.jar" destdir="doc" doctitle="of_gui" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" source="1.6" sourcepath="src" splitindex="true" use="true" version="true"/>
   </target>
 </project>

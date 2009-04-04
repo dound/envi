@@ -16,7 +16,7 @@ import org.openflow.lavi.net.protocol.et.ETSwitchFailureChange;
 import org.openflow.lavi.net.protocol.et.ETSwitchesOff;
 import org.openflow.lavi.net.protocol.et.ETSwitchesRequest;
 import org.openflow.lavi.net.protocol.et.ETTrafficMatrix;
-import org.openflow.lavi.stats.PortStatsRates;
+import org.openflow.lavi.stats.LinkStats;
 import org.openflow.protocol.Match;
 import org.pzgui.Drawable;
 
@@ -252,13 +252,18 @@ public class ElasticTree extends LAVI<ElasticTreeManager>
         
         Link existingLink = dstSwitch.getDirectedLinkTo(dstPort, srcSwitch, srcPort, false);
         if(existingLink != null) {
-            PortStatsRates psr = existingLink.getStats(Match.MATCH_ALL);
-            if(psr == null)
-                psr = existingLink.trackStats(Match.MATCH_ALL);
+            LinkStats ls = existingLink.getStats(Match.MATCH_ALL);
+            if(ls == null)
+                ls = existingLink.trackStats(Match.MATCH_ALL);
             
             double bps = util * existingLink.getMaximumDataRate();
             double pps = bps / (1500*8); // assumes 1500B packets
-            psr.setRates(pps, bps, 0, when);
+            if(srcDPID == existingLink.getSource().getDatapathID())
+                ls.statsSrc.setRates(pps, bps, 0, when);
+            else if(srcDPID == existingLink.getDestination().getDatapathID())
+                ls.statsDst.setRates(pps, bps, 0, when);
+            else
+                throw new Error("Error: LinkStats associated with existingLink has different DPIDs than its parent?");
             
             existingLink.setColor();
             return bps;

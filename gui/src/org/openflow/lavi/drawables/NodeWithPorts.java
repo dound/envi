@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.openflow.lavi.Options;
+
 /**
  * Information about a node with ports in the topology.
  * @author David Underhill
@@ -138,7 +140,7 @@ public abstract class NodeWithPorts extends Node {
     
     /** Returns a link from this node to the requested node if such a link exists */
     public Link getDirectedLinkTo(short myPort, NodeWithPorts n, short nPort, boolean nIsDestination) {
-        if(!Link.USE_DIRECTED_LINKS)
+        if(!Options.USE_DIRECTED_LINKS)
             return getLinkTo(myPort, n, nPort);
         
         for(Link l : links)

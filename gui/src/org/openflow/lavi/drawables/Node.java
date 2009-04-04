@@ -51,7 +51,7 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
     public static boolean SHOW_NAMES = false;
     
     /** ratio to use when outlining the shape */
-    public static final double OUTLINE_RATIO = 1.25;
+    public static final double OUTLINE_RATIO = 1.35;
     
     /** how to visually represent the Node itself */
     private Icon icon;
@@ -129,7 +129,7 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
         if(icon instanceof ShapeIcon) {
             // wrap the shape precisely
             ShapeIcon si = (ShapeIcon)icon; 
-            si.draw(gfx, getX(), getY(), (int)w, (int)h, outlineColor, Constants.PAINT_DEFAULT);
+            si.draw(gfx, getX(), getY(), (int)w, (int)h, outlineColor, outlineColor);
         }
         else {
             // draw a rectangle around the icon

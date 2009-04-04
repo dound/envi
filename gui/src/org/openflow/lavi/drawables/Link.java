@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.openflow.lavi.net.LAVIConnection;
 import org.openflow.lavi.net.protocol.PollStart;
 import org.openflow.lavi.net.protocol.PollStop;
-import org.openflow.lavi.stats.PortStatsRates;
+import org.openflow.lavi.stats.LinkStats;
 import org.openflow.protocol.AggregateStatsReply;
 import org.openflow.protocol.AggregateStatsRequest;
 import org.openflow.protocol.Match;
@@ -251,21 +251,21 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         /** whether these statistics are being polled by the backend for us */
         public final boolean isPolling;
         
-        /** the statistics */
-        public final PortStatsRates stats;
+        /** the statistics on traffic from the source and destination switch over this link */
+        public final LinkStats stats;
         
-        public LinkStatsInfo(int xid, boolean isPolling, PortStatsRates stats) {
+        public LinkStatsInfo(int xid, boolean isPolling, Match m) {
             this.xid = xid;
             this.isPolling = isPolling;
-            this.stats = stats;
+            this.stats = new LinkStats(m);
         }
     }
     
     /** statistics being gathered for this link */
     private final ConcurrentHashMap<Match, LinkStatsInfo> stats = new ConcurrentHashMap<Match, LinkStatsInfo>();
     
-    /** Gets the stats associated with the specified Match, if any */
-    public PortStatsRates getStats(Match m) {
+    /** Gets the LinkStats associated with the specified Match, if any */
+    public LinkStats getStats(Match m) {
         LinkStatsInfo lsi = stats.get(m);
         if(lsi != null)
             return lsi.stats;
@@ -312,7 +312,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      * Tells the link to setup stats for specified Match but do not acquire them automatically.
      * @param m  the match to setup stats for
      */
-    public PortStatsRates trackStats(Match m) {
+    public LinkStats trackStats(Match m) {
         return trackStats(m, 0, false);
     }
     
@@ -322,9 +322,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      * @param xid  the xid of the request which is acquiring stats for m
      * @param isPolling  whether the stats are being polled with xid
      */
-    public PortStatsRates trackStats(Match m, int xid, boolean isPolling) {
+    public LinkStats trackStats(Match m, int xid, boolean isPolling) {
         // remember that we are interested in these stats
-        LinkStatsInfo lsi = new LinkStatsInfo(xid, isPolling, new PortStatsRates(m));
+        LinkStatsInfo lsi = new LinkStatsInfo(xid, isPolling, m);
         stats.put(m, lsi);
         return lsi.stats;
     }
@@ -369,11 +369,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      * value <0 if those stats are not currently being tracked. 
      */
     public double getCurrentDataRate() {
-        PortStatsRates psr = getStats(Match.MATCH_ALL);
-        if(psr == null)
+        LinkStats ls = getStats(Match.MATCH_ALL);
+        if(ls == null)
             return -1;
         else
-            return psr.getBitsPerSec();            
+            return ls.getCurrentAverageDataRate();            
     }
     
     /** 
@@ -394,7 +394,10 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         if(lsi == null)
             System.err.println(this.toString() + " received stats it is not tracking: " + m.toString());
         else {
-            lsi.stats.update(reply);
+            if(reply.dpid == src.getDatapathID())
+                lsi.stats.statsSrc.update(reply);
+            else if(lsi.stats.statsDst != null && reply.dpid == dst.getDatapathID())
+                lsi.stats.statsDst.update(reply);
             
             // update the color whenever the (unfiltered) link utilization stats are updated
             if(m.wildcards.isWildcardAll())

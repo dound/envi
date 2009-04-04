@@ -12,7 +12,7 @@ public final class Options {
      * Whether links between nodes should be represented using one undirected
      * or two directed links.
      */
-    public static final boolean USE_DIRECTED_LINKS = true;
+    public static final boolean USE_DIRECTED_LINKS = false;
     
     /* prevents this class from being instantiated */
     private Options() {}

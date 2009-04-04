@@ -258,14 +258,14 @@ public class ElasticTree extends LAVI<ElasticTreeManager>
             
             double bps = util * existingLink.getMaximumDataRate();
             double pps = bps / (1500*8); // assumes 1500B packets
-            if(srcDPID == existingLink.getSource().getDatapathID())
+            if(srcDPID == existingLink.getSource().getID())
                 ls.statsSrc.setRates(pps, bps, 0, when);
-            else if(srcDPID == existingLink.getDestination().getDatapathID())
+            else if(srcDPID == existingLink.getDestination().getID())
                 ls.statsDst.setRates(pps, bps, 0, when);
             else
                 throw new Error("Error: LinkStats associated with existingLink has different DPIDs than its parent?");
             
-            existingLink.setColor();
+            existingLink.setColorBasedOnCurrentUtilization();
             return bps;
         }
         else {
@@ -310,7 +310,7 @@ public class ElasticTree extends LAVI<ElasticTreeManager>
             o.setFailed(!o.isFailed());
             
             try {
-                conn.sendLAVIMessage(new ETSwitchFailureChange(o.getDatapathID(), o.isFailed()));    
+                conn.sendLAVIMessage(new ETSwitchFailureChange(o.getID(), o.isFailed()));    
             }
             catch(IOException e) {
                 System.err.println("failed to send switch failure");
@@ -321,9 +321,9 @@ public class ElasticTree extends LAVI<ElasticTreeManager>
             l.setFailed(!l.isFailed());
             try {
                 conn.sendLAVIMessage(new ETLinkFailureChange(new org.openflow.lavi.net.protocol.Link(
-                        l.getSource().getDatapathID(),
+                        l.getSource().getID(),
                         l.getMyPort(l.getSource()),
-                        l.getDestination().getDatapathID(),
+                        l.getDestination().getID(),
                         l.getMyPort(l.getDestination())), l.isFailed()));    
             }
             catch(IOException e) {

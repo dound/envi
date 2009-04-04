@@ -52,7 +52,6 @@ public class ElasticTreeManager extends PZLayoutManager {
     /** Creates a new Elastic Tree GUI for a k fat tree */
     public ElasticTreeManager(int k) {
         PZWindow.BASE_TITLE = "Stanford University - Elastic Tree";
-        Link.HIDE_LINKS_WITHOUT_STATS = true;
         
         fatTreeLayout = new FatTreeLayout<Vertex, Edge>(getGraph(), k);
         this.setLayout(fatTreeLayout);

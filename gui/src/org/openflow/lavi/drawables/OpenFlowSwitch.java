@@ -15,7 +15,7 @@ import org.pzgui.icon.ShapeIcon;
  * @author David Underhill
  */
 public class OpenFlowSwitch extends NodeWithPorts {
-    public static final int DEFAULT_SIZE = 40;
+    public static final int DEFAULT_SIZE = 15;
     public static final Shape DEFAULT_SHAPE = new Ellipse2D.Double(0, 0, DEFAULT_SIZE, DEFAULT_SIZE);
     public static final Paint DEFAULT_FILL = new Color(128, 128, 255);
     

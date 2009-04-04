@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.openflow.lavi.Options;
+import org.openflow.util.LongPair;
 
 /**
  * Information about a node with ports in the topology.
@@ -28,31 +29,10 @@ public abstract class NodeWithPorts extends Node {
         super.unsetDrawn();
         for(Link l : links)
             l.unsetDrawn();
+        
     }
     
-    private class LongPair {
-        public final long a, b;
-        public LongPair(long l1, long l2) { 
-            if(l1 < l2) {
-                a = l1;
-                b = l2;
-            }
-            else {
-                a = l2;
-                b = l1;
-            }
-        }
-        public int hashCode() {
-            return 7 * new Long(a).hashCode() + new Long(b).hashCode();
-        }
-        public boolean equals(Object o) {
-            if(o == null) return false;
-            if(!(o instanceof LongPair)) return false;
-            LongPair l = (LongPair)o;
-            return l.a==a && l.b==b;
-        }
-    }
-    
+    /** draws the links associated with this node */
     public void drawLinks(Graphics2D gfx) {
         HashMap<LongPair, Integer> dpidToCount = new HashMap<LongPair, Integer>();
         Integer count;
@@ -94,14 +74,12 @@ public abstract class NodeWithPorts extends Node {
         return false;
     }
     
-    public Link getLink(int i) {
-        return links.get(i);
-    }
-
+    /** returns a list of all the links on this node */
     public Collection<Link> getEdges() {
         return links;
     }
     
+    /** returns a list of all the links on this node */
     public Collection<Link> getLinks() {
         return links;
     }
@@ -111,6 +89,7 @@ public abstract class NodeWithPorts extends Node {
         return links.size();
     }
 
+    /** Gets the link from this node on outPort */
     public Link getLinkFrom(short outPort) {
         for(Link l : links)
             if(l.getMyPort(this) == outPort)
@@ -162,6 +141,7 @@ public abstract class NodeWithPorts extends Node {
         return null;
     }
     
+    /** Returns a unique ID for this node */
     public abstract long getDatapathID();
     
     public int hashCode() {

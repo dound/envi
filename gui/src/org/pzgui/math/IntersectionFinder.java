@@ -1,5 +1,7 @@
 package org.pzgui.math;
 
+import java.awt.Dimension;
+
 /**
  * Algorithms for finding the intersection points of lines and other shapes.
  * @author David Underhill
@@ -41,7 +43,10 @@ public class IntersectionFinder {
         return null;
     }
     
-    /** Returns an insersection point of l and the specified box or null if they do not intersection */
+    /** 
+     * Returns an intersection point of l and the specified box or null if they
+     * do not intersection 
+     */
     public static Vector2f intersectBox(Line l, int x, int y, int w, int h) {
         Vector2f i;
         
@@ -56,5 +61,18 @@ public class IntersectionFinder {
         
         i = intersectLine(l, new Line(x,     y,     x,     y + h));
         return i;
+    }
+    
+    /** 
+     * Returns an intersection point of l and the area of the specified Icon or
+     * null if they do not intersection 
+     */
+    public static Vector2f intersectBox(Line l, org.openflow.lavi.drawables.Node n) {
+        Dimension d = n.getIcon().getSize();
+        return intersectBox(l, 
+                            n.getX() - d.width / 2, 
+                            n.getY() - d.height / 2, 
+                            d.width, 
+                            d.height);
     }
 }

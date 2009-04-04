@@ -22,6 +22,7 @@ public abstract class Constants {
     }
     
     public static final BasicStroke STROKE_DEFAULT    = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    public static final BasicStroke STROKE_THICK      = new BasicStroke(3.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     public static final Color       COLOR_DEFAULT     = cmap(Color.BLACK);
     public static final Color       BG_DEFAULT        = cmap(Color.WHITE);
     public static final Color       COLOR_SELECTED    = cmap(new Color(128, 255, 128));

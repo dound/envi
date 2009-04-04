@@ -193,6 +193,11 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
         return( x>=left && x<left+sz.width && y>=top && y<top+sz.height);
     }
     
+    /** returns true if the area described by getIcon() contains x, y */
+    public boolean isWithin(int x, int y) {
+        return isWithin(x, y, getIcon().getSize());
+    }
+    
     /** returns the name of the node */
     public String toString() {
         return getName();

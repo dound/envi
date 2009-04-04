@@ -212,9 +212,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         if(this == o) return true;
         if((o == null) || (o.getClass() != this.getClass())) return false;
         Link l = (Link)o;
-        return l.dst.getDatapathID() == dst.getDatapathID() &&
+        return l.dst.getID() == dst.getID() &&
                l.dstPort == dstPort &&
-               l.src.getDatapathID() == src.getDatapathID() &&
+               l.src.getID() == src.getID() &&
                l.srcPort == srcPort;
     }
     
@@ -297,7 +297,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
                                      : pollInterval_msec / 100 + 1);
         
         // build and send the message to get the stats
-        AggregateStatsRequest req = new AggregateStatsRequest(src.getDatapathID(), srcPort, m);
+        AggregateStatsRequest req = new AggregateStatsRequest(src.getID(), srcPort, m);
         boolean isPolling = (pollInterval != 0);
         if(isPolling)
             conn.sendLAVIMessage(new PollStart(pollInterval, req));
@@ -393,9 +393,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         if(lsi == null)
             System.err.println(this.toString() + " received stats it is not tracking: " + m.toString());
         else {
-            if(reply.dpid == src.getDatapathID())
+            if(reply.dpid == src.getID())
                 lsi.stats.statsSrc.update(reply);
-            else if(lsi.stats.statsDst != null && reply.dpid == dst.getDatapathID())
+            else if(lsi.stats.statsDst != null && reply.dpid == dst.getID())
                 lsi.stats.statsDst.update(reply);
             
             // update the color whenever the (unfiltered) link utilization stats are updated

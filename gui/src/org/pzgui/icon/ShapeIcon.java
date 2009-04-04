@@ -58,6 +58,10 @@ public class ShapeIcon extends Icon {
     }
     
     public static void draw( Graphics2D gfx, Shape s, Color fill, Color outline, int x, int y) {
+        int xC = x - s.getBounds().width / 2;
+        int yC = y - s.getBounds().height / 2;
+        gfx.translate(xC, yC);
+        
         gfx.setPaint(fill);
         gfx.fill(s);
         
@@ -67,6 +71,7 @@ public class ShapeIcon extends Icon {
         }
         
         gfx.setPaint(Constants.PAINT_DEFAULT);
+        gfx.translate(-xC, -yC);
     }
     
     public Dimension getSize() {

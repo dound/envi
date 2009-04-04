@@ -40,8 +40,6 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
         drawName( gfx, getX(), getY() - textYOffset, getY() + textYOffset);
     }
     
-    public void drawLinks( Graphics2D gfx) {}
-    
     public String getName() {
         return name;
     }

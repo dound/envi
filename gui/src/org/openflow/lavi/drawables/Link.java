@@ -24,34 +24,10 @@ import org.pzgui.math.Vector2f;
 
 /**
  * Information about a link.
+ * 
  * @author David Underhill
  */
 public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
-    public static final int LINE_WIDTH = 2;
-    public static final BasicStroke LINE_DEFAULT_STROKE = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
-    public static final BasicStroke LINE_OUTLINE_STROKE = new BasicStroke(LINE_WIDTH+1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
-    public static boolean DRAW_PORT_NUMBERS = false;
-    
-    /** link endpoints */
-    protected NodeWithPorts src;
-    protected NodeWithPorts dst;
-    protected short srcPort;
-    protected short dstPort;
-    
-    private int numOtherLinks = 0;
-    private Polygon boundingBox = null;
-    
-    /** whether the link is off because it "failed" */
-    private boolean failed = false;
-    
-    public boolean isFailed() {
-        return failed;
-    }
-    
-    public void setFailed(boolean b) {
-        failed = b;
-    }
-    
     /**
      * This exception is thrown if a link which already exists is tried to be 
      * re-created.
@@ -69,10 +45,10 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     }
     
     /**
-     * Constructs a new uni-directional link between src and dst.
+     * Constructs a new link between src and dst.
      * 
-     * @param src                The source of data on this link.
-     * @param dst                The endpoint of this link.
+     * @param src  The source of data on this link.
+     * @param dst  The endpoint of this link.
      * 
      * @throws LinkExistsException  thrown if the link already exists
      */
@@ -90,6 +66,124 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         dst.addLink(this);
     }
     
+    
+    // --------- Basic Accessors / Mutators --------- //
+    
+    /** the source of this link */
+    protected NodeWithPorts src;
+    
+    /** the port to which this link connects on the source node */
+    protected short srcPort;
+    
+    /** the destination of this link */
+    protected NodeWithPorts dst;
+    
+    /** the port to which this link connects on the destination node */
+    protected short dstPort;
+
+    /** maximum capacity of the link */
+    private double maxDataRate_bps = 1 * 1000 * 1000 * 1000; 
+    
+    /** whether the link is off because it "failed" */
+    private boolean failed = false;
+    
+    /** 
+     * Disconnects this link from its attached ports and stops tracking all 
+     * statistics associated with this link.  stopTrackingAllStats() is called
+     * by this method.   
+     */
+    public void disconnect(LAVIConnection conn) throws IOException {
+        src.getLinks().remove(this);
+        dst.getLinks().remove(this);
+        
+        stopTrackingAllStats(conn);
+    }
+    
+    /** get the souce of this link */
+    public NodeWithPorts getSource() {
+        return src;
+    }
+    
+    /** get the destination of this link */
+    public NodeWithPorts getDestination() {
+        return dst;
+    }
+    
+    /** 
+     * Given one endpoint of the link, return the other endpoint.  Throws an 
+     * error if p is neither the source or destination of this link.
+     */
+    public NodeWithPorts getOther(NodeWithPorts p) {
+        // throw an error if n is neither src nor dst
+        if(src!=p && dst!=p)
+            throw new Error("Link::getOther Error: neither src (" + src
+                    + ") nor dst (" + dst + ") is p (" + p + ")");
+        
+        return dst==p ? src : dst;
+    }
+    
+    /** Gets the port number associated with the specified endpoint. */
+    public short getMyPort(NodeWithPorts p) {
+        if(src == p)
+            return srcPort;
+        else
+            return dstPort;
+    }
+    
+    /** Gets the port number associated with the endpoint which is not p. */
+    public short getOtherPort(NodeWithPorts p) {
+        if(src == p)
+            return dstPort;
+        else
+            return srcPort;
+    }
+
+    /** returns the maximum bandwidth which can be sent through the link in bps */
+    public double getMaximumDataRate() {
+        return maxDataRate_bps;
+    }
+    
+    /** sets the maximum bandwidth which can be sent through the link in bps */
+    public void setMaximumDataRate(double bps) {
+        this.maxDataRate_bps = bps;
+    }
+    
+    /** Returns true if the link has failed. */
+    public boolean isFailed() {
+        return failed;
+    }
+    
+    /** Sets whether the link has failed. */
+    public void setFailed(boolean b) {
+        failed = b;
+    }
+
+    
+    // ------------------- Drawing ------------------ //
+    
+    /** thickness of a link */
+    public static final int LINE_WIDTH = 2;
+    
+    /** how the draw a link */
+    public static final BasicStroke LINE_DEFAULT_STROKE = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    
+    /** whether to draw port numbers each link is attached to */
+    public static boolean DRAW_PORT_NUMBERS = false;
+    
+    /** the color to draw the link */
+    private Color curDrawColor = Color.BLACK;
+    
+    /** 
+     * Tracks how many other links also share the same endpoints and have 
+     * already ben drawn.  This enables the drawObject() to offset such links so
+     * that they do not overlap. 
+     */
+    private int numOtherLinks = 0;
+    
+    /** Bounds the area in which a link is drawn. */
+    private Polygon boundingBox = null;
+    
+    /** Draws the link */
     public void drawObject(Graphics2D gfx) {
         if(curDrawColor == null)
             return;
@@ -140,6 +234,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         gfx.setPaint(Constants.PAINT_DEFAULT);
     }
     
+    /** updates the bounding box for this link */
     private void updateBoundingBox(int x1, int y1, int x2, int y2) {
         Vector2f from = new Vector2f(x1, y1);
         Vector2f to = new Vector2f(x2, y2);
@@ -153,95 +248,18 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         int[] by = new int[]{ (int)(y1 - perp.y + o), (int)(y1 + perp.y + o), (int)(y2 + perp.y + o), (int)(y2 - perp.y + o) };
         boundingBox = new Polygon(bx, by, bx.length);
     }
-
-    /** 
-     * Disconnects this link from its attached ports and stops tracking all 
-     * statistics associated with this link.  stopTrackingAllStats() is called
-     * by this method.   
-     */
-    public void disconnect(LAVIConnection conn) throws IOException {
-        src.getLinks().remove(this);
-        dst.getLinks().remove(this);
-        
-        stopTrackingAllStats(conn);
-    }
     
-    public NodeWithPorts getSource() {
-        return src;
-    }
-    
-    public NodeWithPorts getDestination() {
-        return dst;
-    }
-    
-    public NodeWithPorts getOther(NodeWithPorts p) {
-        // throw an error if n is neither src nor dst
-        if(src!=p && dst!=p)
-            throw new Error("Link::getOther Error: neither src (" + src
-                    + ") nor dst (" + dst + ") is p (" + p + ")");
-        
-        return dst==p ? src : dst;
-    }
-    
-    public short getMyPort(NodeWithPorts p) {
-        if(src == p)
-            return srcPort;
-        else
-            return dstPort;
-    }
-    
-    public short getOtherPort(NodeWithPorts p) {
-        if(src == p)
-            return dstPort;
-        else
-            return srcPort;
-    }
-    
-    public int hashCode() {
-        int hash = 7;
-        
-        hash += dst.hashCode();
-        hash += 31 * dstPort;
-        hash += 31 * src.hashCode();
-        hash += 31 * srcPort;
-        
-        return hash;
-    }
-    
-    public boolean equals(Object o) {
-        if(this == o) return true;
-        if((o == null) || (o.getClass() != this.getClass())) return false;
-        Link l = (Link)o;
-        return l.dst.getID() == dst.getID() &&
-               l.dstPort == dstPort &&
-               l.src.getID() == src.getID() &&
-               l.srcPort == srcPort;
-    }
-    
-    public String toString() {
-        return src.toString() + " ===> " + dst.toString();
-    }
-    
-    public boolean isWithin(int x, int y) {
-        if(boundingBox == null)
-            return false;
-        else
-            return boundingBox.contains(x, y);
-    }
-
+    /** sets how many other links between the same endpoints have already been drawn */
     void setOffset(int numOtherLinks) {
         this.numOtherLinks = numOtherLinks;
     }
-
-    /** maximum capacity of the link */
-    private double maxDataRate_bps = 1 * 1000 * 1000 * 1000; 
-
-    /** returns the maximum bandwidth which can be sent through the link in bps */
-    public double getMaximumDataRate() {
-        return maxDataRate_bps;
-    }
     
 
+    // -------------------- Stats ------------------- //
+    
+    /** statistics being gathered for this link */
+    private final ConcurrentHashMap<Match, LinkStatsInfo> stats = new ConcurrentHashMap<Match, LinkStatsInfo>();
+    
     /** pairs a message transaction ID with the stats it is collecting */
     private class LinkStatsInfo {
         /** transaction ID which will be used to update these statistics */
@@ -259,9 +277,6 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
             this.stats = new LinkStats(m);
         }
     }
-    
-    /** statistics being gathered for this link */
-    private final ConcurrentHashMap<Match, LinkStatsInfo> stats = new ConcurrentHashMap<Match, LinkStatsInfo>();
     
     /** Gets the LinkStats associated with the specified Match, if any */
     public LinkStats getStats(Match m) {
@@ -357,11 +372,22 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         stats.clear();
     }
     
-    /** whether to hide links which we have never received statistics about */
-    public static boolean HIDE_LINKS_WITHOUT_STATS = false;
-    
-    /** the color to draw the link */
-    private Color curDrawColor = (HIDE_LINKS_WITHOUT_STATS ? null : Color.BLACK);
+    /** update this links with the latest stats reply about this link */
+    public void updateStats(Match m, AggregateStatsReply reply) {
+        LinkStatsInfo lsi = stats.get(m);
+        if(lsi == null)
+            System.err.println(this.toString() + " received stats it is not tracking: " + m.toString());
+        else {
+            if(reply.dpid == src.getID())
+                lsi.stats.statsSrc.update(reply);
+            else if(lsi.stats.statsDst != null && reply.dpid == dst.getID())
+                lsi.stats.statsDst.update(reply);
+            
+            // update the color whenever the (unfiltered) link utilization stats are updated
+            if(m.wildcards.isWildcardAll())
+                setColorBasedOnCurrentUtilization();
+        }
+    }
     
     /** 
      * Returns the current bandwidth being sent through the link in ps or a 
@@ -376,8 +402,8 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     }
     
     /** 
-     * returns the current utilization of the link in the range [0, 1] or -1 if
-     * stats are not currently being tracked for this
+     * Returns the current utilization of the link in the range [0, 1] or -1 if
+     * stats are not currently being tracked for this.
      */
     public double getCurrentUtilization() {
         double rate = getCurrentDataRate();
@@ -387,25 +413,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
             return rate / maxDataRate_bps;
     }
     
-    /** update this links with the latest stats reply about this link */
-    public void updateStats(Match m, AggregateStatsReply reply) {
-        LinkStatsInfo lsi = stats.get(m);
-        if(lsi == null)
-            System.err.println(this.toString() + " received stats it is not tracking: " + m.toString());
-        else {
-            if(reply.dpid == src.getID())
-                lsi.stats.statsSrc.update(reply);
-            else if(lsi.stats.statsDst != null && reply.dpid == dst.getID())
-                lsi.stats.statsDst.update(reply);
-            
-            // update the color whenever the (unfiltered) link utilization stats are updated
-            if(m.wildcards.isWildcardAll())
-                setColor();
-        }
-    }
+    
+    // ------------- Usage Color Helpers ------------ //
     
     /** sets the color this link will be drawn based on the current utilization */
-    public void setColor() {
+    public void setColorBasedOnCurrentUtilization() {
         float usage = (float)getCurrentUtilization();
         this.curDrawColor = getUsageColor(usage);
     }
@@ -449,11 +461,16 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         }
     }
     
-    /** precomputed usage colors for performance reasons */
+    /** how finely to precompute usage colors (larger => more memory and more preceise) */
     public static final int NUM_USAGE_COLORS = 256;
+    
+    /** array of precomputed usage colors */
     public static final Color[] USAGE_COLORS;
+    
+    /** image containing the legend of usage colors from low to high utilization */
     public static final  BufferedImage USAGE_LEGEND;
     
+    /** precompute usage colors for performance reasons */
     static {
         USAGE_COLORS = new Color[NUM_USAGE_COLORS];
         int legendHeight = 20;
@@ -477,5 +494,40 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         StringDrawer.drawCenteredString("Link Utilization (%)", gfx, lw / 2, y);
         StringDrawer.drawRightAlignedString("100%", gfx, lw - margin_x, y);
         gfx.setColor(Constants.COLOR_DEFAULT);
+    }
+    
+    
+    // -------------------- Other ------------------- //
+    
+    public boolean isWithin(int x, int y) {
+        if(boundingBox == null)
+            return false;
+        else
+            return boundingBox.contains(x, y);
+    }
+    
+    public int hashCode() {
+        int hash = 7;
+        
+        hash += dst.hashCode();
+        hash += 31 * dstPort;
+        hash += 31 * src.hashCode();
+        hash += 31 * srcPort;
+        
+        return hash;
+    }
+    
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if((o == null) || (o.getClass() != this.getClass())) return false;
+        Link l = (Link)o;
+        return l.dst.getID() == dst.getID() &&
+               l.dstPort == dstPort &&
+               l.src.getID() == src.getID() &&
+               l.srcPort == srcPort;
+    }
+    
+    public String toString() {
+        return src.toString() + " ===> " + dst.toString();
     }
 }

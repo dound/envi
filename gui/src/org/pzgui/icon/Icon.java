@@ -43,6 +43,16 @@ public abstract class Icon extends Component {
     /** Returns the default size of this icon. */
     public abstract Dimension getSize();
     
+    /** gets the default height of this icon */
+    public int getHeight() {
+        return getSize().height;
+    }
+    
+    /** gets the default width of this icon */
+    public int getWidth() {
+        return getSize().width;
+    }
+    
     /** scaling for the paint method */
     private float scaleW = 1.0f, scaleH = 1.0f;
     

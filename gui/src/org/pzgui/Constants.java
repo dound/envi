@@ -24,8 +24,8 @@ public abstract class Constants {
     public static final BasicStroke STROKE_DEFAULT    = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     public static final Color       COLOR_DEFAULT     = cmap(Color.BLACK);
     public static final Color       BG_DEFAULT        = cmap(Color.WHITE);
-    public static final Color       COLOR_SELECTED    = cmap(new Color(196, 255, 196));
-    public static final Color       COLOR_HOVERING    = cmap(new Color(255, 255, 196));
+    public static final Color       COLOR_SELECTED    = cmap(new Color(128, 255, 128));
+    public static final Color       COLOR_HOVERING    = cmap(new Color(255, 255, 128));
     public static final Paint       PAINT_DEFAULT     = COLOR_DEFAULT;
     public static final Font        FONT_DEFAULT      = new Font("Tahoma", Font.BOLD, 14);
     public static final Font        FONT_TI           = new Font("Tahoma", Font.BOLD, 44);

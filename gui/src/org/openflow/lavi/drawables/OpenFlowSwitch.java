@@ -11,23 +11,11 @@ import org.openflow.util.string.DPIDUtil;
 import org.pzgui.icon.ShapeIcon;
 
 /**
- * Describes an OpenFlow node.
+ * Describes an OpenFlow switch.
+ * 
  * @author David Underhill
  */
 public class OpenFlowSwitch extends NodeWithPorts {
-    public static final int DEFAULT_SIZE = 40;
-    public static final Shape DEFAULT_SHAPE = new Ellipse2D.Double(0, 0, DEFAULT_SIZE, DEFAULT_SIZE);
-    public static final Paint DEFAULT_FILL = new Color(128, 128, 255);
-    
-    /** datapath ID of this switch */
-    private long datapathID;
-    
-    /** switch description stats */
-    private String manufacturer="?", hw_desc="?", sw_desc="?", serial_num="?";
-    
-    /** when switch description stats were last updated */
-    private long descUpdateTime = 0;
-    
     public OpenFlowSwitch(long dpid) {
         this("", 0, 0, dpid);
     }
@@ -36,6 +24,18 @@ public class OpenFlowSwitch extends NodeWithPorts {
         super(name, x, y, new ShapeIcon(DEFAULT_SHAPE, DEFAULT_FILL));
         this.datapathID = dpid;
     }
+    
+    
+    // ------------------- Drawing ------------------ //
+    
+    /** default size of the DEFAULT_SHAPE */
+    public static final int DEFAULT_SIZE = 40;
+    
+    /** default shape used to represent a switch */
+    public static final Shape DEFAULT_SHAPE = new Ellipse2D.Double(0, 0, DEFAULT_SIZE, DEFAULT_SIZE);
+    
+    /** default fill color for DEFAULT_SHAPE */
+    public static final Paint DEFAULT_FILL = new Color(128, 128, 255);
     
     /** 
      * Uses super.drawObject() to do most of the work and then draws switch
@@ -71,31 +71,57 @@ public class OpenFlowSwitch extends NodeWithPorts {
         }
     }
     
-    /** Returns true if s is not null, non-zero length, and not "None" or "?" */
-    private boolean isStringSet(String s) {
-        return s!=null && s.length()>0 && !s.equals("None") && !s.equals("?");
-    }
-        
+ 
+    // --------------------- ID --------------------- //
+    
+    /** datapath ID of this switch */
+    private long datapathID;
+    
+    /** when switch description stats were last updated */
+    private long descUpdateTime = 0;
+    
+    /** returns a string version of the switch's datapath ID */
     public String getDebugName() {
         return DPIDUtil.dpidToHex(datapathID);
     }
     
+    /** gets the datapath ID of this switch */
     public long getDatapathID() {
         return datapathID;
     }
     
+    /** sets the datapath ID of this switch */
+    public void setDatapathID(long dpid) {
+        this.datapathID = dpid;
+    }
+    
+    
+    // ------------- Description Stats -------------- //
+    
+    /** switch description stats */
+    private String manufacturer="?", hw_desc="?", sw_desc="?", serial_num="?";
+    
+    /** Returns true if s is not null, non-zero length, and not "None" or "?" */
+    private boolean isStringSet(String s) {
+        return s!=null && s.length()>0 && !s.equals("None") && !s.equals("?");
+    }
+    
+    /** gets the manufacturer of the switch */
     public String getManufacturer() {
         return manufacturer;
     }
     
+    /** gets the hardware description of the switch */
     public String getHWDescription() {
         return hw_desc;
     }
     
+    /** gets the software description of the switch */
     public String getSWDescription() {
         return sw_desc;
     }
     
+    /** gets the serial n umber of the switch */
     public String getSerialNumber() {
         return serial_num;
     }
@@ -114,14 +140,13 @@ public class OpenFlowSwitch extends NodeWithPorts {
         descUpdateTime = System.currentTimeMillis();
     }
     
+    
+    // -------------------- Other ------------------- //
+    
     public boolean isWithin(int x, int y) {
         return isWithin(x, y, getIcon().getSize());
     }
 
-    public void setDatapathID(long dpid) {
-        this.datapathID = dpid;
-    }
-    
     public String toString() {
         return getName() + "; dpid=" + DPIDUtil.dpidToHex(getDatapathID());
     }

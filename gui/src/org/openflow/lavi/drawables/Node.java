@@ -12,13 +12,32 @@ import org.pzgui.StringDrawer;
  * @author David Underhill
  */
 public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
-    private String name;
-    
     public Node(String name, int x, int y) {
         this.name = name;
         setPos(x, y);
     }
 
+    // ------------------- Naming ------------------- //
+    
+    /** name of the Node */
+    private String name;
+
+    /** gets the name of the node */
+    public String getName() {
+        return name;
+    }
+    
+    /** gets a debug version of the node's name */
+    public abstract String getDebugName();
+    
+    /** sets the node's name */
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    
+    // ------------------- Drawing ------------------ //
+    
     protected final void drawName( Graphics2D gfx, int x, int yMin, int yMax) {
         int yName;
         yName = yMin - gfx.getFontMetrics().getHeight() / 2;
@@ -40,30 +59,15 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
         drawName( gfx, getX(), getY() - textYOffset, getY() + textYOffset);
     }
     
-    public String getName() {
-        return name;
-    }
-    
-    public abstract String getDebugName();
-    
-    public void setName(String name) {
-        this.name = name;
-    }
-    
     public abstract void draw(Graphics2D gfx);
     
     public void drawObject(Graphics2D gfx) {
         draw(gfx);
     }
     
-    /** Returns true if the object of size sz contains the location x, y */
-    protected boolean isWithin( int x, int y, java.awt.Dimension sz) {
-        int left = getX()-sz.width/2;
-        int top  = getY()-sz.height/2;
-        
-        return( x>=left && x<left+sz.width && y>=top && y<top+sz.height);
-    }
-
+    
+    // ----------------- Node Status ---------------- //
+    
     /** whether the node is off because it is not needed */
     private boolean off = false;
     
@@ -87,6 +91,17 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
     }
     
     
+    // -------------------- Other ------------------- //
+
+    /** Returns true if the object of size sz contains the location x, y */
+    protected boolean isWithin( int x, int y, java.awt.Dimension sz) {
+        int left = getX()-sz.width/2;
+        int top  = getY()-sz.height/2;
+        
+        return( x>=left && x<left+sz.width && y>=top && y<top+sz.height);
+    }
+    
+    /** returns the name of the node */
     public String toString() {
         return getName();
     }

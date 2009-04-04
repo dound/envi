@@ -1,5 +1,6 @@
 package org.openflow.gui;
 
+import java.io.DataInput;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -34,7 +35,7 @@ import org.openflow.util.string.DPIDUtil;
  *
  * @param <MANAGER>  The kind of PZLayoutManager to use to manage the GUI itself.
  */
-public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements OFGMessageProcessor, PZClosing, DrawableEventListener {
+public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements MessageProcessor<OFGMessage>, PZClosing, DrawableEventListener {
     /** run the GUI front-end */
     public static void main(String args[]) {
         String server = null;
@@ -51,7 +52,7 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements OFGMessageP
     }
     
     /** connection to the backend */
-    protected final BackendConnection conn;
+    protected final BackendConnection<OFGMessage> conn;
     
     /** the GUI window manager */
     protected final MANAGER manager;
@@ -111,7 +112,7 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements OFGMessageP
         
         if(port == null)
             port = BackendConnection.DEFAULT_PORT;
-        conn = new BackendConnection(this, server, port, subscribeSwitches, subscribeLinks);
+        conn = new BackendConnection<OFGMessage>(this, server, port, subscribeSwitches, subscribeLinks);
 
         // set defaults
         this.autoRequestLinkInfoForNewSwitch = autoRequestLinkInfoForNewSwitch;
@@ -158,6 +159,15 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements OFGMessageP
         // remove all switches when we get disconnected
         for(Long d : switchesList)
             disconnectSwitch(d);
+    }
+
+    /** 
+     * Constructs the object representing the received message.  The message is 
+     * known to be of length len and len - 4 bytes representing the rest of the 
+     * message should be extracted from buf.
+     */
+    public OFGMessage decode(int len, DataInput in) throws IOException {
+        return OFGMessageType.decode(len, in);
     }
 
     /** Handles messages received from the backend */
@@ -493,5 +503,5 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements OFGMessageP
             s.setSwitchDescription(msg);
         else
             System.err.println("Warning: received switch description for unknown switch " + DPIDUtil.toString(msg.dpid));
-    }
+    }    
 }

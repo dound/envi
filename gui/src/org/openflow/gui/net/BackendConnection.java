@@ -1,7 +1,6 @@
 package org.openflow.gui.net;
 
 import org.openflow.gui.net.protocol.OFGMessage;
-import org.openflow.gui.net.protocol.OFGMessageProcessor;
 import org.openflow.gui.net.protocol.OFGMessageType;
 import org.openflow.gui.net.protocol.LinksSubscribe;
 import org.openflow.gui.net.protocol.PollStart;
@@ -17,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Connects to a server instance to receive stats and send commands.
  * @author David Underhill
  */
-public class BackendConnection extends Thread {
+public class BackendConnection<MSG_TYPE extends Message> extends Thread {
     /** default port to connect to over */
     public static final short DEFAULT_PORT = 2503;
     
@@ -136,7 +135,7 @@ public class BackendConnection extends Thread {
     private boolean reconnect = false;
     
     /** the object responsible for processing messages */
-    private final OFGMessageProcessor msgProcessor;
+    private final MessageProcessor<MSG_TYPE> msgProcessor;
 
     /** whether the connection should be turned off */
     private boolean done = false;
@@ -155,7 +154,7 @@ public class BackendConnection extends Thread {
      * 
      * @param ip  the IP where the server lives
      */
-    public BackendConnection(OFGMessageProcessor mp, String ip) {
+    public BackendConnection(MessageProcessor<MSG_TYPE> mp, String ip) {
         this(mp, ip, DEFAULT_PORT);
     }
     
@@ -165,7 +164,7 @@ public class BackendConnection extends Thread {
      * @param ip  the IP where the server lives
      * @param port  the port the server listens on
      */
-    public BackendConnection(OFGMessageProcessor mp, String ip, int port) {
+    public BackendConnection(MessageProcessor<MSG_TYPE> mp, String ip, int port) {
         this(mp, ip, port, true, true);
     }
     
@@ -177,7 +176,7 @@ public class BackendConnection extends Thread {
      * @param subscribeSwitches  whether to subscribe to switch changes
      * @param subscribeLinks     whether to subscribe to link changes
      */
-    public BackendConnection(OFGMessageProcessor mp, String ip, int port, 
+    public BackendConnection(MessageProcessor<MSG_TYPE> mp, String ip, int port, 
                           boolean subscribeSwitches, boolean subscribeLinks) {
         msgProcessor = mp;
         serverIP = ip;
@@ -294,7 +293,7 @@ public class BackendConnection extends Thread {
     }
     
     /** returns the next message received on the connection */
-    private OFGMessage recvMessage() throws IOException {
+    private MSG_TYPE recvMessage() throws IOException {
         final CountingDataInputStream in = conn.in;
         if(in == null)
             throw new IOException("connection is disconnected");
@@ -305,7 +304,7 @@ public class BackendConnection extends Thread {
         int len = in.readShort();
 
         // decode the message
-        OFGMessage msg = OFGMessageType.decode(len, in);
+        MSG_TYPE msg = msgProcessor.decode(len, in);
 
         // make sure we consume exactly the specified number of bytes or problems have
         long bytesRead = in.getBytesRead() - bytesReadBefore;
@@ -314,11 +313,11 @@ public class BackendConnection extends Thread {
             if(in.skipBytes(bytesLeftover) != bytesLeftover)
                 throw new IOException("unable to skip leftover bytes (" + bytesLeftover + "B)");
             else
-                System.err.println("Warning: " + bytesLeftover + "B leftover for message type " + msg.type.toString());
+                System.err.println("Warning: " + bytesLeftover + "B leftover for message type " + msg.getType().toString());
         }
         else if(bytesRead > len) {
             long bytesOverread = bytesRead - len;
-            throw new IOException("read " + bytesOverread + "B over the specified length for message type " + msg.type.toString());
+            throw new IOException("read " + bytesOverread + "B over the specified length for message type " + msg.getType().toString());
         }
         
         return msg;

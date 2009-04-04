@@ -1,9 +1,9 @@
 package org.pzgui.icon;
 
 import org.pzgui.Constants;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.util.HashMap;
@@ -15,16 +15,16 @@ import java.util.HashMap;
  */
 public class ShapeIcon extends Icon {
     private Shape shape;
-    private Color fillColor;
-    private Color outlineColor;
+    private Paint fillColor;
+    private Paint outlineColor;
     private final Dimension size;
     private final HashMap<Dimension, Shape> resampledShapes = new HashMap<Dimension, Shape>();
     
-    public ShapeIcon(Shape s, Color fill) {
+    public ShapeIcon(Shape s, Paint fill) {
         this(s, fill, null);
     }
     
-    public ShapeIcon(Shape s, Color fill, Color outline) {
+    public ShapeIcon(Shape s, Paint fill, Paint outline) {
         this.shape = s;
         size = s.getBounds().getSize();
         this.fillColor = fill;
@@ -57,7 +57,7 @@ public class ShapeIcon extends Icon {
         draw(gfx, x, y);
     }
     
-    public static void draw( Graphics2D gfx, Shape s, Color fill, Color outline, int x, int y) {
+    public static void draw( Graphics2D gfx, Shape s, Paint fill, Paint outline, int x, int y) {
         int xC = x - s.getBounds().width / 2;
         int yC = y - s.getBounds().height / 2;
         gfx.translate(xC, yC);
@@ -78,19 +78,19 @@ public class ShapeIcon extends Icon {
         return size;
     }
     
-    public Color getFillColor() {
+    public Paint getFillColor() {
         return fillColor;
     }
     
-    public void setFillColor(Color c) {
+    public void setFillColor(Paint c) {
         fillColor = c;
     }
     
-    public Color getOutlineColor() {
+    public Paint getOutlineColor() {
         return outlineColor;
     }
     
-    public void setOutlineColor(Color c) {
+    public void setOutlineColor(Paint c) {
         outlineColor = c;
     }
 }

@@ -7,6 +7,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.openflow.lavi.Options;
 import org.openflow.util.LongPair;
+import org.pzgui.icon.Icon;
 
 /**
  * Information about a node with ports in the topology.
@@ -21,8 +22,8 @@ public abstract class NodeWithPorts extends Node {
      */
     private final CopyOnWriteArrayList<Link> links = new CopyOnWriteArrayList<Link>();
     
-    public NodeWithPorts(String name, int x, int y) {
-        super(name, x, y);
+    public NodeWithPorts(String name, int x, int y, Icon icon) {
+        super(name, x, y, icon);
     }
     
     public void unsetDrawn() {
@@ -30,6 +31,12 @@ public abstract class NodeWithPorts extends Node {
         for(Link l : links)
             l.unsetDrawn();
         
+    }
+    
+    /** draws links first */
+    public void drawBeforeObject(Graphics2D gfx) {
+        super.drawBeforeObject(gfx);
+        drawLinks(gfx);
     }
     
     /** draws the links associated with this node */

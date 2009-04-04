@@ -143,10 +143,6 @@ public class OpenFlowSwitch extends NodeWithPorts {
     
     // -------------------- Other ------------------- //
     
-    public boolean isWithin(int x, int y) {
-        return isWithin(x, y, getIcon().getSize());
-    }
-
     public String toString() {
         return getName() + "; dpid=" + DPIDUtil.dpidToHex(getDatapathID());
     }

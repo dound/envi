@@ -46,8 +46,8 @@ public abstract class NodeWithPorts extends Node {
         
         // draw the port's links
         for(Link link : links) {
-            LongPair lp = new LongPair(link.getSource().getDatapathID(),
-                                       link.getDestination().getDatapathID());
+            LongPair lp = new LongPair(link.getSource().getID(),
+                                       link.getDestination().getID());
             
             count = dpidToCount.get(lp);
             if(count == null)
@@ -141,7 +141,7 @@ public abstract class NodeWithPorts extends Node {
     public Link getLinkTo(long dpid) {
         for(Link l : links) {
             NodeWithPorts o = l.getOther(this);
-            if(o!=null && o.getDatapathID()==dpid)
+            if(o!=null && o.getID()==dpid)
                 return l;
         }
         
@@ -149,16 +149,16 @@ public abstract class NodeWithPorts extends Node {
     }
     
     /** Returns a unique ID for this node */
-    public abstract long getDatapathID();
+    public abstract long getID();
     
     public int hashCode() {
-        return (int)(getDatapathID() ^ (getDatapathID() >>> 32));
+        return (int)(getID() ^ (getID() >>> 32));
     }
     
     public boolean equals(Object o) {
         if(this == o) return true;
         if((o == null) || (o.getClass() != this.getClass())) return false;
         NodeWithPorts n = (NodeWithPorts)o;
-        return n.getDatapathID() == getDatapathID();
+        return n.getID() == getID();
     }
 }

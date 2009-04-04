@@ -86,12 +86,12 @@ public class OpenFlowSwitch extends NodeWithPorts {
     }
     
     /** gets the datapath ID of this switch */
-    public long getDatapathID() {
+    public long getID() {
         return datapathID;
     }
     
     /** sets the datapath ID of this switch */
-    public void setDatapathID(long dpid) {
+    public void setID(long dpid) {
         this.datapathID = dpid;
     }
     
@@ -144,6 +144,6 @@ public class OpenFlowSwitch extends NodeWithPorts {
     // -------------------- Other ------------------- //
     
     public String toString() {
-        return getName() + "; dpid=" + DPIDUtil.dpidToHex(getDatapathID());
+        return getName() + "; dpid=" + DPIDUtil.dpidToHex(getID());
     }
 }

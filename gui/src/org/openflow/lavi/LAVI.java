@@ -243,7 +243,7 @@ public class LAVI<MANAGER extends PZLayoutManager> implements LAVIMessageProcess
     
     /** Tells the manager to draw a switch (or its virtualized switches if it is virtualized). */
     private void addSwitchDrawable(OpenFlowSwitch s) {
-        VirtualSwitchSpecification v = virtualSwitches.get(s.getDatapathID());
+        VirtualSwitchSpecification v = virtualSwitches.get(s.getID());
         if(v == null) {
             manager.addDrawable(s);
         }
@@ -255,7 +255,7 @@ public class LAVI<MANAGER extends PZLayoutManager> implements LAVIMessageProcess
     
     /** Tells the manager to stop drawing a switch (or its virtualized switches if it is virtualized). */
     private void removeSwitchDrawable(OpenFlowSwitch s) {
-        VirtualSwitchSpecification v = virtualSwitches.get(s.getDatapathID());
+        VirtualSwitchSpecification v = virtualSwitches.get(s.getID());
         if(v == null) {
             manager.removeDrawable(s);
         }
@@ -346,14 +346,14 @@ public class LAVI<MANAGER extends PZLayoutManager> implements LAVIMessageProcess
     }
     
     public Link addLink(NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
-        VirtualSwitchSpecification vDst = virtualSwitches.get(dst.getDatapathID());
+        VirtualSwitchSpecification vDst = virtualSwitches.get(dst.getID());
         if(vDst != null) {
             dst = vDst.getVirtualSwitchByPort(dstPort);
             if(dst == null)
                 return null; /* ignore unvirtualized ports on a display virtualized switch */
         }
         
-        VirtualSwitchSpecification vSrc = virtualSwitches.get(src.getDatapathID());
+        VirtualSwitchSpecification vSrc = virtualSwitches.get(src.getID());
         if(vSrc != null) {
             src = vSrc.getVirtualSwitchByPort(srcPort);
             if(src == null)

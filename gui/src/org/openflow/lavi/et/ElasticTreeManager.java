@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Ellipse2D;
 import java.util.HashSet;
 import java.util.LinkedList;
 import javax.swing.*;
@@ -23,6 +24,7 @@ import org.pzgui.Constants;
 import org.pzgui.Drawable;
 import org.pzgui.PZWindow;
 import org.pzgui.icon.GeometricIcon;
+import org.pzgui.icon.ShapeIcon;
 import org.pzgui.layout.Edge;
 import org.pzgui.layout.PZLayoutManager;
 import org.pzgui.layout.Vertex;
@@ -136,8 +138,7 @@ public class ElasticTreeManager extends PZLayoutManager {
                     // a bit of a hack: draw switches representing hosts a different color
                     if(d instanceof OpenFlowSwitch) {
                         OpenFlowSwitch o = ((OpenFlowSwitch)d);
-                        o.setFillColor(java.awt.Color.DARK_GRAY);
-                        o.setSize(OpenFlowSwitch.SIZE_SMALL);
+                        o.setIcon(new ShapeIcon(new Ellipse2D.Double(0,0,5,5), java.awt.Color.DARK_GRAY));
                     }
                 }
                 relayout();

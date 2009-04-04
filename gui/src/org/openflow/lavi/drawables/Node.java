@@ -3,7 +3,6 @@ package org.openflow.lavi.drawables;
 import java.awt.Graphics2D;
 
 import org.pzgui.icon.Icon;
-import org.pzgui.icon.ImageIcon;
 import org.pzgui.layout.AbstractLayoutable;
 import org.pzgui.layout.Vertex;
 import org.pzgui.StringDrawer;
@@ -40,25 +39,32 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
     
     // ------------------- Drawing ------------------ //
     
-    protected final void drawName( Graphics2D gfx, int x, int yMin, int yMax) {
-        int yName;
-        yName = yMin - gfx.getFontMetrics().getHeight() / 2;
-        StringDrawer.drawCenteredString( getName(), gfx, x, yName);
+    /** how to visually represent the Node itself */
+    private Icon icon;
+    
+    /** draws the name of the object centered at the specified x coordinate */
+    protected final void drawName( Graphics2D gfx, int x, int y) {
+        StringDrawer.drawCenteredString(getName(), gfx, x, y);
     }
     
-    public void drawNodeWithImage( Graphics2D gfx, java.awt.Image img, java.awt.Dimension sz) {
-        drawNodeWithImage( gfx, img, sz, true);
+    /** 
+     * Draws this object using the Icon specified by getIcon() at its current
+     * location as specified by getX() and getY().  The name is drawn below the
+     * object.
+     */
+    public void drawObject(Graphics2D gfx) {
+        icon.draw(gfx, getX(), getY());
+        drawName(gfx, getX(), getY() + icon.getHeight());
     }
     
-    public void drawNodeWithImage( Graphics2D gfx, java.awt.Image img, java.awt.Dimension sz, boolean doDrawName) {
-        ImageIcon.draw(gfx, img, getX(), getY(), sz.width, sz.height);
-        if( doDrawName)
-            drawName( gfx, getX(), getY() - sz.height / 2, getY() + sz.height / 2);
+    /** get how this node is visually represented */
+    public Icon getIcon() {
+        return icon;
     }
     
-    public void drawNodeWithImage( Graphics2D gfx, java.awt.Image img, java.awt.Dimension sz, int textYOffset) {
-        ImageIcon.draw(gfx, img, getX(), getY(), sz.width, sz.height);
-        drawName( gfx, getX(), getY() - textYOffset, getY() + textYOffset);
+    /** set how this node is visually represented */
+    public void setIcon(Icon icon) {
+        this.icon = icon;
     }
     
     

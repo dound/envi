@@ -105,7 +105,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
             gfx.setPaint(NAME_COLOR);
             int textYOffset = -size.height / 2 + 2;
             if(isStringSet(getName()))
-                drawName(gfx, getX(), getY() - textYOffset, getY() + textYOffset);
+                drawName(gfx, getX(), getY() + size.height);
             else
                 gfx.drawString(DPIDUtil.toShortString(datapathID), x, y);
             y += gfx.getFontMetrics().getHeight();

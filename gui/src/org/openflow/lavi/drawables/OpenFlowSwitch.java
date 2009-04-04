@@ -55,7 +55,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
         drawLinks(gfx);
     }
 
-    public void draw(Graphics2D gfx) {
+    public void drawObject(Graphics2D gfx) {
         Composite c = null;
         if(isOff() && !isFailed()) {
             c = gfx.getComposite();

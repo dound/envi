@@ -1,6 +1,8 @@
 package org.openflow.lavi.drawables;
 
 import java.awt.Graphics2D;
+
+import org.pzgui.icon.Icon;
 import org.pzgui.icon.ImageIcon;
 import org.pzgui.layout.AbstractLayoutable;
 import org.pzgui.layout.Vertex;
@@ -57,12 +59,6 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
     public void drawNodeWithImage( Graphics2D gfx, java.awt.Image img, java.awt.Dimension sz, int textYOffset) {
         ImageIcon.draw(gfx, img, getX(), getY(), sz.width, sz.height);
         drawName( gfx, getX(), getY() - textYOffset, getY() + textYOffset);
-    }
-    
-    public abstract void draw(Graphics2D gfx);
-    
-    public void drawObject(Graphics2D gfx) {
-        draw(gfx);
     }
     
     

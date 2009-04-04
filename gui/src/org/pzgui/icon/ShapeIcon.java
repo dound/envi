@@ -41,6 +41,10 @@ public class ShapeIcon extends Icon {
     }
     
     public void draw(Graphics2D gfx, int x, int y, int w, int h) {
+        draw(gfx, x, y, w, h, fillColor, outlineColor);
+    }
+    
+    public void draw(Graphics2D gfx, int x, int y, int w, int h, Paint fill, Paint outline) {
         // get an appropriately sized shape if we don't have it already
         if(size.getWidth()!=w || size.getHeight()!=h) {
             Dimension d = new Dimension(w, h);
@@ -54,7 +58,7 @@ public class ShapeIcon extends Icon {
             shape = s;
         }
         
-        draw(gfx, x, y);
+        draw(gfx, shape, fill, outline, x, y);
     }
     
     public static void draw( Graphics2D gfx, Shape s, Paint fill, Paint outline, int x, int y) {

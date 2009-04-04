@@ -100,13 +100,13 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
     protected void drawFailed(Graphics2D gfx) {
         int w=icon.getWidth(), dx=0;
         if(GeometricIcon.X.getWidth() > w) {
-            dx = (GeometricIcon.X.getWidth() - w) / 2;
+            dx = GeometricIcon.X.getWidth() - w;
             w = GeometricIcon.X.getWidth();
         }
         
         int h=icon.getHeight(), dy=0;
         if(GeometricIcon.X.getWidth() > h) {
-            dy = (GeometricIcon.X.getWidth() - h) / 2;
+            dy = GeometricIcon.X.getWidth() - h;
             h = GeometricIcon.X.getWidth();
         }
         

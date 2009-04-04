@@ -31,7 +31,6 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     public static final BasicStroke LINE_DEFAULT_STROKE = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     public static final BasicStroke LINE_OUTLINE_STROKE = new BasicStroke(LINE_WIDTH+1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     public static boolean DRAW_PORT_NUMBERS = false;
-    public static boolean USE_DIRECTED_LINKS = true;
     
     /** link endpoints */
     protected NodeWithPorts src;

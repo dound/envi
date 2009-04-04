@@ -1,5 +1,6 @@
 package org.openflow.lavi.stats;
 
+import org.openflow.lavi.Options;
 import org.openflow.protocol.Match;
 
 /** 
@@ -16,14 +17,14 @@ public class LinkStats {
     
     public LinkStats(Match m) {
         this.statsSrc = new PortStatsRates(m);
-        if(org.openflow.lavi.drawables.Link.USE_DIRECTED_LINKS)
+        if(Options.USE_DIRECTED_LINKS)
             this.statsDst = null;
         else
             this.statsDst = new PortStatsRates(m);
     }
     
     public double getCurrentAverageDataRate() {
-        if(org.openflow.lavi.drawables.Link.USE_DIRECTED_LINKS)
+        if(Options.USE_DIRECTED_LINKS)
             return statsSrc.getBitsPerSec();
         else
             return (statsSrc.getBitsPerSec() + statsDst.getBitsPerSec()) / 2.0;

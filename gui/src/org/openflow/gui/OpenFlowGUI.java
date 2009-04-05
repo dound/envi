@@ -52,7 +52,7 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements MessageProc
     }
     
     /** connection to the backend */
-    protected final BackendConnection<OFGMessage> conn;
+    private final BackendConnection<OFGMessage> conn;
     
     /** the GUI window manager */
     protected final MANAGER manager;
@@ -127,18 +127,23 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements MessageProc
     /** start the connection - should only be called once */
     public void startConnection() {
         // try to connect to the backend
-        conn.start();
+        getConnection().start();
+    }
+    
+    /** Returns the connection to the backend */
+    protected BackendConnection<OFGMessage> getConnection() {
+        return conn;
     }
     
     /** shutdown the connection */
     public void pzClosing(PZManager manager) {
         disconnecting = true;
         long start = System.currentTimeMillis();
-        conn.shutdown();
+        getConnection().shutdown();
         Thread.yield();
 
         // wait until the connection has been torn down or 1sec has passed
-        while(!conn.isShutdown() && System.currentTimeMillis()-start<1000) {}
+        while(!getConnection().isShutdown() && System.currentTimeMillis()-start<1000) {}
     }
     
     /** a drawable has fired an event (this method does nothing by default) */
@@ -146,7 +151,7 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements MessageProc
     
     /** Called when the backend has been disconnected or reconnected */
     public void connectionStateChange() {
-        if(!conn.isConnected()) {
+        if(!getConnection().isConnected()) {
             cleanup();
         }
     }
@@ -230,11 +235,11 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements MessageProc
         if(pw == null) pw = "";
         
         try {
-            conn.sendMessage(new AuthPlainText(username, pw));
+            getConnection().sendMessage(new AuthPlainText(username, pw));
         }
         catch(IOException e) {
             System.err.println("Failed to send plain-text authentication reply");
-            conn.reconnect();
+            getConnection().reconnect();
         }
     }
 
@@ -301,13 +306,13 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements MessageProc
         
         // get the links associated with this switch
         try {
-            conn.sendMessage(new LinksRequest(dpid));
+            getConnection().sendMessage(new LinksRequest(dpid));
         } catch (IOException e) {
             System.err.println("Warning: unable to get switches for switch + " + DPIDUtil.toString(dpid));
         }
         
         try {
-            conn.sendMessage(new SwitchDescriptionRequest(dpid));
+            getConnection().sendMessage(new SwitchDescriptionRequest(dpid));
         } catch (IOException e) {
             System.err.println("Warning: unable to get switch desc for switch + " + DPIDUtil.toString(dpid));
         }
@@ -339,7 +344,7 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements MessageProc
             // disconnect all links associated with the switch too
             for(Link l : s.getLinks()) {
                 try {
-                    l.disconnect(conn);
+                    l.disconnect(getConnection());
                 } 
                 catch(IOException e) {
                     // ignore: connection down => polling messages cleared on the backend already
@@ -402,7 +407,7 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements MessageProc
                 
                 // tell the backend to keep us updated on the link's utilization
                 try {
-                    l.trackStats(statsRefreshRate_msec, Match.MATCH_ALL, conn);
+                    l.trackStats(statsRefreshRate_msec, Match.MATCH_ALL, getConnection());
                 }
                 catch (IOException e) {
                     System.err.println("Warning: unable to setup link utilization polling for switch " + 
@@ -437,7 +442,7 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements MessageProc
         Link existingLink = dstSwitch.getLinkTo(dstPort, srcSwitch, srcPort);
         if(existingLink != null) {
             try {
-                existingLink.disconnect(conn);
+                existingLink.disconnect(getConnection());
             } 
             catch(IOException e) {
                 // ignore: connection down => polling messages cleared on the backend already
@@ -472,7 +477,7 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements MessageProc
 
     private void processStatReplyAggregate(AggregateStatsReply reply) {
         // get the request which solicited this reply
-        OFGMessage msg = conn.popAssociatedStatefulRequest(reply.xid);
+        OFGMessage msg = getConnection().popAssociatedStatefulRequest(reply.xid);
         AggregateStatsRequest req;
         if(msg==null || !(msg instanceof AggregateStatsRequest)) {
             System.err.println("Warning: matching stateful request for " +

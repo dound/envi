@@ -8,7 +8,7 @@ import java.io.IOException;
  * 
  * @author David Underhill
  */
-public interface MessageProcessor<MSG_TYPE> {
+public interface MessageProcessor<MSG_TYPE extends Message> {
     /** Process a change in the connection status */
     public void connectionStateChange();
     

@@ -1,6 +1,7 @@
 package org.openflow.gui;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -104,6 +105,11 @@ public class Topology {
         return nodesMap.get(id).obj;
     }
     
+    /** Gets the set of IDs currently in the topology */
+    public Set<Long> getNodeIDs() {
+        return nodesMap.keySet();
+    }
+    
     /**
      * Gets the node with the specified ID, if any such node exists in this
      * topology.
@@ -113,6 +119,11 @@ public class Topology {
     public static NodeWithPorts globalGetNode(Long id) {
         NodeRefTrack r = globalNodes.get(id);
         return r==null ? null : r.obj;
+    }
+    
+    /** Gets the set of IDs from all nodes in all topologies */
+    public Set<Long> globalGetNodeIDs() {
+        return globalNodes.keySet();
     }
     
     /**

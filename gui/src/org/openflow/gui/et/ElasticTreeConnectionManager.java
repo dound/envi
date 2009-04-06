@@ -2,8 +2,15 @@ package org.openflow.gui.et;
 
 import java.io.IOException;
 
+import org.pzgui.Drawable;
+import org.pzgui.DrawableEventListener;
+
+import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.OpenFlowGUI;
+import org.openflow.gui.Options;
+import org.openflow.gui.Topology;
 import org.openflow.gui.drawables.Link;
+import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.et.ETBandwidth;
@@ -19,38 +26,47 @@ import org.openflow.gui.net.protocol.et.ETSwitchesRequest;
 import org.openflow.gui.net.protocol.et.ETTrafficMatrix;
 import org.openflow.gui.stats.LinkStats;
 import org.openflow.protocol.Match;
-import org.pzgui.Drawable;
 
 /**
- * Elastic Tree front-end.
+ * Handles Elastic Tree-specific communications.  Also provides the main method
+ * for Elastic Tree.
  * 
  * @author David Underhill
  */
-public class ElasticTree extends OpenFlowGUI<ElasticTreeManager> 
-                         implements TrafficMatrixChangeListener {
+public class ElasticTreeConnectionManager extends ConnectionHandler 
+                         implements DrawableEventListener, TrafficMatrixChangeListener {
     /** run the front-end */
     public static void main(String args[]) {
-        String server = null;
-        if(args.length > 0)
-            server = args[0];
+        String server = OpenFlowGUI.getServer(args);
+        Short port = Options.DEFAULT_PORT;
         
-        Short port = null;
-        new ElasticTree(server, port).startConnection();
+        // create a manager to handle drawing the topology info received by the connection
+        ElasticTreeManager gm = new ElasticTreeManager(6);
+        
+        // create a manager to handle the connection itself
+        ConnectionHandler cm = new ElasticTreeConnectionManager(gm, server, port);
+        
+        // start our managers
+        gm.start();
+        cm.getConnection().start();
     }
+    
+    /** the manager for our single topology */
+    private final ElasticTreeManager manager;
     
     /** whether we have been connected before */
     private boolean firstConnection = true;
     
     /**
-     * Construct the front-end for ElasticTree.
+     * Construct the front-end for ElasticTreeConnectionManager.
      * 
      * @param server  the IP or hostname where the back-end is located
      * @param port    the port the back-end is listening on
      */
-    public ElasticTree(String server, Short port) {
-        super(new ElasticTreeManager(6), server, port, false);
+    public ElasticTreeConnectionManager(ElasticTreeManager manager, String server, Short port) {
+        super(new Topology(manager), server, port, false, false);
         
-        manager.addClosingListener(this);
+        this.manager = manager;
         manager.addDrawableEventListener(this);
         manager.addTrafficMatrixChangeListener(this);
         
@@ -70,27 +86,21 @@ public class ElasticTree extends OpenFlowGUI<ElasticTreeManager>
     public void connectionStateChange() {
         super.connectionStateChange();
         
-        if(firstConnection && conn.isConnected()) {
+        if(firstConnection && getConnection().isConnected()) {
             try {
-                conn.sendMessage(new ETSwitchesRequest(manager.getK()));
+                getConnection().sendMessage(new ETSwitchesRequest(manager.getK()));
                 firstConnection = false;
             }
             catch(IOException e) {}
         }
-    }
-    
-    /**
-     * Calls super.cleanup() and then performs cleanup specific to ElasticTree.
-     */
-    protected void cleanup() {
-        super.cleanup();
         
-        // if the manager was waiting for a response, it won't be coming
-        tmManager.responseWillNotCome();
+        // if the manager was waiting for a response, it won't be coming if we got d/c
+        if(!getConnection().isConnected())
+            tmManager.responseWillNotCome();
     }
     
     /** 
-     * Directly handles ElasticTree-specific messages received from the  
+     * Directly handles ElasticTreeConnectionManager-specific messages received from the  
      * backend and delegates handling of other messages to super.process().
      */
     public void process(final OFGMessage msg) {
@@ -167,8 +177,8 @@ public class ElasticTree extends OpenFlowGUI<ElasticTreeManager>
         private synchronized boolean sendNextTrafficMatrix() {
             if(tmOutstanding != null && tmOutstanding.k != tmNext.k) {
                 try {
-                    cleanup();
-                    conn.sendMessage(new ETSwitchesRequest(tmNext.k));
+                    tmManager.responseWillNotCome();
+                    getConnection().sendMessage(new ETSwitchesRequest(tmNext.k));
                 }
                 catch(IOException e) {}
             }
@@ -176,7 +186,7 @@ public class ElasticTree extends OpenFlowGUI<ElasticTreeManager>
             manager.setNextTrafficMatrixText(tmOutstanding);
             
             try {
-                conn.sendMessage(tmOutstanding);
+                getConnection().sendMessage(tmOutstanding);
                 waiting_for_response = true;
             } catch (IOException e) {
                 System.err.println("Warning: unable to send traffix matrix update: " + tmOutstanding);
@@ -239,19 +249,19 @@ public class ElasticTree extends OpenFlowGUI<ElasticTreeManager>
      * Updates the throughput data of the link described by these parameters.
      */
     private double processLinkUtil(long dstDPID, short dstPort, long srcDPID, short srcPort, float util, long when) {
-        OpenFlowSwitch srcSwitch = switchesMap.get(srcDPID);
-        if(srcSwitch == null) {
+        NodeWithPorts srcNode = getTopology().getNode(srcDPID);
+        if(srcNode == null) {
             logLinkMissing("util", "src switch", dstDPID, dstPort, srcDPID, srcPort);
             return 0;
         }
         
-        OpenFlowSwitch dstSwitch = switchesMap.get(dstDPID);
-        if(dstSwitch == null) {
+        NodeWithPorts dstNode = getTopology().getNode(dstDPID);
+        if(dstNode == null) {
             logLinkMissing("util", "dst switch", dstDPID, dstPort, srcDPID, srcPort);
             return 0;
         }
         
-        Link existingLink = dstSwitch.getDirectedLinkTo(dstPort, srcSwitch, srcPort, false);
+        Link existingLink = dstNode.getDirectedLinkTo(dstPort, srcNode, srcPort, false);
         if(existingLink != null) {
             LinkStats ls = existingLink.getStats(Match.MATCH_ALL);
             if(ls == null)
@@ -281,12 +291,12 @@ public class ElasticTree extends OpenFlowGUI<ElasticTreeManager>
 
     private void processSwitchesOff(ETSwitchesOff msg) {
         // turn everything back on
-        for(OpenFlowSwitch o : switchesMap.values())
-            o.setOff(false);
+        for(Long id : getTopology().getNodeIDs())
+            getTopology().getNode(id).setOff(false);
         
         // turn off the specified switches
         for(long dpid : msg.dpids) {
-            OpenFlowSwitch o = switchesMap.get(dpid);
+            NodeWithPorts o = getTopology().getNode(dpid);
             if(o != null)
                 o.setOff(true);
         }
@@ -311,7 +321,7 @@ public class ElasticTree extends OpenFlowGUI<ElasticTreeManager>
             o.setFailed(!o.isFailed());
             
             try {
-                conn.sendMessage(new ETSwitchFailureChange(o.getID(), o.isFailed()));    
+                getConnection().sendMessage(new ETSwitchFailureChange(o.getID(), o.isFailed()));    
             }
             catch(IOException e) {
                 System.err.println("failed to send switch failure");
@@ -321,7 +331,7 @@ public class ElasticTree extends OpenFlowGUI<ElasticTreeManager>
             Link l = (Link)d;
             l.setFailed(!l.isFailed());
             try {
-                conn.sendMessage(new ETLinkFailureChange(new org.openflow.gui.net.protocol.Link(
+                getConnection().sendMessage(new ETLinkFailureChange(new org.openflow.gui.net.protocol.Link(
                         l.getSource().getID(),
                         l.getMyPort(l.getSource()),
                         l.getDestination().getID(),

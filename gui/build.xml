@@ -7,7 +7,7 @@
   <property name="bin.dir"    value="bin"/>
   <property name="lib.dir"    value="lib"/>
   <property name="jarfile"    value="et_gui.jar"/>
-  <property name="main-class" value="org.openflow.gui.et.ElasticTree"/>
+  <property name="main-class" value="org.openflow.gui.et.ElasticTreeConnectionManager"/>
 
   <path id="classpath">
     <fileset dir="${lib.dir}" includes="*.jar"/>

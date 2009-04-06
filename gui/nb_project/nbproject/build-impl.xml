@@ -21,9 +21,9 @@ is divided into following sections:
         -->
 <project xmlns:j2seproject1="http://www.netbeans.org/ns/j2se-project/1" xmlns:j2seproject3="http://www.netbeans.org/ns/j2se-project/3" xmlns:jaxrpc="http://www.netbeans.org/ns/j2se-project/jax-rpc" basedir=".." default="default" name="openflow_gui-impl">
     <target depends="test,jar,javadoc" description="Build and test whole project." name="default"/>
-    <!--
+    <!-- 
                 ======================
-                INITIALIZATION SECTION
+                INITIALIZATION SECTION 
                 ======================
             -->
     <target name="-pre-init">
@@ -149,6 +149,7 @@ is divided into following sections:
             <attribute default="${includes}" name="includes"/>
             <attribute default="${excludes}" name="excludes"/>
             <attribute default="${javac.debug}" name="debug"/>
+            <attribute default="" name="sourcepath"/>
             <element name="customize" optional="true"/>
             <sequential>
                 <javac debug="@{debug}" deprecation="${javac.deprecation}" destdir="@{destdir}" encoding="${source.encoding}" excludes="@{excludes}" includeantruntime="false" includes="@{includes}" source="${javac.source}" sourcepath="@{sourcepath}" srcdir="@{srcdir}" target="${javac.target}">

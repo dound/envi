@@ -298,7 +298,6 @@ public class OpenFlowGUI<MANAGER extends PZLayoutManager> implements MessageProc
         OpenFlowSwitch s = new OpenFlowSwitch(dpid);
         switchesMap.put(dpid, s);
         switchesList.add(dpid);
-        s.setPos((int)Math.random()*500, (int)Math.random()*500);
         addSwitchDrawable(s);
         
         if(!autoRequestLinkInfoForNewSwitch)

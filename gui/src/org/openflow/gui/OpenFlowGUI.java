@@ -15,6 +15,32 @@ public final class OpenFlowGUI {
     private OpenFlowGUI() { /* this class may not be instantiated */ }
     
     /**
+     * Gets the server to connect to.
+     * 
+     * @param args  the command-line arguments to extract a server from; if
+     *              one is not provided then the user will be prompted for one
+     * 
+     * @return  the server to connect to
+     */
+    public static String getServer(String args[]) {
+        // use the first argument as our server name, if provided
+        String server = null;
+        if(args.length > 0)
+            server = args[0];
+        
+        // ask the user for the backend's IP if it wasn't already given
+        if(server == null || server.length()==0)
+            server = DialogHelper.getInput("What is the IP or hostname of the backend?", Options.DEFAULT_SERVER_IP);
+
+        if(server == null) {
+            System.out.println("Goodbye");
+            System.exit(0);
+        }
+        
+        return server;
+    }
+    
+    /**
      * Creates a connection which will populate a new topology.
      * 
      * @param manager            the manager of the GUI elements
@@ -27,18 +53,6 @@ public final class OpenFlowGUI {
                                                           String server, Short port,
                                                           boolean subscribeSwitches,
                                                           boolean subscribeLinks) {
-        // ask the user for the backend's IP if it wasn't already given
-        if(server == null || server.length()==0)
-            server = DialogHelper.getInput("What is the IP or hostname of the backend?", Options.DEFAULT_SERVER_IP);
-
-        if(server == null) {
-            System.out.println("Goodbye");
-            System.exit(0);
-        }
-        
-        if(port == null)
-            port = Options.DEFAULT_PORT;
-        
         return new ConnectionHandler(new Topology(manager), server, port, subscribeSwitches, subscribeLinks);
     }
     
@@ -47,11 +61,8 @@ public final class OpenFlowGUI {
      * will populate a single topology drawn by a PZLayoutManager.
      */
     public static void main(String args[]) {
-        // use the first argument as our server name, if provided
-        String server = null;
-        if(args.length > 0)
-            server = args[0];
-        Short port = null;
+        String server = getServer(args);
+        Short port = Options.DEFAULT_PORT;
         
         // create a manager to handle drawing the topology info received by the connection
         PZLayoutManager gm = new PZLayoutManager();

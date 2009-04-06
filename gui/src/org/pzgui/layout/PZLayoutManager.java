@@ -35,6 +35,10 @@ public class PZLayoutManager extends org.pzgui.PZManager {
     public synchronized void addDrawable(Drawable d) {
         super.addDrawable(d);
         
+        // initially position the node randomly
+        if(d instanceof AbstractLayoutable)
+            ((AbstractLayoutable)d).setPos((int)Math.random()*500, (int)Math.random()*500);
+        
         if(d instanceof Vertex) {
             Vertex v = (Vertex)d;
             graph.addVertex(v);

@@ -2,12 +2,14 @@ package org.openflow.gui.net.protocol;
 
 import java.io.*;
 
+import org.openflow.gui.net.Message;
+
 /**
  * Header for OpenFlow GUI protocol messages.
  * 
  * @author David Underhill
  */
-public class OFGMessage {
+public class OFGMessage implements Message<OFGMessageType> {
     /** size in bytes of a OFGMessage (when serialized) */
     public static final int SIZEOF = 7;
     
@@ -32,6 +34,11 @@ public class OFGMessage {
     public OFGMessage(final OFGMessageType t, final int xid) {
         this.type = t;
         this.xid = xid;
+    }
+    
+    /** gets the type associated with this class */
+    public OFGMessageType getType() {
+        return type;
     }
     
     /** returns whether this message starts a stateful exchange (default=false) */

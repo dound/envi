@@ -17,9 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author David Underhill
  */
 public class BackendConnection<MSG_TYPE extends Message> extends Thread {
-    /** default port to connect to over */
-    public static final short DEFAULT_PORT = 2503;
-    
     /** whether to print messages we send and receive */
     public static final boolean PRINT_MESSAGES = false;
     
@@ -148,25 +145,6 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
     
     /** whether to subscribe to link updates */
     private boolean subscribeToLinkChanges;
-    
-    /** 
-     * Connect to the server at the specified IP on DEFAULT_PORT.
-     * 
-     * @param ip  the IP where the server lives
-     */
-    public BackendConnection(MessageProcessor<MSG_TYPE> mp, String ip) {
-        this(mp, ip, DEFAULT_PORT);
-    }
-    
-    /**
-     * Connect to the server at the specified address and port.
-     * 
-     * @param ip  the IP where the server lives
-     * @param port  the port the server listens on
-     */
-    public BackendConnection(MessageProcessor<MSG_TYPE> mp, String ip, int port) {
-        this(mp, ip, port, true, true);
-    }
     
     /**
      * Connect to the server at the specified address and port.

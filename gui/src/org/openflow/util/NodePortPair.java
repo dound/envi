@@ -1,4 +1,6 @@
-package org.openflow.gui.drawables;
+package org.openflow.util;
+
+import org.openflow.gui.drawables.NodeWithPorts;
 
 /**
  * A pair of a NodeWithPorts and port number.

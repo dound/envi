@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.util.Vector;
 
+import org.openflow.util.NodePortPair;
 import org.pzgui.AbstractDrawable;
 import org.pzgui.Constants;
 import org.pzgui.math.Vector2f;

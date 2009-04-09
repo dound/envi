@@ -26,7 +26,7 @@ public class DrawableIcon extends AbstractDrawable {
         icon.draw(gfx, x, y, w, h);
     }
     
-    public boolean isWithin(int x, int y) {
+    public boolean contains(int x, int y) {
         return icon.contains(x, y);
     }
 }

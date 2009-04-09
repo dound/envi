@@ -194,7 +194,7 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
     }
     
     /** returns true if the area described by getIcon() contains x, y */
-    public boolean isWithin(int x, int y) {
+    public boolean contains(int x, int y) {
         return isWithin(x, y, getIcon().getSize());
     }
     

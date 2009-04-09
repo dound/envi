@@ -22,7 +22,7 @@ public abstract class AbstractDrawable implements Drawable {
 
     public abstract void drawObject(Graphics2D gfx);
 
-    public abstract boolean isWithin(int x, int y);
+    public abstract boolean contains(int x, int y);
 
     public final boolean isDrawn() {
         return drawn;

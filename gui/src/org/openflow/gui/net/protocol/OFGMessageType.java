@@ -54,6 +54,12 @@ public enum OFGMessageType {
     /** Request to change whether the one is subscribed to have link changes pushed */
     LINKS_SUBSCRIBE((byte)0x17),
 
+    /** List of flows to add. */
+    FLOWS_ADD((byte)0x18),
+
+    /** List of flows to delete. */
+    FLOWS_DELETE((byte)0x19),
+    
     /**
      * Statistics request.  Body is book_stat_message, with osr_body as defined 
      * in OpenFlow for ofp_stats_request.

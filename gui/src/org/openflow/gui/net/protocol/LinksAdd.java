@@ -4,7 +4,7 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
- * Switch(es) added message.
+ * Link(s) added message.
  * 
  * @author David Underhill
  */

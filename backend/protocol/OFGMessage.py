@@ -331,6 +331,105 @@ class LinksSubscribe(Subscribe):
         return 'LINKS_' + Subscribe.__str__(self)
 OFG_MESSAGES.append(LinksSubscribe)
 
+class FlowHop:
+    SIZE = 10
+
+    def __init__(self, dpid, port):
+        self.dpid = long(dpid)
+        self.port = port
+
+    def pack(self):
+        return struct.pack('> QH', self.dpid, self.port)
+
+    @staticmethod
+    def unpack(buf):
+        t = struct.unpack('> QH', buf[:FlowHop.SIZE])
+        return FlowHop(t[0], t[1])
+
+    def __str__(self):
+        return '%s/%u' % (dpidstr(self.dpid), self.port)
+
+class Flow:
+    def __init__(self, path):
+        self.path = path
+
+    def pack(self):
+        header = struct.pack('> I', len(self.path))
+        body = ''.join(struct.pack('QH', hop.dpid, hop.port) for hop in self.path)
+        return header + body
+
+    @staticmethod
+    def unpack(buf):
+        num_hops = struct.unpack('> I', buf[:4])[0]
+        buf = buf[4:]
+        path = []
+        for _ in range(num_hops):
+            path.append(FlowHop.unpack(buf[:FlowHop.SIZE]))
+            buf = buf[FlowHop.SIZE:]
+
+        return Flow(path)
+
+    def length(self):
+        return FlowHop.SIZE * len(self.path)
+
+    def __str__(self):
+        return 'Path{%s}' % ''.join('%s:%u' % (dpidstr(hop.dpid), hop.port) for hop in self.path)
+
+class FlowsList(OFGMessage):
+    def __init__(self, flows, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.flows = flows
+
+    def length(self):
+        return OFGMessage.SIZE + 4 + sum(flow.length() for flow in self.flows)
+
+    def pack(self):
+        hdr = OFGMessage.pack(self) + struct.pack('> I', len(self.flows))
+        return hdr + ''.join([flow.pack() for flow in self.flows])
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        num_flows = struct.unpack('> I', body)[0]
+        body = body[4:]
+        flows = []
+        for _ in range(num_flows):
+            f = Flow.unpack(body)
+            flows.append(f)
+            body = body[f.length():]
+        return FlowsList(flows, xid)
+
+    def flows_to_string(self):
+        return '[' + ', '.join([str(f) for f in self.flows]) + ']'
+
+    def __str__(self):
+        return OFGMessage.__str__(self) + ' flows=%s' % str(self.flows_to_string())
+
+class FlowsAdd(FlowsList):
+    @staticmethod
+    def get_type():
+        return 0x18
+
+    def __init__(self, flows, xid=0):
+        FlowsList.__init__(self, flows, xid)
+
+    def __str__(self):
+        return 'FLOWS_ADD: ' + FlowsList.__str__(self)
+OFG_MESSAGES.append(FlowsAdd)
+
+class FlowsDel(FlowsList):
+    @staticmethod
+    def get_type():
+        return 0x19
+
+    def __init__(self, flows, xid=0):
+        FlowsList.__init__(self, flows, xid)
+
+    def __str__(self):
+        return 'FLOWS_DEL: ' + FlowsList.__str__(self)
+OFG_MESSAGES.append(FlowsDel)
+
 OFG_PROTOCOL = LTProtocol(OFG_MESSAGES, 'H', 'B')
 
 def create_ofg_server(port, recv_callback):

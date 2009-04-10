@@ -22,7 +22,6 @@ public class MultipleConnectionAndTopologyHandler {
     /**
      * Start the GUI front-end.
      * 
-     * @param manager  the object for managing this GUI
      * @param cm       the initial connection manager
      */
     public MultipleConnectionAndTopologyHandler(ConnectionHandler cm) {

@@ -67,7 +67,8 @@ public class Topology {
     /**
      * Adds a node to this topology.
      * 
-     * @param node  the node to add
+     * @param owner  the connection which supplies information about this node 
+     * @param n      the node to add
      * @return  true if the node was added, false it was already present in some
      *          topology (not necessarily this one)
      */

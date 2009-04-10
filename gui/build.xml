@@ -55,6 +55,21 @@
   </target>
 
   <target name="javadoc">
-    <javadoc access="protected" author="true" classpath="lib/jung2-layout-min.jar" destdir="doc" doctitle="of_gui" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" source="1.6" sourcepath="src" splitindex="true" use="true" version="true"/>
+    <javadoc access="protected" 
+             author="true" 
+             classpath="lib/jcommon-1.0.15.jar;lib/jfreechart-1.0.12.jar;lib/jung2-layout-min.jar"
+             destdir="doc"
+             doctitle="OpenFlow GUI"
+             nodeprecated="false"
+             nodeprecatedlist="false"
+             noindex="false"
+             nonavbar="false"
+             notree="false"
+             overview="src/overview.html"
+             source="1.6"
+             sourcepath="src"
+             splitindex="true"
+             use="true"
+             version="true"/>
   </target>
 </project>

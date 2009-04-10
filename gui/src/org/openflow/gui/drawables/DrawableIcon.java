@@ -5,6 +5,11 @@ import java.awt.Graphics2D;
 import org.pzgui.AbstractDrawable;
 import org.pzgui.icon.Icon;
 
+/**
+ * Wraps an Icon object so that it can drawn on a Pan-Zoom GUI. 
+ * 
+ * @author David Underhill
+ */
 public class DrawableIcon extends AbstractDrawable {
     private Icon icon;
     private int x, y;

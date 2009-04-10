@@ -1,5 +1,5 @@
 /* (swing1.1.1) */
-package org.tame.swing.slider;
+package org.tame;
 
 import java.awt.*;
 import javax.swing.*;

@@ -60,6 +60,7 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
     /**
      * Construct the front-end for ElasticTreeConnectionManager.
      * 
+     * @param manager the manager responsible for drawing the GUI
      * @param server  the IP or hostname where the back-end is located
      * @param port    the port the back-end is listening on
      */

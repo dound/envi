@@ -4,6 +4,7 @@ import java.io.DataInput;
 import java.io.IOException;
 
 import org.openflow.gui.net.protocol.auth.AuthType;
+import org.openflow.gui.net.protocol.ex.EXPowerUsage;
 import org.openflow.protocol.StatsType;
 
 /**
@@ -72,6 +73,9 @@ public enum OFGMessageType {
      * ofp_desc_stats having ofp_switch_features appended.
      */
     STAT_REPLY((byte)0x21),
+    
+    /** Info about power usage. */
+    EX_POWER_USAGE((byte)0xF0),
 
     ;
 
@@ -141,6 +145,9 @@ public enum OFGMessageType {
             case STAT_REPLY:
                 return StatsType.decode(len, t, xid, in);
 
+            case EX_POWER_USAGE:
+                return new EXPowerUsage(len, xid, in);
+                
             case DISCONNECT:
             case AUTH_REPLY:
             case POLL_START:

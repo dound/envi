@@ -719,7 +719,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     // -------------------- Other ------------------- //
     
-    public boolean isWithin(int x, int y) {
+    public boolean contains(int x, int y) {
         if(boundingBox == null)
             return false;
         else

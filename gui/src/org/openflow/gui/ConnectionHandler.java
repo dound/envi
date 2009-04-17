@@ -16,8 +16,8 @@ import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.OFGMessageType;
 import org.openflow.gui.net.protocol.StatsHeader;
 import org.openflow.gui.net.protocol.SwitchDescriptionRequest;
-import org.openflow.gui.net.protocol.SwitchesAdd;
-import org.openflow.gui.net.protocol.SwitchesDel;
+import org.openflow.gui.net.protocol.NodesAdd;
+import org.openflow.gui.net.protocol.NodesDel;
 import org.openflow.gui.net.protocol.auth.AuthHeader;
 import org.openflow.gui.net.protocol.auth.AuthPlainText;
 import org.openflow.protocol.AggregateStatsReply;
@@ -96,12 +96,12 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             processAuthRequest((AuthHeader)msg);
             break;
             
-        case SWITCHES_ADD:
-            processSwitchesAdd((SwitchesAdd)msg);
+        case NODES_ADD:
+            processNodesAdd((NodesAdd)msg);
             break;
             
-        case SWITCHES_DELETE:
-            processSwitchesDel((SwitchesDel)msg);
+        case NODES_DELETE:
+            processNodesDel((NodesDel)msg);
             break;
             
         case LINKS_ADD:
@@ -117,7 +117,7 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             break;
             
         case AUTH_REPLY:
-        case SWITCHES_REQUEST:
+        case NODES_REQUEST:
         case LINKS_REQUEST:
         case STAT_REQUEST:
             System.err.println("Received unexpected message type: " + msg.type.toString());
@@ -177,16 +177,16 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     }
     
     /** add new switches to the topology */
-    private void processSwitchesAdd(SwitchesAdd msg) {
-        for(long dpid : msg.dpids)
-            addSwitch(dpid);
+    private void processNodesAdd(NodesAdd msg) {
+        for(org.openflow.gui.net.protocol.Node n : msg.nodes)
+            addSwitch(n.id);
     }
 
     /** remove former switches from the topology */
-    private void processSwitchesDel(SwitchesDel msg) {
-        for(long dpid : msg.dpids)
-            if(topology.removeNode(connection, dpid) < 0)
-                System.err.println("Ignoring switch delete message for non-existant switch: " + DPIDUtil.toString(dpid));
+    private void processNodesDel(NodesDel msg) {
+        for(org.openflow.gui.net.protocol.Node n : msg.nodes)
+            if(topology.removeNode(connection, n.id) < 0)
+                System.err.println("Ignoring switch delete message for non-existant switch: " + DPIDUtil.toString(n.id));
     }
     
     private void processLinksAdd(LinksAdd msg) {

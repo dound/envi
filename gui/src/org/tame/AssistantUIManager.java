@@ -1,5 +1,5 @@
 /* (swing1.1.1) */
-package org.tame.swing.slider;
+package org.tame;
 
 import javax.swing.*;
 import javax.swing.plaf.*;
@@ -81,8 +81,8 @@ public class AssistantUIManager {
       sb.append( lookAndFeelName );    
       sb.append( key );    
       
-      UIManager.put("MThumbSliderUI", "org.tame.swing.slider.MetalMThumbSliderUI");
-      UIManager.put("MThumbSliderUI", "org.tame.swing.slider.MetalMThumbSliderUI");
+      UIManager.put("MThumbSliderUI", "org.tame.MetalMThumbSliderUI");
+      UIManager.put("MThumbSliderUI", "org.tame.MetalMThumbSliderUI");
     }       
   }
   

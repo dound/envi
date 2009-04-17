@@ -117,7 +117,7 @@ class PollStop(OFGMessage):
         return 'POLL_STOP: ' + OFGMessage.__str__(self) + ' xid_to_stop_polling=' + self.xid_to_stop_polling
 OFG_MESSAGES.append(PollStop)
 
-class SwitchesRequest(OFGMessage):
+class NodesRequest(OFGMessage):
     @staticmethod
     def get_type():
         return 0x10
@@ -126,55 +126,75 @@ class SwitchesRequest(OFGMessage):
         OFGMessage.__init__(self, xid)
 
     def __str__(self):
-        return 'SWITCHES_REQUEST: ' + OFGMessage.__str__(self)
-OFG_MESSAGES.append(SwitchesRequest)
+        return 'NODES_REQUEST: ' + OFGMessage.__str__(self)
+OFG_MESSAGES.append(NodesRequest)
 
-class SwitchesList(OFGMessage):
-    def __init__(self, dpids, xid=0):
-        OFGMessage.__init__(self, xid)
-        self.dpids = dpids
+class Node:
+    SIZE = 10
 
-    def length(self):
-        return OFGMessage.SIZE + len(self.dpids) * 8
+    def __init__(self, id, node_type):
+        self.id = long(id)
+        self.node_type = int(node_type)
 
     def pack(self):
-        return OFGMessage.pack(self) + ''.join([struct.pack('> Q', long(dpid)) for dpid in self.dpids])
+        return struct.pack('> QH', self.id, self.node_type)
+
+    @staticmethod
+    def unpack(buf):
+        t = struct.unpack('> QH', buf[:Node.SIZE])
+        return Link(t[0], t[1])
+
+    def __str__(self):
+        return 'type=%s{id=%s}' % (str(self.node_type), dpidstr(self.id))
+
+class NodesList(OFGMessage):
+    def __init__(self, nodes, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.nodes = nodes
+
+    def length(self):
+        return OFGMessage.SIZE + len(self.nodes) * Node.SIZE
+
+    def pack(self):
+        return OFGMessage.pack(self) + ''.join([node.pack() for node in self.nodes])
 
     @staticmethod
     def unpack(body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        num_dpids = len(body) / 8
-        fmt = '> %uQ' % num_dpids
-        dpids = [dpid for dpid in struct.unpack(fmt, body)]
-        return SwitchesList(dpids, xid)
+        num_nodes = len(body) / Node.SIZE
+        nodes = []
+        for _ in range(num_nodes):
+            nodes.append(Node.unpack(body[Node.SIZE:]))
+            body = body[:Node.SIZE]
+        return NodesList(nodes, xid)
 
     def __str__(self):
-        return OFGMessage.__str__(self) + ' dpids=[%s]' % ''.join([dpidstr(long(dpid)) + ',' for dpid in self.dpids])
+        return OFGMessage.__str__(self) + ' nodes=[%s]' % ''.join([str(node) + ',' for node in self.nodes])
 
-class SwitchesAdd(SwitchesList):
+class NodesAdd(NodesList):
     @staticmethod
     def get_type():
         return 0x11
 
-    def __init__(self, dpids, xid=0):
-        SwitchesList.__init__(self, dpids, xid)
+    def __init__(self, nodes, xid=0):
+        NodesList.__init__(self, nodes, xid)
 
     def __str__(self):
-        return 'SWITCHES_ADD: ' + SwitchesList.__str__(self)
-OFG_MESSAGES.append(SwitchesAdd)
+        return 'NODES_ADD: ' + NodesList.__str__(self)
+OFG_MESSAGES.append(NodesAdd)
 
-class SwitchesDel(SwitchesList):
+class NodesDel(NodesList):
     @staticmethod
     def get_type():
         return 0x12
 
     def __init__(self, dpids, xid=0):
-        SwitchesList.__init__(self, dpids, xid)
+        NodesList.__init__(self, dpids, xid)
 
     def __str__(self):
-        return 'SWITCHES_DEL: ' + SwitchesList.__str__(self)
-OFG_MESSAGES.append(SwitchesDel)
+        return 'NODES_DEL: ' + NodesList.__str__(self)
+OFG_MESSAGES.append(NodesDel)
 
 class LinksRequest(OFGMessage):
     @staticmethod
@@ -297,7 +317,7 @@ class Subscribe(OFGMessage):
         what = ' ' if self.subscribe else ' un'
         return 'SUBSCRIBE: ' + OFGMessage.__str__(self) + what + 'subscribe'
 
-class SwitchesSubscribe(Subscribe):
+class NodesSubscribe(Subscribe):
     @staticmethod
     def get_type():
         return 0x16
@@ -308,11 +328,11 @@ class SwitchesSubscribe(Subscribe):
     @staticmethod
     def unpack(body):
         t = Subscribe.unpack(body)
-        return SwitchesSubscribe(t[0], t[1])
+        return NodesSubscribe(t[0], t[1])
 
     def __str__(self):
-        return 'SWITCHES_' + Subscribe.__str__(self)
-OFG_MESSAGES.append(SwitchesSubscribe)
+        return 'NODES_' + Subscribe.__str__(self)
+OFG_MESSAGES.append(NodesSubscribe)
 
 class LinksSubscribe(Subscribe):
     @staticmethod
@@ -330,6 +350,105 @@ class LinksSubscribe(Subscribe):
     def __str__(self):
         return 'LINKS_' + Subscribe.__str__(self)
 OFG_MESSAGES.append(LinksSubscribe)
+
+class FlowHop:
+    SIZE = 10
+
+    def __init__(self, dpid, port):
+        self.dpid = long(dpid)
+        self.port = port
+
+    def pack(self):
+        return struct.pack('> QH', self.dpid, self.port)
+
+    @staticmethod
+    def unpack(buf):
+        t = struct.unpack('> QH', buf[:FlowHop.SIZE])
+        return FlowHop(t[0], t[1])
+
+    def __str__(self):
+        return '%s/%u' % (dpidstr(self.dpid), self.port)
+
+class Flow:
+    def __init__(self, path):
+        self.path = path
+
+    def pack(self):
+        header = struct.pack('> I', len(self.path))
+        body = ''.join(struct.pack('QH', hop.dpid, hop.port) for hop in self.path)
+        return header + body
+
+    @staticmethod
+    def unpack(buf):
+        num_hops = struct.unpack('> I', buf[:4])[0]
+        buf = buf[4:]
+        path = []
+        for _ in range(num_hops):
+            path.append(FlowHop.unpack(buf[:FlowHop.SIZE]))
+            buf = buf[FlowHop.SIZE:]
+
+        return Flow(path)
+
+    def length(self):
+        return FlowHop.SIZE * len(self.path)
+
+    def __str__(self):
+        return 'Path{%s}' % ''.join('%s:%u' % (dpidstr(hop.dpid), hop.port) for hop in self.path)
+
+class FlowsList(OFGMessage):
+    def __init__(self, flows, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.flows = flows
+
+    def length(self):
+        return OFGMessage.SIZE + 4 + sum(flow.length() for flow in self.flows)
+
+    def pack(self):
+        hdr = OFGMessage.pack(self) + struct.pack('> I', len(self.flows))
+        return hdr + ''.join([flow.pack() for flow in self.flows])
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        num_flows = struct.unpack('> I', body)[0]
+        body = body[4:]
+        flows = []
+        for _ in range(num_flows):
+            f = Flow.unpack(body)
+            flows.append(f)
+            body = body[f.length():]
+        return FlowsList(flows, xid)
+
+    def flows_to_string(self):
+        return '[' + ', '.join([str(f) for f in self.flows]) + ']'
+
+    def __str__(self):
+        return OFGMessage.__str__(self) + ' flows=%s' % str(self.flows_to_string())
+
+class FlowsAdd(FlowsList):
+    @staticmethod
+    def get_type():
+        return 0x18
+
+    def __init__(self, flows, xid=0):
+        FlowsList.__init__(self, flows, xid)
+
+    def __str__(self):
+        return 'FLOWS_ADD: ' + FlowsList.__str__(self)
+OFG_MESSAGES.append(FlowsAdd)
+
+class FlowsDel(FlowsList):
+    @staticmethod
+    def get_type():
+        return 0x19
+
+    def __init__(self, flows, xid=0):
+        FlowsList.__init__(self, flows, xid)
+
+    def __str__(self):
+        return 'FLOWS_DEL: ' + FlowsList.__str__(self)
+OFG_MESSAGES.append(FlowsDel)
 
 OFG_PROTOCOL = LTProtocol(OFG_MESSAGES, 'H', 'B')
 
@@ -364,7 +483,7 @@ def test():
     def callback():
         if len(server.connections) > 0:
             print 'sending ...'
-            server.send(SwitchesAdd([v+1 for v in range(99)]))
+            server.send(NodesAdd([v+1 for v in range(99)]))
         else:
             reactor.callLater(1, callback)
     reactor.callLater(1, callback)

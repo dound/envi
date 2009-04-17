@@ -14,8 +14,8 @@ public interface Drawable {
     /** Draw this object */
     public abstract void drawObject(Graphics2D gfx);
 
-     /** Whether these x, y coordinates fall within the object */
-    public boolean isWithin(int x, int y);
+     /** Whether these x, y coordinates fall are contained by the object */
+    public boolean contains(int x, int y);
 
     /** Whether this object has been drawn this redraw cycle */
     public boolean isDrawn();

@@ -551,7 +551,7 @@ public class PZManager extends Thread {
     public synchronized Drawable selectFrom(int startIndex, int x, int y) {
         for(int i=startIndex; i<drawables.size(); i++) {
             Drawable d = drawables.get(i);
-            if(d.isWithin(x, y))
+            if(d.contains(x, y))
                 return d;
         }
 

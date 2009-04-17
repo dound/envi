@@ -5,7 +5,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * A list of switches.
+ * A list of links.
  * 
  * @author David Underhill
  */

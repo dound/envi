@@ -95,6 +95,15 @@ public class Vector2f implements java.io.Serializable, Cloneable {
         return (float)Math.sqrt(this.x*this.x + this.y*this.y);
     }
     
+
+    /**
+     * Returns the length squared of this vector.
+     * @return the length squared of this vector
+     */
+    public final float lengthSq() {
+        return this.x*this.x + this.y*this.y;
+    }
+    
     /** adds v to this vector */
     public Vector2f add( Vector2f v ) {
         this.x += v.x;

@@ -30,14 +30,14 @@ public enum OFGMessageType {
     /** Tell the backend to stop polling a message */
     POLL_STOP((byte)0x0F),
 
-    /** Query for list of switches.  Switch datapath id is ignored. */
-    SWITCHES_REQUEST((byte)0x10),
+    /** Query for list of nodes. */
+    NODES_REQUEST((byte)0x10),
 
-    /** Reply with list of switches added. Body is array of 8B datapath ids. */
-    SWITCHES_ADD((byte)0x11),
+    /** Reply with list of nodes added. */
+    NODES_ADD((byte)0x11),
 
-    /** Reply with list of switches deleted.  Body is array of 8B datapath ids. */
-    SWITCHES_DELETE((byte)0x12),
+    /** Reply with list of nodes deleted. */
+    NODES_DELETE((byte)0x12),
 
     /** Query for list of links for the specified switch */
     LINKS_REQUEST((byte)0x13),
@@ -48,12 +48,18 @@ public enum OFGMessageType {
     /** Reply with list of links deleted.  Body is array of book_link_spec. */
     LINKS_DELETE((byte)0x15),
     
-    /** Request to change whether the one is subscribed to have switch changes pushed */ 
-    SWITCHES_SUBSCRIBE((byte)0x16),
+    /** Request to change whether the one is subscribed to have node changes pushed */ 
+    NODES_SUBSCRIBE((byte)0x16),
     
     /** Request to change whether the one is subscribed to have link changes pushed */
     LINKS_SUBSCRIBE((byte)0x17),
 
+    /** List of flows to add. */
+    FLOWS_ADD((byte)0x18),
+
+    /** List of flows to delete. */
+    FLOWS_DELETE((byte)0x19),
+    
     /**
      * Statistics request.  Body is book_stat_message, with osr_body as defined 
      * in OpenFlow for ofp_stats_request.
@@ -172,11 +178,11 @@ public enum OFGMessageType {
             case AUTH_REQUEST:
                 return AuthType.decode(len, t, xid, in);
                 
-            case SWITCHES_ADD:
-                return new SwitchesAdd(len, xid, in);
+            case NODES_ADD:
+                return new NodesAdd(len, xid, in);
                 
-            case SWITCHES_DELETE:
-                return new SwitchesDel(len, xid, in);
+            case NODES_DELETE:
+                return new NodesDel(len, xid, in);
                 
             case LINKS_ADD:
                 return new LinksAdd(len, xid, in);
@@ -209,7 +215,7 @@ public enum OFGMessageType {
             case AUTH_REPLY:
             case POLL_START:
             case POLL_STOP:
-            case SWITCHES_REQUEST:
+            case NODES_REQUEST:
             case LINKS_REQUEST:
             case STAT_REQUEST:
             case ET_TRAFFIX_MATRIX:

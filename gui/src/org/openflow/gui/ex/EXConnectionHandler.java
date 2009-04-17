@@ -63,7 +63,7 @@ public class EXConnectionHandler extends ConnectionHandler
      */
     public void process(final OFGMessage msg) {
         switch(msg.type) {
-        case SWITCHES_ADD:
+        case NODES_ADD:
             // TODO: could do some custom processing on a base message before
             // having the base implementation do its thing
             super.process(msg);

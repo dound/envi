@@ -31,4 +31,10 @@ public interface Layoutable {
     
     /** Causes hasPositionChanged() to return false until set*Pos() is called. */
     public void unsetPositionChanged();    
+    
+    /** whether the position can be changed */
+    public boolean canPositionChange();
+    
+    /** set whether the position can be changed */
+    public void setCanPositionChange(boolean can);
 }

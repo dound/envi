@@ -132,6 +132,12 @@ OFG_MESSAGES.append(NodesRequest)
 class Node:
     SIZE = 10
 
+    # default types
+    TYPE_UNKNOWN = 0
+    TYPE_OPENFLOW_SWITCH = 1
+    TYPE_OPENFLOW_WIRELESS_ACCESS_POINT = 2
+    TYPE_HOST = 100
+
     def __init__(self, id, node_type):
         self.id = long(id)
         self.node_type = int(node_type)

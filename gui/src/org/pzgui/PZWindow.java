@@ -3,9 +3,7 @@ package org.pzgui;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -44,6 +42,35 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
         drawOffset.set(drawX, drawY);
     }
    
+    /** Gets the manager of this window */
+    public PZManager getManager() {
+        return manager;
+    }
+    
+    /**
+     * Registers the listener for component, key, mouse, and window events.
+     */
+    public void addEventListener(PZWindowEventListener l) {
+        this.addComponentListener(l);
+        lblCanvas.addKeyListener(l);
+        lblCanvas.addMouseListener(l);
+        lblCanvas.addMouseWheelListener(l);
+        lblCanvas.addMouseMotionListener(l);
+        this.addWindowListener(l);
+    }
+
+    /**
+     * Registers the listener for component, key, mouse, and window events.
+     */
+    public void removeEventListener(PZWindowEventListener l) {
+        this.removeComponentListener(l);
+        lblCanvas.removeKeyListener(l);
+        lblCanvas.removeMouseListener(l);
+        lblCanvas.removeMouseWheelListener(l);
+        lblCanvas.removeMouseMotionListener(l);
+        this.removeWindowListener(l);
+    }
+    
     /** Initializes the GUI components. */
     private void initEventListeners() {
         final PZWindow me = this;
@@ -57,125 +84,6 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
                manager.closeWindow(me);
            }
         });
-
-        lblCanvas.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(MouseEvent evt) {
-                manager.setMousePos(getMX(evt), getMY(evt), false);
-                manager.select(getMX(evt), getMY(evt));
-            }
-            
-            public void mouseReleased(MouseEvent evt) {
-                Drawable d = manager.getSelected();
-                if(d != null)
-                    manager.fireDrawableEvent(d, "mouse_released");
-                
-                manager.noteMouseUp();
-
-                // apply new panning, if any
-                drawOffset.add(drawOffsetExtra);
-                drawOffsetExtra.set(0, 0);
-                
-                manager.deselect();
-            }
-        });
-
-        // handle mouse movement (can drag switches)
-        lblCanvas.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
-            public void mouseMoved(MouseEvent evt) {
-                manager.setMousePos(getMX(evt), getMY(evt), false);
-            }
-            
-            public void mouseDragged(MouseEvent evt) {
-                manager.setMousePos(getMX(evt), getMY(evt), false);
-
-                Drawable selNode = manager.getSelected();
-                if(selNode == null) {
-                    if(evt.getButton() == MouseEvent.BUTTON1 && evt.isAltDown()) {
-                        // alt+left-click+drag = pan the screen
-                        drawOffsetExtra.x = getMX(evt) - manager.getMouseStartPos().x;
-                        drawOffsetExtra.y = getMY(evt) - manager.getMouseStartPos().y;
-                        return;
-                    }
-                }
-                else {
-                    // if a node is selected, handle dragging it
-                    selNode.drag(getMX(evt), getMY(evt));
-                }
-            }
-        });
-
-        // mouse wheel movement changes the zoom
-        lblCanvas.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                int rotations = e.getWheelRotation();
-                
-                // zoom out when the mouse wheel rotates down
-                while(rotations > 0) {
-                    zoomOut();
-                    rotations -= 1;
-                }
-
-                // zoom in when the mouse wheel rotates up
-                while(rotations < 0) {
-                    zoomIn();
-                    rotations += 1;
-                }
-            }
-        });
-
-        lblCanvas.addKeyListener(new java.awt.event.KeyAdapter() {
-            // pan and zoom with the arrow keys
-            public void keyPressed(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-                    if(e.isAltDown())
-                        zoomOut();
-                    else
-                        panLeft();
-                }
-                else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                    if(e.isAltDown())
-                        zoomIn();
-                    else
-                        panRight();
-                }
-                else if(e.getKeyCode() == KeyEvent.VK_UP) {
-                    if(e.isAltDown())
-                        zoomIn();
-                    else
-                        panUp();
-                }
-                else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-                    if(e.isAltDown())
-                        zoomOut();
-                    else
-                        panDown();
-                }
-            }
-
-            public void keyReleased(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_V) {
-                    resetView();
-                    manager.displayIcon("<V> Reset View!", 2000);
-                }
-                else if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    System.out.println("Goodbye");
-                    System.exit(0);
-                }
-                else if(e.getKeyCode() == KeyEvent.VK_PAGE_UP) {
-                    screenshot();
-                }
-                else if(e.getKeyCode() == KeyEvent.VK_H || e.getKeyChar()=='?') {
-                    System.out.println(getTitle() + "\n" +
-                                       "    right-click + drag = move a switch\n" +
-                                       "    arrow keys         = pan the view\n" +
-                                       "    alt + arrow keys   = zoom in/out\n" +
-                                       "    mouse wheel        = zoom in/out\n" +
-                                       "    page up            = take a screenshot\n" +
-                                       "    escape             = exit\n" +
-                                       "    v                  = reset the view to the default\n");
-                }
-            }
-        });
     }
     
 
@@ -188,8 +96,17 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     /** custom string to use for the title (if null, BASE_TITLE will be used) */ 
     public String customTitle = null;
     
+    /** JLabel which contains a reference to its parent */
+    class JLabelWithPZWindowParent extends JLabel {
+        public final PZWindow window;
+        public JLabelWithPZWindowParent(PZWindow w) {
+            super();
+            this.window = w;
+        }
+    }
+    
     /** canvas to draw the scene on */
-    private final javax.swing.JLabel lblCanvas = new javax.swing.JLabel();
+    private final JLabelWithPZWindowParent lblCanvas = new JLabelWithPZWindowParent(this);
     
     /** the image where the scene will be drawn */
     private BufferedImage img;
@@ -461,15 +378,26 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     public void panUp() {
         drawOffset.y -= getHeight() / (DEFAULT_PAN_DIVISOR * zoom);
     }
+    
+    /** apply the pan in progress */
+    public void applyPanInProgress() {
+        drawOffset.add(drawOffsetExtra);
+        drawOffsetExtra.set(0, 0);
+    }
+    
+    /** set the pan in progress to the specified amount */
+    public void setPanInProgress(int x, int y) {
+        drawOffsetExtra.set(x, y);
+    }
 
     /** get the y position of the mouse relative to the scene's origin (e.g. account for pan and zoom) */
-    private int getMX(MouseEvent evt) {
+    public int getMX(MouseEvent evt) {
         int tx = evt.getX() - drawOffset.x;
         return (int)(tx / getZoom());
     }
 
     /** get the y position of the mouse relative to the scene's origin (e.g. account for pan and zoom) */
-    private int getMY(MouseEvent evt) {
+    public int getMY(MouseEvent evt) {
         int ty = evt.getY() - drawOffset.y;
         return (int)(ty / getZoom());
     }

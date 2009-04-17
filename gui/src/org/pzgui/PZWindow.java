@@ -65,17 +65,15 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
             }
             
             public void mouseReleased(MouseEvent evt) {
-                synchronized(manager) {
-                    Drawable d = manager.getSelected();
-                    if(d != null)
-                        manager.fireDrawableEvent(d, "mouse_released");
-                    
-                    manager.noteMouseUp();
+                Drawable d = manager.getSelected();
+                if(d != null)
+                    manager.fireDrawableEvent(d, "mouse_released");
+                
+                manager.noteMouseUp();
 
-                    // apply new panning, if any
-                    drawOffset.add(drawOffsetExtra);
-                    drawOffsetExtra.set(0, 0);
-                }
+                // apply new panning, if any
+                drawOffset.add(drawOffsetExtra);
+                drawOffsetExtra.set(0, 0);
                 
                 manager.deselect();
             }
@@ -84,28 +82,24 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
         // handle mouse movement (can drag switches)
         lblCanvas.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
             public void mouseMoved(MouseEvent evt) {
-                synchronized(manager) {
-                    manager.setMousePos(getMX(evt), getMY(evt), false);
-                }
+                manager.setMousePos(getMX(evt), getMY(evt), false);
             }
             
             public void mouseDragged(MouseEvent evt) {
-                synchronized(manager) {
-                    manager.setMousePos(getMX(evt), getMY(evt), false);
+                manager.setMousePos(getMX(evt), getMY(evt), false);
 
-                    Drawable selNode = manager.getSelected();
-                    if(selNode == null) {
-                        if(evt.getButton() == MouseEvent.BUTTON1 && evt.isAltDown()) {
-                            // alt+left-click+drag = pan the screen
-                            drawOffsetExtra.x = getMX(evt) - manager.getMouseStartPos().x;
-                            drawOffsetExtra.y = getMY(evt) - manager.getMouseStartPos().y;
-                            return;
-                        }
+                Drawable selNode = manager.getSelected();
+                if(selNode == null) {
+                    if(evt.getButton() == MouseEvent.BUTTON1 && evt.isAltDown()) {
+                        // alt+left-click+drag = pan the screen
+                        drawOffsetExtra.x = getMX(evt) - manager.getMouseStartPos().x;
+                        drawOffsetExtra.y = getMY(evt) - manager.getMouseStartPos().y;
+                        return;
                     }
-                    else {
-                        // if a node is selected, handle dragging it
-                        selNode.drag(getMX(evt), getMY(evt));
-                    }
+                }
+                else {
+                    // if a node is selected, handle dragging it
+                    selNode.drag(getMX(evt), getMY(evt));
                 }
             }
         });
@@ -113,20 +107,18 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
         // mouse wheel movement changes the zoom
         lblCanvas.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
             public void mouseWheelMoved(MouseWheelEvent e) {
-                synchronized(manager) {
-                    int rotations = e.getWheelRotation();
-                    
-                    // zoom out when the mouse wheel rotates down
-                    while(rotations > 0) {
-                        zoomOut();
-                        rotations -= 1;
-                    }
+                int rotations = e.getWheelRotation();
+                
+                // zoom out when the mouse wheel rotates down
+                while(rotations > 0) {
+                    zoomOut();
+                    rotations -= 1;
+                }
 
-                    // zoom in when the mouse wheel rotates up
-                    while(rotations < 0) {
-                        zoomIn();
-                        rotations += 1;
-                    }
+                // zoom in when the mouse wheel rotates up
+                while(rotations < 0) {
+                    zoomIn();
+                    rotations += 1;
                 }
             }
         });

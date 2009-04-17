@@ -106,7 +106,7 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
      */
     public void process(final OFGMessage msg) {
         switch(msg.type) {
-        case SWITCHES_ADD:
+        case NODES_ADD:
             if(!tmManager.isWaitingForResponse())
                 tmManager.start();
             super.process(msg);
@@ -296,8 +296,8 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
             getTopology().getNode(id).setOff(false);
         
         // turn off the specified switches
-        for(long dpid : msg.dpids) {
-            NodeWithPorts o = getTopology().getNode(dpid);
+        for(org.openflow.gui.net.protocol.Node n : msg.nodes) {
+            NodeWithPorts o = getTopology().getNode(n.id);
             if(o != null)
                 o.setOff(true);
         }

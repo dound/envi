@@ -4,7 +4,7 @@ import struct
 
 from twisted.internet import reactor
 
-from OFGMessage import dpidstr, OFGMessage, OFG_MESSAGES, Link, SwitchesList, run_ofg_server
+from OFGMessage import dpidstr, OFGMessage, OFG_MESSAGES, Link, NodesList, run_ofg_server
 from ltprotocol.ltprotocol import LTProtocol
 
 ET_MESSAGES = []
@@ -129,16 +129,16 @@ class ETPowerUsage(OFGMessage):
         return fmt % (self.watts_current, self.watts_traditional, self.watts_max)
 ET_MESSAGES.append(ETPowerUsage)
 
-class ETSwitchesOff(SwitchesList):
+class ETSwitchesOff(NodesList):
     @staticmethod
     def get_type():
         return 0xF3
 
-    def __init__(self, dpids, xid=0):
-        SwitchesList.__init__(self, dpids, xid)
+    def __init__(self, nodes, xid=0):
+        NodesList.__init__(self, nodes, xid)
 
     def __str__(self):
-        return 'SWITCHES_OFF: ' + SwitchesList.__str__(self)
+        return 'NODES_OFF: ' + NodesList.__str__(self)
 ET_MESSAGES.append(ETSwitchesOff)
 
 class ETBandwidth(OFGMessage):

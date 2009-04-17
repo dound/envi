@@ -28,7 +28,7 @@ import org.pzgui.icon.ShapeIcon;
 import org.pzgui.layout.Edge;
 import org.pzgui.layout.PZLayoutManager;
 import org.pzgui.layout.Vertex;
-import org.tame.swing.slider.MThumbSlider;
+import org.tame.MThumbSlider;
 
 /**
  * Elastic Tree GUI manager.

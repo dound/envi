@@ -8,12 +8,12 @@ import java.io.IOException;
  *
  * @author David Underhill
  */
-public class SwitchesSubscribe extends OFGMessage {
+public class NodesSubscribe extends OFGMessage {
     /** what the state of the subscription should be set to */
     public final boolean subscribe;
     
-    public SwitchesSubscribe(boolean newSubscriptionState) {
-        super(OFGMessageType.SWITCHES_SUBSCRIBE, 0);
+    public NodesSubscribe(boolean newSubscriptionState) {
+        super(OFGMessageType.NODES_SUBSCRIBE, 0);
         subscribe = newSubscriptionState;
     }
     

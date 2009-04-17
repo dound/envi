@@ -4,7 +4,7 @@ import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.OFGMessageType;
 import org.openflow.gui.net.protocol.LinksSubscribe;
 import org.openflow.gui.net.protocol.PollStart;
-import org.openflow.gui.net.protocol.SwitchesSubscribe;
+import org.openflow.gui.net.protocol.NodesSubscribe;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -255,7 +255,7 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
         // ask the backend for a list of switches and links
         try {
             if(isSubscribeToSwitchChanges())
-                sendMessage(new SwitchesSubscribe(true));
+                sendMessage(new NodesSubscribe(true));
             
             if(subscribeToLinkChanges)
                 sendMessage(new LinksSubscribe(true));
@@ -413,7 +413,7 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
         if(b == subscribeToSwitchChanges)
             return;
         
-        sendMessage(new SwitchesSubscribe(b));
+        sendMessage(new NodesSubscribe(b));
         subscribeToSwitchChanges = b;
     }
 

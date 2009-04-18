@@ -33,10 +33,19 @@ public class PZManager extends Thread {
     }
 
     /** 
-     * Attach an existing window to this manager.  This registers event
-     * callbacks with the window to notify the manager of relevant events.
+     * Calls attchWindow(w, true).
      */
     public void attachWindow(final PZWindow w) {
+        attachWindow(w, true);
+    }
+    
+    /** 
+     * Attach an existing window to this manager.  This registers event
+     * callbacks with the window to notify the manager of relevant events.  If
+     * addDefaultEventListener is true, then a new PZWindowEventListener is 
+     * setup for w.
+     */
+    public void attachWindow(final PZWindow w, boolean addDefaultEventListener) {
         synchronized(windows) {
             // track the window
             if(windows.contains(w))
@@ -46,6 +55,9 @@ public class PZManager extends Thread {
             // show the window
             w.setVisible(true);
         }
+        
+        if(addDefaultEventListener)
+            w.addEventListener(new PZWindowEventListener());
     }
 
     /**

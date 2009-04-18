@@ -106,6 +106,7 @@ public class PZManager extends Thread {
                 for(PZClosing x : closingListeners)
                     x.pzClosing(this);
 
+                System.out.println("Goodbye");
                 System.exit(0);
             }
         }

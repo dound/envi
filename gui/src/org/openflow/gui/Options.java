@@ -30,7 +30,7 @@ public final class Options {
     public static final boolean USE_DIRECTED_LINKS = false;
     
     /** whether to use a light or dark color scheme */
-    public static final boolean USE_LIGHT_COLOR_SCHEME = true;
+    public static final boolean USE_LIGHT_COLOR_SCHEME = false;
     
     /* prevents this class from being instantiated */
     private Options() {}

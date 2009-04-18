@@ -52,27 +52,27 @@ ET_MESSAGES.append(ETTrafficMatrix)
 class ETLinkUtil(Link):
     SIZE = Link.SIZE + 4
 
-    def __init__(self, src_node, src_port, dst_node, dst_port, util):
-        Link.__init__(self, src_node, src_port, dst_node, dst_port)
+    def __init__(self, link_type, src_node, src_port, dst_node, dst_port, util):
+        Link.__init__(self, link_type, src_node, src_port, dst_node, dst_port)
         self.util = float(util)
 
     def pack(self):
-        src = self.src_node.pack() + struct.pack('> H', self.src_port)
-        dst = self.dst_node.pack() + struct.pack('> H', self.dst_port)
-        return src + dst + struct.pack('> f', self.util)
+        return Link.pack(self) + struct.pack('> f', self.util)
 
     @staticmethod
     def unpack(buf):
+        link_type = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
         src_node = Node.unpack(buf[:Node.SIZE])
         buf = buf[Node.SIZE:]
-        src_port = struct.unpack('> H')
+        src_port = struct.unpack('> H', buf[:2])[0]
         buf = buf[2:]
         dst_node = Node.unpack(buf[:Node.SIZE])
         buf = buf[Node.SIZE:]
-        dst_port = struct.unpack('> H')
+        dst_port = struct.unpack('> H', buf[:2])[0]
         buf = buf[2:]
         util = struct.unpack('> f', buf[:4])[0]
-        return ETLinkUtil(src_node, src_port, dst_node, dst_port, util)
+        return ETLinkUtil(link_type, src_node, src_port, dst_node, dst_port, util)
 
 class ETLinkUtils(OFGMessage):
     @staticmethod

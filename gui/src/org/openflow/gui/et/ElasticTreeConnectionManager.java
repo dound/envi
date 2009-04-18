@@ -12,6 +12,7 @@ import org.openflow.gui.Topology;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.OpenFlowSwitch;
+import org.openflow.gui.net.protocol.LinkType;
 import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.et.ETBandwidth;
@@ -334,6 +335,7 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
             l.setFailed(!l.isFailed());
             try {
                 getConnection().sendMessage(new ETLinkFailureChange(new org.openflow.gui.net.protocol.Link(
+                        LinkType.WIRE,
                         new org.openflow.gui.net.protocol.Node(NodeType.OPENFLOW_SWITCH, l.getSource().getID()),
                         l.getMyPort(l.getSource()),
                         new org.openflow.gui.net.protocol.Node(NodeType.OPENFLOW_SWITCH, l.getDestination().getID()),

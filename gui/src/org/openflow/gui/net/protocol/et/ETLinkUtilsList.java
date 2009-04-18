@@ -39,7 +39,7 @@ public class ETLinkUtilsList extends OFGMessage {
         utils = new ETLinkUtil[left / ETLinkUtil.SIZEOF];
         while(left >= ETLinkUtil.SIZEOF) {
             left -= ETLinkUtil.SIZEOF;
-            utils[index++] = new ETLinkUtil(new Node(in), in.readShort(), new Node(in), in.readShort(), in.readFloat());
+            utils[index++] = new ETLinkUtil(in);
         }
     }
     

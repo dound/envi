@@ -23,7 +23,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     /** Creates new form display window */
     public PZWindow(final PZManager manager, int screenX, int screenY, int width, int height, int drawX, int drawY) {
         this.manager = manager;
-        setIconImage(java.awt.Toolkit.getDefaultToolkit().getImage("images/dgu.gif"));
+        setIconImage(java.awt.Toolkit.getDefaultToolkit().getImage(this.getClass().getClassLoader().getResource("images/dgu.gif")));
         
         setBounds(screenX, screenY, width, height);
         setMySize(width, height, 1.0f);

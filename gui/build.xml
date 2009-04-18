@@ -18,6 +18,10 @@
     <copy includeemptydirs="false" todir="bin">
       <fileset dir="src" excludes="**/*.launch, **/*.java"/>
     </copy>
+    <mkdir dir="bin/images"/>
+    <copy includeemptydirs="false" todir="bin/images">
+      <fileset dir="images"/>
+    </copy>
     <unzip dest="${bin.dir}">
       <fileset dir="${lib.dir}" excludes="src/*.jar" includes="**/*.jar"/>
     </unzip>

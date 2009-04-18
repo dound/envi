@@ -42,7 +42,7 @@
         <attribute name="Main-Class" value="${main-class}"/>
         <attribute name="Class-Path" value="."/>
       </manifest>
-      <fileset dir="bin/org"/>
+      <fileset dir="bin"/>
     </jar>
   </target>
 
@@ -55,8 +55,8 @@
   </target>
 
   <target name="javadoc">
-    <javadoc access="protected" 
-             author="true" 
+    <javadoc access="protected"
+             author="true"
              classpath="lib/jcommon-1.0.15.jar;lib/jfreechart-1.0.12.jar;lib/jung2-layout-min.jar;lib/jyaml-1.3.dgu.jar"
              destdir="doc"
              doctitle="OpenFlow GUI"

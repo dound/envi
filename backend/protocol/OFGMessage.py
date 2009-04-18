@@ -489,7 +489,7 @@ def test():
     def callback():
         if len(server.connections) > 0:
             print 'sending ...'
-            server.send(NodesAdd([v+1 for v in range(99)]))
+            server.send(NodesAdd([Node(i+1, Node.TYPE_OPENFLOW_SWITCH) for i in range(20)]))
         else:
             reactor.callLater(1, callback)
     reactor.callLater(1, callback)

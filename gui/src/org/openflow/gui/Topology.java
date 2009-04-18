@@ -103,7 +103,8 @@ public class Topology {
      * @return the NodeWithPorts with the requested ID, or null if no such node exists
      */
     public NodeWithPorts getNode(Long id) {
-        return nodesMap.get(id).obj;
+        NodeRefTrack r = nodesMap.get(id);
+        return r==null ? null : r.obj;
     }
     
     /** Gets the set of IDs currently in the topology */

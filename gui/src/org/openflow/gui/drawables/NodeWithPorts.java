@@ -148,9 +148,6 @@ public abstract class NodeWithPorts extends Node {
         return null;
     }
     
-    /** Returns a unique ID for this node */
-    public abstract long getID();
-    
     public int hashCode() {
         return (int)(getID() ^ (getID() >>> 32));
     }

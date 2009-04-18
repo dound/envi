@@ -1,13 +1,28 @@
 package org.pzgui;
 
+import java.awt.Graphics2D;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Vector;
+
+import org.ho.yaml.YamlConfig;
+import org.ho.yaml.wrapper.DelayedCreationBeanWrapper;
+import org.ho.yaml.wrapper.ObjectWrapper;
+import org.ho.yaml.wrapper.WrapperFactory;
+
+import org.openflow.util.string.DPIDUtil;
+
 import org.pzgui.icon.Icon;
 import org.pzgui.icon.TemporalIcon;
 import org.pzgui.icon.TextIcon;
+import org.pzgui.layout.Layoutable;
 import org.pzgui.math.Vector2i;
-import java.awt.Graphics2D;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Vector;
 
 /**
  * Manages a GUI consisting of multiple windows which each may each view the
@@ -33,10 +48,19 @@ public class PZManager extends Thread {
     }
 
     /** 
-     * Attach an existing window to this manager.  This registers event
-     * callbacks with the window to notify the manager of relevant events.
+     * Calls attchWindow(w, true).
      */
     public void attachWindow(final PZWindow w) {
+        attachWindow(w, true);
+    }
+    
+    /** 
+     * Attach an existing window to this manager.  This registers event
+     * callbacks with the window to notify the manager of relevant events.  If
+     * addDefaultEventListener is true, then a new PZWindowEventListener is 
+     * setup for w.
+     */
+    public void attachWindow(final PZWindow w, boolean addDefaultEventListener) {
         synchronized(windows) {
             // track the window
             if(windows.contains(w))
@@ -46,6 +70,9 @@ public class PZManager extends Thread {
             // show the window
             w.setVisible(true);
         }
+        
+        if(addDefaultEventListener)
+            w.addEventListener(new PZWindowEventListener());
     }
 
     /**
@@ -133,7 +160,7 @@ public class PZManager extends Thread {
         // search from back to front of z-order until we find something e should
         // NOT be drawn in front of and then insert e right after that something
         for(int i=drawables.size()-1; i>=0; i--) {
-            Class c = drawables.get(i).getClass();
+            Class<? extends Drawable> c = drawables.get(i).getClass();
 
             // see if here is an ok spot (e.g. i's class is not in before)
             boolean here = true;
@@ -182,6 +209,188 @@ public class PZManager extends Thread {
         drawables = new Vector<Drawable>();
         for(Drawable d : oldDrawables)
             addDrawable(d);
+    }
+    
+    
+    // ------------- Saving Layoutable Positioning Info to File ------------- //
+    
+    /**
+     * Information used to describe a Layoutable when it is serialized.
+     */
+    public static class LayoutableInfo {
+        public final long idNum;
+        public final String id;
+        public final int x, y;
+        public final boolean lock;
+        
+        public LayoutableInfo() {
+            this(0, 0, 0, false);
+        }
+        
+        public LayoutableInfo(long idNum, int x, int y, boolean lock) {
+            this.idNum = idNum;
+            this.x = x;
+            this.y = y;
+            this.lock = lock;
+            id = DPIDUtil.toString(idNum);
+        }
+        
+        public String toString() {
+            return id + "@[" + x + "," + y + "]" + (lock ? "-LOCK" : "");
+        }
+    }
+    
+    /**
+     * Describes how to serialize and deserialize the LayoutableInfo class.
+     */
+    private static class LayoutableInfoWrapper extends DelayedCreationBeanWrapper
+                                               implements WrapperFactory {
+        // define strings with names of our fields (so we can use ==)
+        private static final String ID = "id";
+        private static final String X = "x";
+        private static final String Y = "y";
+        private static final String LOCK = "lock";
+        
+        /** defines the order to present the fields */
+        private static final Comparator<String> KEYS_COMPARATOR = new Comparator<String>() {
+            public int compare(String s1, String s2) {
+                if(s1 == s2)
+                    return 0;
+                
+                if(s1 == ID)
+                    return -1;
+                else if(s2 == ID)
+                    return 1;
+                else if(s1 == X)
+                    return -1;
+                else if(s2 == X)
+                    return 1;
+                else if(s1 == Y)
+                    return -1;
+                
+                return 1;
+            }
+        };
+        
+        /** define the set which stores our field keys in order */
+        private static final TreeSet<String> sortedKeys = new TreeSet<String>(KEYS_COMPARATOR);
+        private static final TreeSet<String> sortedKeysNoLock = new TreeSet<String>(KEYS_COMPARATOR);
+        static {
+            sortedKeys.add(ID);
+            sortedKeys.add(X);
+            sortedKeys.add(Y);
+            sortedKeys.add(LOCK);
+            
+            sortedKeysNoLock.add(ID);
+            sortedKeysNoLock.add(X);
+            sortedKeysNoLock.add(Y);
+        }
+        
+        public LayoutableInfoWrapper(Class<LayoutableInfo> type) {
+            super(type);
+        }
+        
+        public Set keys() {
+            if(values.get(LOCK) == null && (getObject()==null || !((LayoutableInfo)getObject()).lock))
+                return sortedKeysNoLock;
+            else
+                return sortedKeys;
+        }
+
+        public String[] getPropertyNames() {
+            return new String[]{ID, X, Y, LOCK};
+        }
+        
+        protected Object createObject() {
+            String strId = (String)values.get(ID);
+            long id;
+            try {
+                id = DPIDUtil.hexToDPID(strId);
+            }
+            catch(NumberFormatException e) {
+                System.err.println("Bad ID field encountered when parsing YAML: " + strId);
+                return null;
+            }
+            
+            Boolean lock = (Boolean)values.get(LOCK);
+            
+            LayoutableInfo info = new LayoutableInfo(id, 
+                                                     (Integer)values.get(X),
+                                                     (Integer)values.get(Y),
+                                                     (lock!=null && lock));
+            
+            return info;
+        }
+        
+        public Object createPrototype() {
+            return new LayoutableInfo(0, 0, 0, true);
+        }
+        
+        public ObjectWrapper makeWrapper() {
+            return new LayoutableInfoWrapper(LayoutableInfo.class);
+        }
+    }
+    
+    /** the Yaml configuration */
+    public static final YamlConfig YAML = new YamlConfig();
+    static {
+        HashMap<String, Object> handlersMap = new HashMap<String, Object>();
+        handlersMap.put(LayoutableInfo.class.getName(), new LayoutableInfoWrapper(LayoutableInfo.class));
+        
+        YAML.setHandlers(handlersMap);
+        YAML.setIndentAmount("    ");
+        YAML.setMinimalOutput(true);
+        YAML.setSuppressWarnings(false);
+    }
+    
+    /**
+     * Loads positions for Layoutable objects from a file.
+     * 
+     * @param file  the filename to load from
+     */
+    public void loadDrawablePositionsFromFile(String file) {
+        LayoutableInfo[] infos;
+        try {
+            infos = YAML.loadType(new java.io.File(file), LayoutableInfo[].class);
+        } catch (FileNotFoundException e) {
+            DialogHelper.displayError(e);
+            return;
+        }
+        
+        HashMap<Long, LayoutableInfo> map = new HashMap<Long, LayoutableInfo>();
+        for(LayoutableInfo info : infos)
+            map.put(info.idNum, info);
+        
+        for(Drawable d : drawables) {
+            if(d instanceof Layoutable) {
+                Layoutable l = (Layoutable)d;
+                LayoutableInfo i = map.get(l.getID());
+                l.setCanPositionChange(true);
+                l.setPos(i.x, i.y);
+                l.setCanPositionChange(!i.lock);
+            }
+        }
+    }
+
+    /**
+     * Saves positions for Layoutable objects to a file.
+     * 
+     * @param file  the filename to save to
+     */
+    public void saveDrawablePositionsToFile(String file) {
+        ArrayList<LayoutableInfo> infos = new ArrayList<LayoutableInfo>();
+        for(Drawable d : drawables) {
+            if(d instanceof Layoutable) {
+                Layoutable l = (Layoutable)d;
+                infos.add(new LayoutableInfo(l.getID(), l.getX(), l.getY(), !l.canPositionChange()));
+            }
+        }
+        
+        try {
+            YAML.dump(infos, new java.io.File(file));
+        } catch (FileNotFoundException e) {
+            DialogHelper.displayError(e);
+        }
     }
 
 
@@ -266,7 +475,7 @@ public class PZManager extends Thread {
     }
 
 
-    // ------- Redrawing ------- //
+    // -------------- Redrawing ------------- //
     // ************************************** //
 
     /** Continuously redraws the windows at the desired interval. */

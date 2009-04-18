@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jnlp codebase="http://www.openflowswitch.org/jnlp/ofg/" href="launch.jnlp" spec="1.0+">
+	<information>
+		<title>OpenFlow GUI</title>
+		<vendor>McKeown Group</vendor>
+		<homepage href="http://www.openflowswitch.org/wp/gui/"/>
+		<description>The base OpenFlow GUI displays an OpenFlow topology with
+		  information supplied by a backend like LAVI.</description>
+		<icon href="dgu.gif" kind="default"/>
+		<desktop/>
+		<offline-allowed/>
+	</information>
+	<security>
+		<all-permissions/>
+	</security>
+	<resources>
+		<j2se version="1.6+"/>
+		<jar eager="true" href="openflow_gui.jar" main="true"/>
+	</resources>
+	<application-desc main-class="org.openflow.gui.OpenFlowGUI"/>
+</jnlp>

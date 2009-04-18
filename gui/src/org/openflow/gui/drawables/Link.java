@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.openflow.gui.Options;
 import org.openflow.gui.net.BackendConnection;
+import org.openflow.gui.net.protocol.LinkType;
 import org.openflow.gui.net.protocol.PollStart;
 import org.openflow.gui.net.protocol.PollStop;
 import org.openflow.gui.stats.LinkStats;
@@ -61,16 +62,20 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /**
      * Constructs a new link between src and dst.
      * 
-     * @param src  The source of data on this link.
-     * @param dst  The endpoint of this link.
+     * @param lnkType  the type of this link
+     * @param src      the source node of data on this link
+     * @param srcPort  the source port of the link (on src)
+     * @param dst      the destination of this link
+     * @param stPort   the destination port of the link (on dst)
      * 
      * @throws LinkExistsException  thrown if the link already exists
      */
-    public Link(NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
+    public Link(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
         // do not re-create existing links
         if(src.getDirectedLinkTo(srcPort, dst, dstPort, true) != null)
             throw new LinkExistsException("Link construction error: link already exists");
         
+        this.type = linkType;
         this.src = src;
         this.dst = dst;
         this.srcPort = srcPort;
@@ -82,6 +87,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     
     // --------- Basic Accessors / Mutators --------- //
+    
+    /** the type of this link */
+    protected LinkType type;
     
     /** the source of this link */
     protected NodeWithPorts src;
@@ -95,9 +103,6 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** the port to which this link connects on the destination node */
     protected short dstPort;
     
-    /** whether this link is wired (else it is wireless) */
-    private boolean wired = true;
-
     /** maximum capacity of the link */
     private double maxDataRate_bps = 1 * 1000 * 1000 * 1000; 
     
@@ -157,17 +162,22 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     /** returns true if the link is a wired link */
     public boolean isWired() {
-        return wired;
+        return type != LinkType.WIRELESS;
     }
     
     /** returns true if the link is a wireless link */
     public boolean isWireless() {
-        return !wired;
+        return type == LinkType.WIRELESS;
+    }
+
+    /** gets the type of this link */
+    public LinkType setLinkLink() {
+        return type;
     }
     
-    /** sets whether the link is a wired link */
-    public void setWired(boolean wired) {
-        this.wired = wired;
+    /** sets the type of this link */
+    public void setLinkLink(LinkType type) {
+        this.type = type;
     }
 
     /** returns the maximum bandwidth which can be sent through the link in bps */
@@ -246,11 +256,15 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         else if(isSelected())
             drawOutline(gfx, Constants.COLOR_SELECTED, 1.25);
         
-        // draw the simple link as a line
+        // draw the lin based on whether it is wired/wireless
         if(isWired())
             drawWiredLink(gfx);
         else
             drawWirelessLink(gfx);
+        
+        // add a tunnel if it is tunneled
+        if(type == LinkType.TUNNEL)
+            drawTunnel(gfx, LINE_WIDTH);
         
         // draw the failure indicator if the link has failed
         if(isFailed())

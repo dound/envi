@@ -75,4 +75,28 @@ public class IntersectionFinder {
                             d.width, 
                             d.height);
     }
+    
+
+    /**
+     * Returns the first intersection point of a ray cast from point p to the 
+     * edge of a box.  This method assumes the object is centered around x2 and
+     * y2.
+     */
+    public static Vector2i intersect(Vector2i p1, Vector2i p2, int width, int height) {
+        double dx = p2.getX() - p1.getX();
+        double dy = p2.getY() - p1.getY();
+        double m = dy / (double)dx;
+        
+        // how far to back up from p2.getX(), p2.getY() to get to the edge
+        double d = (height + width) / 4.0;
+        
+        // number of slope units to back up
+        double i = d / Math.sqrt(m*m + 1*1);
+        
+        // compute and return the intersection
+        double xI = (p2.getX() > p1.getX()) ? p2.getX()-i : p2.getX()+i;
+        double mAbs = Math.abs(m); 
+        double yI = (p2.getY() > p1.getY()) ? p2.getY()-mAbs*i : p2.getY()+mAbs*i;
+        return new Vector2i((int)xI, (int)yI);
+    }
 }

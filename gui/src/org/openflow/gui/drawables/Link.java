@@ -11,10 +11,14 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.openflow.gui.Options;
 import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.protocol.PollStart;
 import org.openflow.gui.net.protocol.PollStop;
@@ -30,6 +34,7 @@ import org.pzgui.layout.Edge;
 import org.pzgui.math.IntersectionFinder;
 import org.pzgui.math.Line;
 import org.pzgui.math.Vector2f;
+import org.pzgui.math.Vector2i;
 
 /**
  * Information about a link.
@@ -212,6 +217,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** light tunnel color */
     public static final Color TUNNEL_PAINT_LIGHT = Constants.cmap(new Color(196, 196, 196));
     
+    /** size of the arrow head */
+    public static final int ARROW_HEAD_SIZE = 15;
+    
     /** the color to draw the link (if null, then this link will not be drawn) */
     private Color curDrawColor = Constants.cmap(Color.BLACK);
     
@@ -305,8 +313,45 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** draws the link as a wired link between endpoints */
     public void drawWiredLink(Graphics2D gfx) {
         drawLinkPreparation(gfx);
-        gfx.drawLine(src.getX() + offsetX, src.getY() + offsetY, 
-                     dst.getX() + offsetX, dst.getY() + offsetY);
+        
+        Vector2i p1 = new Vector2i(src.getX() + offsetX, src.getY() + offsetY);
+        Vector2i p2 = new Vector2i(dst.getX() + offsetX, dst.getY() + offsetY);
+        
+        // draw the link between the objects' center points
+        gfx.drawLine(p1.x, p1.y, p2.x, p2.y);
+        
+        // draw an arrow head on directed links
+        if(Options.USE_DIRECTED_LINKS) {
+            Vector2i pI = IntersectionFinder.intersect(p1, p2, dst.getWidth(), dst.getHeight());
+            gfx.fill(getArrowHead(ARROW_HEAD_SIZE, p1.x, p1.y, pI.x, pI.y));
+        }
+    }
+    
+    /**
+     * Gets a path for an arrow head on an arrow drawn from x1,y1 to x2,y2.
+     *  
+     * @param sz  Size of the arrow head
+     * @param x1  initial x coordinate
+     * @param y1  initial y coordinate
+     * @param x2  final x coordinate
+     * @param y2  final y coordinate
+     * 
+     * @return  path describing an arrow head
+     */
+    public static GeneralPath getArrowHead(int sz, int x1, int y1, int x2, int y2) {
+        final double PHI = Math.toRadians(35);
+        double theta = Math.atan2(y2 - y1, x2 - x1);
+        Point2D.Double p1 = new Point2D.Double(x1, y1);
+        Point2D.Double p2 = new Point2D.Double(x2, y2);
+        GeneralPath path = new GeneralPath(new Line2D.Float(p1, p2));
+        double x = p2.x + sz*Math.cos(theta+Math.PI-PHI);
+        double y = p2.y + sz*Math.sin(theta+Math.PI-PHI);
+        path.moveTo((float)x, (float)y);
+        path.lineTo((float)p2.x, (float)p2.y);
+        x = p2.x + sz*Math.cos(theta+Math.PI+PHI);
+        y = p2.y + sz*Math.sin(theta+Math.PI+PHI);
+        path.lineTo((float)x, (float)y);
+        return path;
     }
     
     /** draws the link as a wireless link between endpoints */

@@ -138,16 +138,16 @@ class Node:
     TYPE_OPENFLOW_WIRELESS_ACCESS_POINT = 2
     TYPE_HOST = 100
 
-    def __init__(self, id, node_type):
-        self.id = long(id)
+    def __init__(self, node_type, id):
         self.node_type = int(node_type)
+        self.id = long(id)
 
     def pack(self):
-        return struct.pack('> QH', self.id, self.node_type)
+        return struct.pack('> HQ', self.node_type, self.id)
 
     @staticmethod
     def unpack(buf):
-        t = struct.unpack('> QH', buf[:Node.SIZE])
+        t = struct.unpack('> HQ', buf[:Node.SIZE])
         return Link(t[0], t[1])
 
     def __str__(self):
@@ -489,7 +489,7 @@ def test():
     def callback():
         if len(server.connections) > 0:
             print 'sending ...'
-            server.send(NodesAdd([Node(i+1, Node.TYPE_OPENFLOW_SWITCH) for i in range(20)]))
+            server.send(NodesAdd([Node(Node.TYPE_OPENFLOW_SWITCH, i+1) for i in range(20)]))
         else:
             reactor.callLater(1, callback)
     reactor.callLater(1, callback)

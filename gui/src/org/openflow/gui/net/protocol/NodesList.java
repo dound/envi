@@ -37,7 +37,8 @@ public abstract class NodesList extends OFGMessage {
         nodes = new Node[left / Node.SIZEOF];
         while(left >= Node.SIZEOF) {
             left -= Node.SIZEOF;
-            nodes[index++] = new Node(in.readLong(), NodeType.typeValToMessageType(in.readShort()));
+            nodes[index++] = new Node(NodeType.typeValToMessageType(in.readShort()),
+                                      in.readLong());
         }
     }
     

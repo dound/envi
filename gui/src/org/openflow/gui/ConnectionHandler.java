@@ -191,15 +191,15 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     
     private void processLinksAdd(LinksAdd msg) {
         for(org.openflow.gui.net.protocol.Link x : msg.links) {
-            NodeWithPorts dst = topology.getNode(x.dstDPID);
+            NodeWithPorts dst = topology.getNode(x.dstNode.id);
             if(dst == null) {
-                logNodeMissing("LinkAdd", "dst", x.dstDPID);
+                logNodeMissing("LinkAdd", "dst", x.dstNode.id);
                 return;
             }
             
-            NodeWithPorts src = topology.getNode(x.srcDPID);
+            NodeWithPorts src = topology.getNode(x.srcNode.id);
             if(src == null) {
-                logNodeMissing("LinkAdd", "src", x.srcDPID);
+                logNodeMissing("LinkAdd", "src", x.srcNode.id);
                 return;
             }
             
@@ -217,7 +217,7 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
                 }
                 catch (IOException e) {
                     System.err.println("Warning: unable to setup link utilization polling for switch " + 
-                            DPIDUtil.toString(x.dstDPID) + " port " + l.getMyPort(dst));
+                            DPIDUtil.toString(x.dstNode.id) + " port " + l.getMyPort(dst));
                 }
             }
             catch(LinkExistsException e) {
@@ -228,12 +228,12 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     
     private void processLinksDel(LinksDel msg) {
         for(org.openflow.gui.net.protocol.Link x : msg.links) {
-            int ret = topology.disconnectLink(connection, x.dstDPID, x.dstPort, x.srcDPID, x.srcPort);
+            int ret = topology.disconnectLink(connection, x.dstNode.id, x.dstPort, x.srcNode.id, x.srcPort);
             switch(ret) {
             case  0: /* success */ break;
-            case -1: logLinkMissing("delete", "src node", x.dstDPID, x.dstPort, x.srcDPID, x.srcPort); break;
-            case -2: logLinkMissing("delete", "dst node", x.dstDPID, x.dstPort, x.srcDPID, x.srcPort); break;
-            case -3: logLinkMissing("delete", "link",     x.dstDPID, x.dstPort, x.srcDPID, x.srcPort); break;
+            case -1: logLinkMissing("delete", "src node", x.dstNode.id, x.dstPort, x.srcNode.id, x.srcPort); break;
+            case -2: logLinkMissing("delete", "dst node", x.dstNode.id, x.dstPort, x.srcNode.id, x.srcPort); break;
+            case -3: logLinkMissing("delete", "link",     x.dstNode.id, x.dstPort, x.srcNode.id, x.srcPort); break;
             }
         }
     }

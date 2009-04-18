@@ -39,6 +39,33 @@ public final class OpenFlowGUI {
         
         return server;
     }
+
+    /**
+     * Gets the port to connect to.
+     * 
+     * @param args  the command-line arguments to extract a server from; if
+     *              a second one is not provided then the user will be prompted 
+     *              for one
+     * 
+     * @return  the port to connect to
+     */
+    public static short getPort(String args[]) {
+        String strPort = null;
+        try {
+            // use the second argument as our server name, if provided
+            if(args.length > 1 && args[1].length() > 0) {
+                strPort = args[1];
+                return Short.valueOf(strPort);
+            }
+        }
+        catch(NumberFormatException e) {
+            DialogHelper.displayError("Bad port number: " + strPort);
+            System.exit(-1);
+        }
+            
+        // use the default port if one was not provided
+        return Options.DEFAULT_PORT;
+    }
     
     /**
      * Creates a connection which will populate a new topology.
@@ -62,7 +89,7 @@ public final class OpenFlowGUI {
      */
     public static void main(String args[]) {
         String server = getServer(args);
-        Short port = Options.DEFAULT_PORT;
+        short port = getPort(args);
         
         // create a manager to handle drawing the topology info received by the connection
         PZLayoutManager gm = new PZLayoutManager();

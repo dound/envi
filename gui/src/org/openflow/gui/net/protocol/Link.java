@@ -3,44 +3,42 @@ package org.openflow.gui.net.protocol;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import org.openflow.util.string.DPIDUtil;
-
 /**
  * Structure to specify a link.
  * 
  * @author David Underhill
  */
 public class Link {
-    public static final int SIZEOF = 20;
+    public static final int SIZEOF = 2 * (Node.SIZEOF + 2);
 
-    /** datapath ID of the source switch */
-    public final long srcDPID;
+    /** source node */
+    public final Node srcNode;
 
     /** port number on the source switch */
     public final short srcPort;
     
-    /** datapath ID of the destination switch */
-    public final long dstDPID;
+    /** destination node */
+    public final Node dstNode;
     
     /** port number of the link is connected to on the destination switch */
     public final short dstPort;
     
-    public Link(long srcDPID, short srcPort, long dstDPID, short dstPort) {
-        this.srcDPID = srcDPID;
+    public Link(Node srcNode, short srcPort, Node dstNode, short dstPort) {
+        this.srcNode = srcNode;
         this.srcPort = srcPort;
-        this.dstDPID = dstDPID;
+        this.dstNode = dstNode;
         this.dstPort = dstPort;
     }
     
     public void write(DataOutput out) throws IOException {
-        out.writeLong(srcDPID);
+        srcNode.write(out);
         out.writeShort(srcPort);
-        out.writeLong(dstDPID);
+        dstNode.write(out);
         out.writeShort(dstPort);
     }
     
     public String toString() {
-        return "Link{" + DPIDUtil.toString(srcDPID) + "/" + srcPort  + " --> " + 
-                         DPIDUtil.toString(dstDPID) + "/" + dstPort + "}";
+        return "Link{" + srcNode + "/" + srcPort  + " --> " + 
+                         dstNode + "/" + dstPort + "}";
     }
 }

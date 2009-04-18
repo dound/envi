@@ -148,7 +148,7 @@ class Node:
     @staticmethod
     def unpack(buf):
         t = struct.unpack('> HQ', buf[:Node.SIZE])
-        return Link(t[0], t[1])
+        return Node(t[0], t[1])
 
     def __str__(self):
         return 'type=%s{id=%s}' % (str(self.node_type), dpidstr(self.id))
@@ -229,24 +229,32 @@ class LinksRequest(OFGMessage):
 OFG_MESSAGES.append(LinksRequest)
 
 class Link:
-    SIZE = 20
+    SIZE = (2 * (Node.SIZE + 2))
 
-    def __init__(self, src_dpid, src_port, dst_dpid, dst_port):
-        self.src_dpid = long(src_dpid)
+    def __init__(self, src_node, src_port, dst_node, dst_port):
+        self.src_node = src_node
         self.src_port = src_port
-        self.dst_dpid = long(dst_dpid)
+        self.dst_node = dst_node
         self.dst_port = dst_port
 
     def pack(self):
-        return struct.pack('> QHQH', self.src_dpid, self.src_port, self.dst_dpid, self.dst_port)
+        src = self.src_node.pack() + struct.pack('> H', self.src_port)
+        dst = self.dst_node.pack() + struct.pack('> H', self.dst_port)
+        return src + dst
 
     @staticmethod
     def unpack(buf):
-        t = struct.unpack('> QHQH', buf[:Link.SIZE])
-        return Link(t[0], t[1], t[2], t[3])
+        src_node = Node.unpack(buf[:Node.SIZE])
+        buf = buf[Node.SIZE:]
+        src_port = struct.unpack('> H')
+        buf = buf[2:]
+        dst_node = Node.unpack(buf[:Node.SIZE])
+        buf = buf[Node.SIZE:]
+        dst_port = struct.unpack('> H')
+        return Link(src_node, src_port, dst_node, dst_port)
 
     def __str__(self):
-        return '%s <--> %s' % (dpidstr(self.src_dpid), dpidstr(self.dst_dpid))
+        return '%s --> %s' % (str(self.src_node, str(self.dst_node)))
 
 class LinksList(OFGMessage):
     def __init__(self, links, xid=0):

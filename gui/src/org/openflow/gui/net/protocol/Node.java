@@ -1,5 +1,6 @@
 package org.openflow.gui.net.protocol;
 
+import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
@@ -18,6 +19,10 @@ public class Node {
     
     /** unique ID of the node (datapath ID for a switch) */
     public final long id;
+    
+    public Node(DataInput in) throws IOException {
+        this(NodeType.typeValToMessageType(in.readShort()), in.readLong());
+    }
     
     public Node(NodeType nodeType, long id) {
         this.nodeType = nodeType;

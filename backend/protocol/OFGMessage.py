@@ -483,16 +483,12 @@ def run_ofg_server(port, recv_callback):
 def test():
     # test: simply print out all received messages
     def print_ltm(_, ltm):
-        print 'recv: %s' % str(ltm)
+        if ltm is not None:
+            print 'recv: %s' % str(ltm)
+            if ltm.get_type() == NodesSubscribe.get_type():
+                server.send(NodesAdd([Node(Node.TYPE_OPENFLOW_SWITCH, i+1) for i in range(20)]))
 
     server = create_ofg_server(OFG_DEFAULT_PORT, print_ltm)
-    def callback():
-        if len(server.connections) > 0:
-            print 'sending ...'
-            server.send(NodesAdd([Node(Node.TYPE_OPENFLOW_SWITCH, i+1) for i in range(20)]))
-        else:
-            reactor.callLater(1, callback)
-    reactor.callLater(1, callback)
     reactor.run()
 
 if __name__ == "__main__":

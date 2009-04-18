@@ -34,7 +34,7 @@
     <delete dir="nb_project/build"/>
   </target>
 
-  <target depends="init" name="build">
+  <target name="build" depends="init">
     <javac debug="${debug}" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
       <src path="src"/>
     </javac>

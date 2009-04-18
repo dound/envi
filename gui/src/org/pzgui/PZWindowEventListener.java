@@ -149,6 +149,8 @@ public class PZWindowEventListener implements ComponentListener,
                                "    mouse wheel        = zoom in/out\n" +
                                "    page up            = take a screenshot\n" +
                                "    escape             = exit\n" +
+                               "    ctrl + O           = load a layout from a Yaml file\n" +
+                               "    ctrl + S           = save the current layout to a Yaml file\n" +
                                "    v                  = reset the view to the default\n");
         }
     }

@@ -207,13 +207,13 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     private static final int TUNNEL_DIST_FROM_BOX = DEFAULT_TUNNEL_WIDTH * 2;
     
     /** dark tunnel color*/
-    public static final Color TUNNEL_PAINT_DARK = new Color(180, 180, 180);
+    public static final Color TUNNEL_PAINT_DARK = Constants.cmap(new Color(180, 180, 180));
     
     /** light tunnel color */
-    public static final Color TUNNEL_PAINT_LIGHT = new Color(196, 196, 196);
+    public static final Color TUNNEL_PAINT_LIGHT = Constants.cmap(new Color(196, 196, 196));
     
     /** the color to draw the link (if null, then this link will not be drawn) */
-    private Color curDrawColor = Color.BLACK;
+    private Color curDrawColor = Constants.cmap(Color.BLACK);
     
     /** how much to offset the link drawing in the x axis */
     private int offsetX;

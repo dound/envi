@@ -150,8 +150,19 @@ class Node:
         t = struct.unpack('> HQ', buf[:Node.SIZE])
         return Node(t[0], t[1])
 
+    @staticmethod
+    def type_to_str(link_type):
+        if link_type == Node.TYPE_OPENFLOW_SWITCH:
+            return 'OFSwitch'
+        elif link_type == Node.TYPE_OPENFLOW_WIRELESS_ACCESS_POINT:
+            return 'AP'
+        elif link_type == Node.TYPE_HOST:
+            return 'Host'
+        else:
+            return 'unknown'
+
     def __str__(self):
-        return 'type=%s{id=%s}' % (str(self.node_type), dpidstr(self.id))
+        return '%s{%s}' % (Node.type_to_str(self.node_type), dpidstr(self.id))
 
 class NodesList(OFGMessage):
     def __init__(self, nodes, xid=0):
@@ -229,9 +240,15 @@ class LinksRequest(OFGMessage):
 OFG_MESSAGES.append(LinksRequest)
 
 class Link:
-    SIZE = (2 * (Node.SIZE + 2))
+    SIZE = 2 + (2 * (Node.SIZE + 2))
 
-    def __init__(self, src_node, src_port, dst_node, dst_port):
+    TYPE_UNKNOWN = 0
+    TYPE_WIRE = 1
+    TYPE_WIRELESS = 2
+    TYPE_TUNNEL = 4
+
+    def __init__(self, link_type, src_node, src_port, dst_node, dst_port):
+        self.link_type = link_type
         self.src_node = src_node
         self.src_port = src_port
         self.dst_node = dst_node
@@ -240,21 +257,36 @@ class Link:
     def pack(self):
         src = self.src_node.pack() + struct.pack('> H', self.src_port)
         dst = self.dst_node.pack() + struct.pack('> H', self.dst_port)
-        return src + dst
+        return struct.pack('> H', self.link_type) + src + dst
 
     @staticmethod
     def unpack(buf):
+        link_type = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
         src_node = Node.unpack(buf[:Node.SIZE])
         buf = buf[Node.SIZE:]
-        src_port = struct.unpack('> H')
+        src_port = struct.unpack('> H', buf[:2])[0]
         buf = buf[2:]
         dst_node = Node.unpack(buf[:Node.SIZE])
         buf = buf[Node.SIZE:]
-        dst_port = struct.unpack('> H')
-        return Link(src_node, src_port, dst_node, dst_port)
+        dst_port = struct.unpack('> H', buf[:2])[0]
+        return Link(link_type, src_node, src_port, dst_node, dst_port)
+
+    @staticmethod
+    def type_to_str(link_type):
+        if link_type == Link.TYPE_WIRE:
+            return 'wire'
+        elif link_type == Link.TYPE_WIRELESS:
+            return 'wireless'
+        elif link_type == Link.TYPE_TUNNEL:
+            return 'tunnel'
+        else:
+            return 'unknown'
 
     def __str__(self):
-        return '%s --> %s' % (str(self.src_node, str(self.dst_node)))
+        return '%s:%u --(%s)-> %s:%u' % (str(self.src_node), self.src_port,
+                                         Link.type_to_str(self.link_type),
+                                         str(self.dst_node), self.dst_port)
 
 class LinksList(OFGMessage):
     def __init__(self, links, xid=0):
@@ -494,7 +526,9 @@ def test():
         if ltm is not None:
             print 'recv: %s' % str(ltm)
             if ltm.get_type() == NodesSubscribe.get_type():
-                server.send(NodesAdd([Node(Node.TYPE_OPENFLOW_SWITCH, i+1) for i in range(20)]))
+                nodes = [Node(Node.TYPE_OPENFLOW_SWITCH, i+1) for i in range(20)]
+                server.send(NodesAdd(nodes))
+                server.send(LinksAdd([Link(i % 2 + 1, nodes[i], 0, nodes[i+1], 1) for i in range(19)]))
 
     server = create_ofg_server(OFG_DEFAULT_PORT, print_ltm)
     reactor.run()

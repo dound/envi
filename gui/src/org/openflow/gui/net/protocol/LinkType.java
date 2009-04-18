@@ -1,29 +1,29 @@
 package org.openflow.gui.net.protocol;
 
 /**
- * Enumerates what types of nodes are in the topology.
+ * Enumerates what types of links are in the topology.
  * 
  * @author David Underhill
  */
-public enum NodeType {
-    /** unknown node type */
+public enum LinkType {
+    /** unknown link type */
     UNKNOWN((short)0),
     
-    /** an OpenFlow switch */
-    OPENFLOW_SWITCH((short)1),
+    /** a wired link */
+    WIRE((short)1),
 
-    /** an OpenFlow-enabled wireless access point */
-    OPENFLOW_WIRELESS_ACCESS_POINT((short)2),
+    /** a wireless link */
+    WIRELESS((short)2),
 
-    /** a host */
-    HOST((short)100),
+    /** a tunneled link */
+    TUNNEL((short)4),
     
     ;
 
     /** the special value used to identify messages of this type */
     private final short typeID;
 
-    private NodeType(short typeID) {
+    private LinkType(short typeID) {
         this.typeID = typeID;
     }
 
@@ -33,11 +33,11 @@ public enum NodeType {
     }
 
     /** 
-     * Returns the NodeType constant associated with typeID, if any or
+     * Returns the LinkType constant associated with typeID, if any or
      * UNKOWN if no type is matched.
      */
-    public static NodeType typeValToMessageType(short typeID) {
-        for(NodeType t : NodeType.values())
+    public static LinkType typeValToMessageType(short typeID) {
+        for(LinkType t : LinkType.values())
             if(t.getTypeID() == typeID)
                 return t;
 

@@ -37,4 +37,7 @@ public interface Layoutable {
     
     /** set whether the position can be changed */
     public void setCanPositionChange(boolean can);
+    
+    /** Returns a unique ID for this node */
+    public abstract long getID();
 }

@@ -4,6 +4,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import org.openflow.gui.net.protocol.Link;
+import org.openflow.gui.net.protocol.Node;
 
 /**
  * Structure to specify a link utilization.
@@ -16,8 +17,8 @@ public class ETLinkUtil extends Link {
     /** utilization of the link */
     public final float util;
     
-    public ETLinkUtil(long srcDPID, short srcPort, long dstDPID, short dstPort, float util) {
-        super(srcDPID, srcPort, dstDPID, dstPort);
+    public ETLinkUtil(Node srcNode, short srcPort, Node dstNode, short dstPort, float util) {
+        super(srcNode, srcPort, dstNode, dstPort);
         this.util = util;
     }
     

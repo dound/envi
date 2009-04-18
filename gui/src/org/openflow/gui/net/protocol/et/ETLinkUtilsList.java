@@ -4,6 +4,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.openflow.gui.net.protocol.Node;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.OFGMessageType;
 
@@ -38,7 +39,7 @@ public class ETLinkUtilsList extends OFGMessage {
         utils = new ETLinkUtil[left / ETLinkUtil.SIZEOF];
         while(left >= ETLinkUtil.SIZEOF) {
             left -= ETLinkUtil.SIZEOF;
-            utils[index++] = new ETLinkUtil(in.readLong(), in.readShort(), in.readLong(), in.readShort(), in.readFloat());
+            utils[index++] = new ETLinkUtil(new Node(in), in.readShort(), new Node(in), in.readShort(), in.readFloat());
         }
     }
     

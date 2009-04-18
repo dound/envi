@@ -12,6 +12,7 @@ import org.openflow.gui.Topology;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.OpenFlowSwitch;
+import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.et.ETBandwidth;
 import org.openflow.gui.net.protocol.et.ETComputationDone;
@@ -242,7 +243,7 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
     private void processLinkUtils(ETLinkUtilsList msg) {
         double total_bps = 0;
         for(ETLinkUtil x : msg.utils)
-            total_bps += processLinkUtil(x.srcDPID, x.srcPort, x.dstDPID, x.dstPort, x.util, msg.timeCreated);
+            total_bps += processLinkUtil(x.srcNode.id, x.srcPort, x.dstNode.id, x.dstPort, x.util, msg.timeCreated);
         manager.setExpectedAggregateThroughput(total_bps);
     }
     
@@ -333,9 +334,9 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
             l.setFailed(!l.isFailed());
             try {
                 getConnection().sendMessage(new ETLinkFailureChange(new org.openflow.gui.net.protocol.Link(
-                        l.getSource().getID(),
+                        new org.openflow.gui.net.protocol.Node(NodeType.OPENFLOW_SWITCH, l.getSource().getID()),
                         l.getMyPort(l.getSource()),
-                        l.getDestination().getID(),
+                        new org.openflow.gui.net.protocol.Node(NodeType.OPENFLOW_SWITCH, l.getDestination().getID()),
                         l.getMyPort(l.getDestination())), l.isFailed()));    
             }
             catch(IOException e) {

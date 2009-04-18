@@ -7,15 +7,15 @@ import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Paint;
 
+import org.openflow.gui.Options;
+
 /**
  * Graphics constants.
  * @author David Underhill
  */
 public abstract class Constants {
-    public static final boolean INVERT_COLORS = true;
-    
     public static final Color cmap(Color c) {
-        if(INVERT_COLORS)
+        if(!Options.USE_LIGHT_COLOR_SCHEME)
             return new Color(255-c.getRed(), 255-c.getGreen(), 255-c.getBlue(), c.getAlpha());
         else
             return c;

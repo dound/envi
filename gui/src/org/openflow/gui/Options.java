@@ -29,6 +29,9 @@ public final class Options {
      */
     public static final boolean USE_DIRECTED_LINKS = true;
     
+    /** whether to use a light or dark color scheme */
+    public static final boolean USE_LIGHT_COLOR_SCHEME = true;
+    
     /* prevents this class from being instantiated */
     private Options() {}
 }

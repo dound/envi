@@ -35,7 +35,7 @@ public abstract class LinksList extends OFGMessage {
         links = new Link[left / Link.SIZEOF];
         while(left >= Link.SIZEOF) {
             left -= Link.SIZEOF;
-            links[index++] = new Link(new Node(in), in.readShort(), new Node(in), in.readShort());
+            links[index++] = new Link(in);
         }
     }
     

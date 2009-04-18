@@ -266,7 +266,7 @@ public class PZManager extends Thread {
     }
 
 
-    // ------- Redrawing ------- //
+    // -------------- Redrawing ------------- //
     // ************************************** //
 
     /** Continuously redraws the windows at the desired interval. */

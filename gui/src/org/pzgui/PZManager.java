@@ -1,19 +1,28 @@
 package org.pzgui;
 
+import java.awt.Graphics2D;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Vector;
+
 import org.ho.yaml.YamlConfig;
 import org.ho.yaml.wrapper.DelayedCreationBeanWrapper;
+import org.ho.yaml.wrapper.ObjectWrapper;
+import org.ho.yaml.wrapper.WrapperFactory;
+
+import org.openflow.util.string.DPIDUtil;
+
 import org.pzgui.icon.Icon;
 import org.pzgui.icon.TemporalIcon;
 import org.pzgui.icon.TextIcon;
 import org.pzgui.layout.Layoutable;
 import org.pzgui.math.Vector2i;
-import java.awt.Graphics2D;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Vector;
 
 /**
  * Manages a GUI consisting of multiple windows which each may each view the
@@ -151,7 +160,7 @@ public class PZManager extends Thread {
         // search from back to front of z-order until we find something e should
         // NOT be drawn in front of and then insert e right after that something
         for(int i=drawables.size()-1; i>=0; i--) {
-            Class c = drawables.get(i).getClass();
+            Class<? extends Drawable> c = drawables.get(i).getClass();
 
             // see if here is an ok spot (e.g. i's class is not in before)
             boolean here = true;
@@ -209,44 +218,116 @@ public class PZManager extends Thread {
      * Information used to describe a Layoutable when it is serialized.
      */
     public static class LayoutableInfo {
-        public final long id;
+        public final long idNum;
+        public final String id;
         public final int x, y;
         public final boolean lock;
         
         public LayoutableInfo() {
-            id = x = y = 0;
-            lock = false;
+            this(0, 0, 0, false);
         }
         
-        public LayoutableInfo(long id, int x, int y, Boolean lock) {
-            this.id = id;
+        public LayoutableInfo(long idNum, int x, int y, boolean lock) {
+            this.idNum = idNum;
             this.x = x;
             this.y = y;
-            this.lock = (lock!=null && lock);
+            this.lock = lock;
+            id = DPIDUtil.toString(idNum);
+        }
+        
+        public String toString() {
+            return id + "@[" + x + "," + y + "]" + (lock ? "-LOCK" : "");
         }
     }
     
     /**
      * Describes how to serialize and deserialize the LayoutableInfo class.
      */
-    private static class LayoutableInfoWrapper extends DelayedCreationBeanWrapper {
-        public LayoutableInfoWrapper(Class type) {
+    private static class LayoutableInfoWrapper extends DelayedCreationBeanWrapper
+                                               implements WrapperFactory {
+        // define strings with names of our fields (so we can use ==)
+        private static final String ID = "id";
+        private static final String X = "x";
+        private static final String Y = "y";
+        private static final String LOCK = "lock";
+        
+        /** defines the order to present the fields */
+        private static final Comparator<String> KEYS_COMPARATOR = new Comparator<String>() {
+            public int compare(String s1, String s2) {
+                if(s1 == s2)
+                    return 0;
+                
+                if(s1 == ID)
+                    return -1;
+                else if(s2 == ID)
+                    return 1;
+                else if(s1 == X)
+                    return -1;
+                else if(s2 == X)
+                    return 1;
+                else if(s1 == Y)
+                    return -1;
+                
+                return 1;
+            }
+        };
+        
+        /** define the set which stores our field keys in order */
+        private static final TreeSet<String> sortedKeys = new TreeSet<String>(KEYS_COMPARATOR);
+        private static final TreeSet<String> sortedKeysNoLock = new TreeSet<String>(KEYS_COMPARATOR);
+        static {
+            sortedKeys.add(ID);
+            sortedKeys.add(X);
+            sortedKeys.add(Y);
+            sortedKeys.add(LOCK);
+            
+            sortedKeysNoLock.add(ID);
+            sortedKeysNoLock.add(X);
+            sortedKeysNoLock.add(Y);
+        }
+        
+        public LayoutableInfoWrapper(Class<LayoutableInfo> type) {
             super(type);
+        }
+        
+        public Set keys() {
+            if(values.get(LOCK) == null && (getObject()==null || !((LayoutableInfo)getObject()).lock))
+                return sortedKeysNoLock;
+            else
+                return sortedKeys;
         }
 
         public String[] getPropertyNames() {
-            return new String[]{"id", "x", "y", "lock"};
+            return new String[]{ID, X, Y, LOCK};
         }
         
         protected Object createObject() {
-            return new LayoutableInfo((Long)values.get("id"), 
-                                      (Integer)values.get("x"),
-                                      (Integer)values.get("y"),
-                                      (Boolean)values.get("lock"));
+            String strId = (String)values.get(ID);
+            long id;
+            try {
+                id = DPIDUtil.hexToDPID(strId);
+            }
+            catch(NumberFormatException e) {
+                System.err.println("Bad ID field encountered when parsing YAML: " + strId);
+                return null;
+            }
+            
+            Boolean lock = (Boolean)values.get(LOCK);
+            
+            LayoutableInfo info = new LayoutableInfo(id, 
+                                                     (Integer)values.get(X),
+                                                     (Integer)values.get(Y),
+                                                     (lock!=null && lock));
+            
+            return info;
         }
-
+        
         public Object createPrototype() {
             return new LayoutableInfo(0, 0, 0, true);
+        }
+        
+        public ObjectWrapper makeWrapper() {
+            return new LayoutableInfoWrapper(LayoutableInfo.class);
         }
     }
     
@@ -254,7 +335,7 @@ public class PZManager extends Thread {
     public static final YamlConfig YAML = new YamlConfig();
     static {
         HashMap<String, Object> handlersMap = new HashMap<String, Object>();
-        handlersMap.put(LayoutableInfoWrapper.class.getName(), new LayoutableInfoWrapper(LayoutableInfo.class));
+        handlersMap.put(LayoutableInfo.class.getName(), new LayoutableInfoWrapper(LayoutableInfo.class));
         
         YAML.setHandlers(handlersMap);
         YAML.setIndentAmount("    ");
@@ -278,7 +359,7 @@ public class PZManager extends Thread {
         
         HashMap<Long, LayoutableInfo> map = new HashMap<Long, LayoutableInfo>();
         for(LayoutableInfo info : infos)
-            map.put(info.id, info);
+            map.put(info.idNum, info);
         
         for(Drawable d : drawables) {
             if(d instanceof Layoutable) {

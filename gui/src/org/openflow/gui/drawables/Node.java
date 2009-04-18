@@ -185,6 +185,16 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
         setPos(x, y);
     }
     
+    /** The height of this node */
+    public int getHeight() {
+        return icon.getHeight();
+    }
+
+    /** The width of this node */
+    public int getWidth() {
+        return icon.getWidth();
+    }
+    
     /** Returns true if the object of size sz contains the location x, y */
     protected boolean isWithin( int x, int y, java.awt.Dimension sz) {
         int left = getX()-sz.width/2;

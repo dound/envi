@@ -92,8 +92,26 @@ public class PZWindowEventListener implements ComponentListener,
     }
 
     /**
+     * Returns the filename entered by the user with a ".yaml" extension, or 
+     * null if no file was chosen.
+     * 
+     * @param prompt  the message to show in the prompt
+     * 
+     * @return the filename, or null if none was chosen
+     */
+    private String getFilename(String prompt) {
+        String file = DialogHelper.getInput(prompt);
+        if(file != null && !file.endsWith(".yaml"))
+            return file + ".yaml";
+        else
+            return file;
+    }
+    
+    /**
      * Provides default actions for some keys.
      *   H: prints help info to stdout
+     *   Ctrl+O: load layout positions from a file
+     *   Ctrl+S: save layout positions to a file
      *   V: calls window.restView()
      *   Escape: terminates the program
      *   Page Up: Take a screenshot
@@ -102,7 +120,17 @@ public class PZWindowEventListener implements ComponentListener,
         PZWindow window = getWindow(e);
         PZManager manager = window.getManager();
         
-        if(e.getKeyCode() == KeyEvent.VK_V) {
+        if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_O) {
+            String file = getFilename("What file do you want to save to?");
+            if(file != null)
+                manager.loadDrawablePositionsFromFile(file);
+        }
+        else if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_S) {
+            String file = getFilename("What file do you want to save to?");
+            if(file != null)
+                manager.saveDrawablePositionsToFile(file);
+        }
+        else if(e.getKeyCode() == KeyEvent.VK_V) {
             window.resetView();
             manager.displayIcon("<V> Reset View!", 2000);
         }

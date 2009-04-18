@@ -1,11 +1,17 @@
 package org.pzgui;
 
+import org.ho.yaml.YamlConfig;
+import org.ho.yaml.wrapper.DelayedCreationBeanWrapper;
 import org.pzgui.icon.Icon;
 import org.pzgui.icon.TemporalIcon;
 import org.pzgui.icon.TextIcon;
+import org.pzgui.layout.Layoutable;
 import org.pzgui.math.Vector2i;
 import java.awt.Graphics2D;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Vector;
 
@@ -194,6 +200,116 @@ public class PZManager extends Thread {
         drawables = new Vector<Drawable>();
         for(Drawable d : oldDrawables)
             addDrawable(d);
+    }
+    
+    
+    // ------------- Saving Layoutable Positioning Info to File ------------- //
+    
+    /**
+     * Information used to describe a Layoutable when it is serialized.
+     */
+    public static class LayoutableInfo {
+        public final long id;
+        public final int x, y;
+        public final boolean lock;
+        
+        public LayoutableInfo() {
+            id = x = y = 0;
+            lock = false;
+        }
+        
+        public LayoutableInfo(long id, int x, int y, Boolean lock) {
+            this.id = id;
+            this.x = x;
+            this.y = y;
+            this.lock = (lock!=null && lock);
+        }
+    }
+    
+    /**
+     * Describes how to serialize and deserialize the LayoutableInfo class.
+     */
+    private static class LayoutableInfoWrapper extends DelayedCreationBeanWrapper {
+        public LayoutableInfoWrapper(Class type) {
+            super(type);
+        }
+
+        public String[] getPropertyNames() {
+            return new String[]{"id", "x", "y", "lock"};
+        }
+        
+        protected Object createObject() {
+            return new LayoutableInfo((Long)values.get("id"), 
+                                      (Integer)values.get("x"),
+                                      (Integer)values.get("y"),
+                                      (Boolean)values.get("lock"));
+        }
+
+        public Object createPrototype() {
+            return new LayoutableInfo(0, 0, 0, true);
+        }
+    }
+    
+    /** the Yaml configuration */
+    public static final YamlConfig YAML = new YamlConfig();
+    static {
+        HashMap<String, Object> handlersMap = new HashMap<String, Object>();
+        handlersMap.put(LayoutableInfoWrapper.class.getName(), new LayoutableInfoWrapper(LayoutableInfo.class));
+        
+        YAML.setHandlers(handlersMap);
+        YAML.setIndentAmount("    ");
+        YAML.setMinimalOutput(true);
+        YAML.setSuppressWarnings(false);
+    }
+    
+    /**
+     * Loads positions for Layoutable objects from a file.
+     * 
+     * @param file  the filename to load from
+     */
+    public void loadDrawablePositionsFromFile(String file) {
+        LayoutableInfo[] infos;
+        try {
+            infos = YAML.loadType(new java.io.File(file), LayoutableInfo[].class);
+        } catch (FileNotFoundException e) {
+            DialogHelper.displayError(e);
+            return;
+        }
+        
+        HashMap<Long, LayoutableInfo> map = new HashMap<Long, LayoutableInfo>();
+        for(LayoutableInfo info : infos)
+            map.put(info.id, info);
+        
+        for(Drawable d : drawables) {
+            if(d instanceof Layoutable) {
+                Layoutable l = (Layoutable)d;
+                LayoutableInfo i = map.get(l.getID());
+                l.setCanPositionChange(true);
+                l.setPos(i.x, i.y);
+                l.setCanPositionChange(!i.lock);
+            }
+        }
+    }
+
+    /**
+     * Saves positions for Layoutable objects to a file.
+     * 
+     * @param file  the filename to save to
+     */
+    public void saveDrawablePositionsToFile(String file) {
+        ArrayList<LayoutableInfo> infos = new ArrayList<LayoutableInfo>();
+        for(Drawable d : drawables) {
+            if(d instanceof Layoutable) {
+                Layoutable l = (Layoutable)d;
+                infos.add(new LayoutableInfo(l.getID(), l.getX(), l.getY(), !l.canPositionChange()));
+            }
+        }
+        
+        try {
+            YAML.dump(infos, new java.io.File(file));
+        } catch (FileNotFoundException e) {
+            DialogHelper.displayError(e);
+        }
     }
 
 

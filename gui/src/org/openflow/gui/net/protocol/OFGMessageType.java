@@ -4,6 +4,7 @@ import java.io.DataInput;
 import java.io.IOException;
 
 import org.openflow.gui.net.protocol.auth.AuthType;
+import org.openflow.gui.net.protocol.op.OPTestInfo;
 import org.openflow.protocol.StatsType;
 
 /**
@@ -76,6 +77,9 @@ public enum OFGMessageType {
     /** Movement of a module. */
     OP_MOVE_MODULE((byte)0xF0),
 
+    /** Information about a test being performed on the system. */
+    OP_TEST_INFO((byte)0xF1),
+    
     ;
 
     /** the special value used to identify messages of this type */
@@ -144,6 +148,9 @@ public enum OFGMessageType {
             case STAT_REPLY:
                 return StatsType.decode(len, t, xid, in);
     
+            case OP_TEST_INFO:
+                return new OPTestInfo(len, xid, in);
+                
             case DISCONNECT:
             case AUTH_REPLY:
             case POLL_START:

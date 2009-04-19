@@ -44,6 +44,33 @@ class OPMoveModule(OFGMessage):
         return fmt % (self.module, self.from_node, self.to_node)
 OP_MESSAGES.append(OPMoveModule)
 
+class OPTestInfo(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0xF1
+
+    def __init__(self, test_input, test_output, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.input = str(test_input)
+        self.output = str(test_output)
+
+    def length(self):
+        return OFGMessage.SIZE + len(self.input) + 1 + len(self.output) + 1
+
+    def pack(self):
+        hdr = OFGMessage.pack(self)
+        body = struct.pack('> %us %us' % (len(self.input)+1, len(self.output)+1),
+                           self.input, self.output)
+        return hdr + body
+
+    @staticmethod
+    def unpack(body):
+        raise Exception('OPTestInfo.unpack() not implemented (one-way message)')
+
+    def __str__(self):
+        fmt = 'OP_TEST_INFO: ' + OFGMessage.__str__(self) + " %s ==> %s"
+        return fmt % (self.input, self.output)
+OP_MESSAGES.append(OPTestInfo)
 
 OP_PROTOCOL = LTProtocol(OFG_MESSAGES + OP_MESSAGES, 'H', 'B')
 

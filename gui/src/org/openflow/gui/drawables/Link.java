@@ -340,7 +340,10 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** draws the link as a wired link between endpoints */
     public void drawWiredLink(Graphics2D gfx) {
         drawLinkPreparation(gfx);
-        
+        drawWiredLinkNoPrep(gfx);
+    }
+    
+    private void drawWiredLinkNoPrep(Graphics2D gfx) {
         Vector2i p1 = new Vector2i(src.getX() + offsetX, src.getY() + offsetY);
         Vector2i p2 = new Vector2i(dst.getX() + offsetX, dst.getY() + offsetY);
         
@@ -391,7 +394,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         
         // draw a dashed line 
         gfx.setStroke(WIRELESS_LINE_DEFAULT_STROKE);
-        gfx.drawLine(p1.x,p1.y,pI.x,pI.y);
+        drawWiredLinkNoPrep(gfx);
         
         // compute number of arcs to draw
         int dx = pI.x - p1.x;

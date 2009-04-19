@@ -25,6 +25,12 @@ public interface Layoutable {
     
     /** sets the y-coordinate of this object */
     public void setYPos(int y);
+
+    /** gets the height of this object */
+    public int getHeight();
+
+    /** gets the width of this object */
+    public int getWidth();
     
     /** whether the position changed since the previous unsetPositionChanged() call */
     public boolean hasPositionChanged();

@@ -7,14 +7,14 @@ import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.pzgui.Drawable;
 import org.pzgui.PZWindow;
 import org.pzgui.icon.ImageIcon;
-import org.pzgui.layout.PZLayoutManager;
+import org.pzgui.PZManager;
 
 /**
  * Example extension to the base GUI manager.
  * 
  * @author David Underhill
  */
-public class OPLayoutManager extends PZLayoutManager {
+public class OPLayoutManager extends PZManager {
     /** specifies the height in pixels of the area of the screen reserved for custom controls */
     public static final int RESERVED_HEIGHT_BOTTOM = 400;
     
@@ -60,16 +60,6 @@ public class OPLayoutManager extends PZLayoutManager {
             w.setReservedHeightBottom(RESERVED_HEIGHT_BOTTOM);
             w.setMySize(w.getWidth(), w.getHeight(), w.getZoom());
         }
-    }
-
-    /**
-     * Extends the parent implementation to relayout the custom controls section
-     * to fit in the new area. 
-     */
-    public void setLayoutSize(int w, int h) {
-        super.setLayoutSize(w, h);
-        int margin = 20; 
-        pnlCustom.setBounds(0, h + margin, w, RESERVED_HEIGHT_BOTTOM - 2 * margin);
     }
     
     /**

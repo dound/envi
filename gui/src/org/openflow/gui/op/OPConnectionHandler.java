@@ -4,6 +4,7 @@ import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.Topology;
 import org.openflow.gui.op.OPLayoutManager;
 import org.openflow.gui.net.protocol.OFGMessage;
+import org.openflow.gui.net.protocol.op.OPModulesAdd;
 import org.openflow.gui.net.protocol.op.OPTestInfo;
 import org.pzgui.Drawable;
 import org.pzgui.DrawableEventListener;
@@ -64,12 +65,19 @@ public class OPConnectionHandler extends ConnectionHandler
     public void process(final OFGMessage msg) {
         switch(msg.type) {
         
+        case OP_MODULES_ADD:
+            processModulesAdd((OPModulesAdd)msg);
+        
         case OP_TEST_INFO:
             processTestInfo((OPTestInfo)msg);
         
         default:
             super.process(msg);
         }
+    }
+
+    private void processModulesAdd(OPModulesAdd msg) {
+        // TODO: not yet implemented
     }
 
     /** handles displaying test info */

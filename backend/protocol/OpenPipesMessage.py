@@ -72,6 +72,63 @@ class OPTestInfo(OFGMessage):
         return fmt % (self.input, self.output)
 OP_MESSAGES.append(OPTestInfo)
 
+class OPModule(Node):
+    NAME_LEN = 32
+    SIZE = Node.SIZE + OPModule.NAME_LEN
+
+    def __init__(self, node_type, node_id, name):
+        Node.__init__(self, node_type, node_id)
+        self.name = str(name)
+
+    def pack(self):
+        return Node.pack(self) + struct.pack('> %us' % OPModule.NAME_LEN, self.name)
+
+    @staticmethod
+    def unpack(buf):
+        node_type = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+        node_id = struct.unpack('> Q', buf[:8])[0]
+        buf = buf[8:]
+        name = struct.unpack('> %us' % OPModule.NAME_LEN, buf[:OPModule.NAME_LEN])[0]
+        return OPModule(node_type, node_id, name)
+
+class OPModulesList(OFGMessage):
+    def __init__(self, modules, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.modules = modules
+
+    def length(self):
+        return OFGMessage.SIZE + len(self.modules) * OPModule.SIZE
+
+    def pack(self):
+        return OFGMessage.pack(self) + ''.join([m.pack() for m in self.modules])
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        num_modules = len(body) / OPModule.SIZE
+        modules = []
+        for _ in range(num_modules):
+            modules.append(OPModule.unpack(body[OPModule.SIZE:]))
+            body = body[:OPModule.SIZE]
+        return OPModulesList(modules, xid)
+
+    def __str__(self):
+        return OFGMessage.__str__(self) + ' modules=[%s]' % ''.join([str(m) + ',' for m in self.modules])
+
+class OPModulesAdd(OPModulesList):
+    @staticmethod
+    def get_type():
+        return 0x11
+
+    def __init__(self, modules, xid=0):
+        OPModulesList.__init__(self, modules, xid)
+
+    def __str__(self):
+        return 'MODULES_ADD: ' + OPModulesList.__str__(self)
+OFG_MESSAGES.append(OPModulesAdd)
+
 OP_PROTOCOL = LTProtocol(OFG_MESSAGES + OP_MESSAGES, 'H', 'B')
 
 def run_op_server(port, recv_callback):

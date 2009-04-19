@@ -4,7 +4,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import org.openflow.gui.net.protocol.Node;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.OFGMessageType;
 

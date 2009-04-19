@@ -3,7 +3,9 @@ package org.openflow.gui;
 import java.io.DataInput;
 import java.io.IOException;
 
+import org.openflow.gui.drawables.Host;
 import org.openflow.gui.drawables.Link;
+import org.openflow.gui.drawables.Node;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.openflow.gui.drawables.Link.LinkExistsException;
@@ -12,6 +14,7 @@ import org.openflow.gui.net.MessageProcessor;
 import org.openflow.gui.net.protocol.LinksAdd;
 import org.openflow.gui.net.protocol.LinksDel;
 import org.openflow.gui.net.protocol.LinksRequest;
+import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.OFGMessageType;
 import org.openflow.gui.net.protocol.StatsHeader;
@@ -154,15 +157,18 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         }
     }
     
-    private void addSwitch(long dpid) {
-        OpenFlowSwitch s = new OpenFlowSwitch(dpid);
-        if(!topology.addNode(connection, s))
-            return;
-        
+    /**
+     * Handles a new switch by requesting its links and description if 
+     * Options.AUTO_REQUEST_LINK_INFO_FOR_NEW_SWITCH is true.
+     * 
+     * @param s  the new switch
+     */
+    protected void handleNewSwitch(OpenFlowSwitch s) {
         if(!Options.AUTO_REQUEST_LINK_INFO_FOR_NEW_SWITCH)
             return;
         
         // get the links associated with this switch
+        long dpid = s.getID();
         try {
             getConnection().sendMessage(new LinksRequest(dpid));
         } catch (IOException e) {
@@ -176,13 +182,35 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         }
     }
     
-    /** add new switches to the topology */
+    /** add new nodes to the topology */
     private void processNodesAdd(NodesAdd msg) {
-        for(org.openflow.gui.net.protocol.Node n : msg.nodes)
-            addSwitch(n.id);
+        for(org.openflow.gui.net.protocol.Node msgNode : msg.nodes) {
+            Node n = processNodeAdd(msgNode);
+            if(n instanceof NodeWithPorts) {
+                if(!topology.addNode(connection, (NodeWithPorts)n))
+                    return;
+                
+                if(n instanceof OpenFlowSwitch)
+                    handleNewSwitch((OpenFlowSwitch)n);
+            }
+        }
+    }
+    
+    /** 
+     * Add a new node to the topology.  The default implementation assumes the
+     * new node is a OpenFlowSwitch (unless its type is host).   The caller will
+     * add the returned node to the topology if it is a subclass of 
+     * NodeWithPorts.  The default caller will also call handleNewSwitch() if 
+     * an OpenFlowSwitch is returned.
+     */
+    protected Node processNodeAdd(org.openflow.gui.net.protocol.Node n) {
+        if(n.nodeType == NodeType.HOST)
+            return new Host(n.id);
+        else
+            return new OpenFlowSwitch(n.id);
     }
 
-    /** remove former switches from the topology */
+    /** remove nodes from the topology */
     private void processNodesDel(NodesDel msg) {
         for(org.openflow.gui.net.protocol.Node n : msg.nodes)
             if(topology.removeNode(connection, n.id) < 0)

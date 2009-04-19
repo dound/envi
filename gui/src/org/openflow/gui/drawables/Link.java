@@ -1,8 +1,11 @@
 package org.openflow.gui.drawables;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -209,6 +212,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** how the draw a link */
     public static final BasicStroke LINE_DEFAULT_STROKE = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     
+    /** size of the arrow head */
+    public static final int ARROW_HEAD_SIZE = 15;
+    
     /** bounding square around the arc */
     public static final int WIRELESS_ARC_SIZE = 40;
     
@@ -225,8 +231,14 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** whether to draw port numbers each link is attached to */
     public static boolean DRAW_PORT_NUMBERS = false;
     
+    /** distance from the edge of an object to draw port numbers, if enabled */
+    public static final int PORT_NUMBERS_OFFSET = ARROW_HEAD_SIZE + 10;
+    
     /** alpha channel of port numbers */
-    public static double DEFAULT_PORT_NUM_ALPHA = 0.9;
+    public static float DEFAULT_PORT_NUM_ALPHA = 0.9f;
+    
+    /** port number font */
+    public static final Font PORT_NUMBERS_FONT = new Font("Tahoma", Font.BOLD, 24);
     
     /** thickness of a tunnel */
     private static final int DEFAULT_TUNNEL_WIDTH = LINE_WIDTH * 10;
@@ -239,9 +251,6 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     /** light tunnel color */
     public static final Color TUNNEL_PAINT_LIGHT = Constants.cmap(new Color(196, 196, 196));
-    
-    /** size of the arrow head */
-    public static final int ARROW_HEAD_SIZE = 15;
     
     /** the color to draw the link (if null, then this link will not be drawn) */
     private Color curDrawColor = Constants.cmap(Color.BLACK);
@@ -318,16 +327,27 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     }
     
     /** draws port numbers by the link drawing's endpoints with the specified alpha */
-    public void drawPortNumbers(Graphics2D gfx, double alpha) {
+    public void drawPortNumbers(Graphics2D gfx, float alpha) {
+        Composite origC = gfx.getComposite();
+        AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+        gfx.setComposite(ac);
+        
+        Font origF = gfx.getFont();
+        gfx.setFont(PORT_NUMBERS_FONT);
+        
+        Vector2i p1 = new Vector2i(src.getX() + offsetX, src.getY() + offsetY);
+        Vector2i p2 = new Vector2i(dst.getX() + offsetX, dst.getY() + offsetY);
+        
         gfx.setPaint(Constants.cmap(Color.RED));
-        int srcPortX = (int)(alpha*src.getX() + (1.0-alpha)*dst.getX() + offsetX);
-        int srcPortY = (int)(alpha*src.getY() + (1.0-alpha)*dst.getY() + offsetY);
-        gfx.drawString(Short.toString(this.srcPort), srcPortX, srcPortY);
+        Vector2i s = IntersectionFinder.intersect(p2, p1, PORT_NUMBERS_OFFSET+src.getWidth(), PORT_NUMBERS_OFFSET+src.getHeight());
+        gfx.drawString(Short.toString(this.srcPort), s.x, s.y);
         
         gfx.setPaint(Constants.cmap(Color.GREEN.darker()));
-        int dstPortX = (int)(alpha*dst.getX() + (1.0-alpha)*src.getX() + offsetX);
-        int dstPortY = (int)(alpha*dst.getY() + (1.0-alpha)*src.getY() + offsetY);
-        gfx.drawString(Short.toString(this.dstPort), dstPortX, dstPortY);
+        Vector2i d = IntersectionFinder.intersect(p1, p2, PORT_NUMBERS_OFFSET+dst.getWidth(), PORT_NUMBERS_OFFSET+dst.getHeight());
+        gfx.drawString(Short.toString(this.dstPort), d.x, d.y);
+        
+        gfx.setComposite(origC);
+        gfx.setFont(origF);
     }
     
     /** sets up the stroke and color information for the link prior to it being drawn */

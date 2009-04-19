@@ -204,7 +204,7 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             }
             
             try {
-                Link l = topology.addLink(dst, x.dstPort, src, x.srcPort);
+                Link l = topology.addLink(x.linkType, dst, x.dstPort, src, x.srcPort);
                 if(l == null)
                     continue;
                 

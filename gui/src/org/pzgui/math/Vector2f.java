@@ -1,12 +1,14 @@
 package org.pzgui.math;
 
+import java.awt.geom.Point2D;
+
 /**
  * A 2-element vector that is represented by float-precision floating point 
  * x,y coordinates.
  *
  * @author David Underhill
  */
-public class Vector2f implements java.io.Serializable, Cloneable {
+public class Vector2f extends Point2D implements java.io.Serializable, Cloneable {
 
     static final long serialVersionUID = 100L;
     
@@ -67,8 +69,8 @@ public class Vector2f implements java.io.Serializable, Cloneable {
     
     //<editor-fold defaultstate="collapsed" desc="mutator methods">
     
-    public float getX() { return x; }
-    public float getY() { return y; }
+    public double getX() { return x; }
+    public double getY() { return y; }
     
     public void setX  ( float x ) { this.x = x; }
     public void setY  ( float y ) { this.y = y; }
@@ -77,6 +79,10 @@ public class Vector2f implements java.io.Serializable, Cloneable {
     public void set(float x, float y) {
         this.x = x;
         this.y = y;
+    }
+    
+    public void setLocation(double x, double y) {
+        set((float)x, (float)y);
     }
     
     //</editor-fold>
@@ -173,5 +179,4 @@ public class Vector2f implements java.io.Serializable, Cloneable {
     public String toStringPlain() {
        return x + " " + y;
     }
-   
 }

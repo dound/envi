@@ -1,8 +1,11 @@
 package org.openflow.gui.drawables;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -11,11 +14,16 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.openflow.gui.Options;
 import org.openflow.gui.net.BackendConnection;
+import org.openflow.gui.net.protocol.LinkType;
 import org.openflow.gui.net.protocol.PollStart;
 import org.openflow.gui.net.protocol.PollStop;
 import org.openflow.gui.stats.LinkStats;
@@ -30,6 +38,7 @@ import org.pzgui.layout.Edge;
 import org.pzgui.math.IntersectionFinder;
 import org.pzgui.math.Line;
 import org.pzgui.math.Vector2f;
+import org.pzgui.math.Vector2i;
 
 /**
  * Information about a link.
@@ -56,16 +65,20 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /**
      * Constructs a new link between src and dst.
      * 
-     * @param src  The source of data on this link.
-     * @param dst  The endpoint of this link.
+     * @param lnkType  the type of this link
+     * @param src      the source node of data on this link
+     * @param srcPort  the source port of the link (on src)
+     * @param dst      the destination of this link
+     * @param stPort   the destination port of the link (on dst)
      * 
      * @throws LinkExistsException  thrown if the link already exists
      */
-    public Link(NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
+    public Link(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
         // do not re-create existing links
         if(src.getDirectedLinkTo(srcPort, dst, dstPort, true) != null)
             throw new LinkExistsException("Link construction error: link already exists");
         
+        this.type = linkType;
         this.src = src;
         this.dst = dst;
         this.srcPort = srcPort;
@@ -77,6 +90,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     
     // --------- Basic Accessors / Mutators --------- //
+    
+    /** the type of this link */
+    protected LinkType type;
     
     /** the source of this link */
     protected NodeWithPorts src;
@@ -90,9 +106,6 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** the port to which this link connects on the destination node */
     protected short dstPort;
     
-    /** whether this link is wired (else it is wireless) */
-    private boolean wired = true;
-
     /** maximum capacity of the link */
     private double maxDataRate_bps = 1 * 1000 * 1000 * 1000; 
     
@@ -152,17 +165,22 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     /** returns true if the link is a wired link */
     public boolean isWired() {
-        return wired;
+        return type != LinkType.WIRELESS;
     }
     
     /** returns true if the link is a wireless link */
     public boolean isWireless() {
-        return !wired;
+        return type == LinkType.WIRELESS;
+    }
+
+    /** gets the type of this link */
+    public LinkType setLinkLink() {
+        return type;
     }
     
-    /** sets whether the link is a wired link */
-    public void setWired(boolean wired) {
-        this.wired = wired;
+    /** sets the type of this link */
+    public void setLinkLink(LinkType type) {
+        this.type = type;
     }
 
     /** returns the maximum bandwidth which can be sent through the link in bps */
@@ -194,11 +212,33 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** how the draw a link */
     public static final BasicStroke LINE_DEFAULT_STROKE = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     
+    /** size of the arrow head */
+    public static final int ARROW_HEAD_SIZE = 15;
+    
+    /** bounding square around the arc */
+    public static final int WIRELESS_ARC_SIZE = 40;
+    
+    /** amount of space between arcs */
+    public static final int WIRELESS_ARCS_SPACE_BETWEEN = 20;
+    
+    /** how many degrees the arc covers */
+    public static final int WIRELESS_ARC_DEGREES = 90;
+    
+    /** how to draw the line for wireless links */
+    public static final BasicStroke WIRELESS_LINE_DEFAULT_STROKE = 
+        new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, LINE_WIDTH, new float[]{LINE_WIDTH}, 0.0f);
+    
     /** whether to draw port numbers each link is attached to */
     public static boolean DRAW_PORT_NUMBERS = false;
     
+    /** distance from the edge of an object to draw port numbers, if enabled */
+    public static final int PORT_NUMBERS_OFFSET = ARROW_HEAD_SIZE + 10;
+    
     /** alpha channel of port numbers */
-    public static double DEFAULT_PORT_NUM_ALPHA = 0.9;
+    public static float DEFAULT_PORT_NUM_ALPHA = 0.9f;
+    
+    /** port number font */
+    public static final Font PORT_NUMBERS_FONT = new Font("Tahoma", Font.BOLD, 24);
     
     /** thickness of a tunnel */
     private static final int DEFAULT_TUNNEL_WIDTH = LINE_WIDTH * 10;
@@ -207,13 +247,13 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     private static final int TUNNEL_DIST_FROM_BOX = DEFAULT_TUNNEL_WIDTH * 2;
     
     /** dark tunnel color*/
-    public static final Color TUNNEL_PAINT_DARK = new Color(180, 180, 180);
+    public static final Color TUNNEL_PAINT_DARK = Constants.cmap(new Color(180, 180, 180));
     
     /** light tunnel color */
-    public static final Color TUNNEL_PAINT_LIGHT = new Color(196, 196, 196);
+    public static final Color TUNNEL_PAINT_LIGHT = Constants.cmap(new Color(196, 196, 196));
     
     /** the color to draw the link (if null, then this link will not be drawn) */
-    private Color curDrawColor = Color.BLACK;
+    private Color curDrawColor = Constants.cmap(Color.BLACK);
     
     /** how much to offset the link drawing in the x axis */
     private int offsetX;
@@ -238,11 +278,15 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         else if(isSelected())
             drawOutline(gfx, Constants.COLOR_SELECTED, 1.25);
         
-        // draw the simple link as a line
+        // draw the lin based on whether it is wired/wireless
         if(isWired())
             drawWiredLink(gfx);
         else
             drawWirelessLink(gfx);
+        
+        // add a tunnel if it is tunneled
+        if(type == LinkType.TUNNEL)
+            drawTunnel(gfx, LINE_WIDTH);
         
         // draw the failure indicator if the link has failed
         if(isFailed())
@@ -283,16 +327,27 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     }
     
     /** draws port numbers by the link drawing's endpoints with the specified alpha */
-    public void drawPortNumbers(Graphics2D gfx, double alpha) {
+    public void drawPortNumbers(Graphics2D gfx, float alpha) {
+        Composite origC = gfx.getComposite();
+        AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+        gfx.setComposite(ac);
+        
+        Font origF = gfx.getFont();
+        gfx.setFont(PORT_NUMBERS_FONT);
+        
+        Vector2i p1 = new Vector2i(src.getX() + offsetX, src.getY() + offsetY);
+        Vector2i p2 = new Vector2i(dst.getX() + offsetX, dst.getY() + offsetY);
+        
         gfx.setPaint(Constants.cmap(Color.RED));
-        int srcPortX = (int)(alpha*src.getX() + (1.0-alpha)*dst.getX() + offsetX);
-        int srcPortY = (int)(alpha*src.getY() + (1.0-alpha)*dst.getY() + offsetY);
-        gfx.drawString(Short.toString(this.srcPort), srcPortX, srcPortY);
+        Vector2i s = IntersectionFinder.intersect(p2, p1, PORT_NUMBERS_OFFSET+src.getWidth(), PORT_NUMBERS_OFFSET+src.getHeight());
+        gfx.drawString(Short.toString(this.srcPort), s.x, s.y);
         
         gfx.setPaint(Constants.cmap(Color.GREEN.darker()));
-        int dstPortX = (int)(alpha*dst.getX() + (1.0-alpha)*src.getX() + offsetX);
-        int dstPortY = (int)(alpha*dst.getY() + (1.0-alpha)*src.getY() + offsetY);
-        gfx.drawString(Short.toString(this.dstPort), dstPortX, dstPortY);
+        Vector2i d = IntersectionFinder.intersect(p1, p2, PORT_NUMBERS_OFFSET+dst.getWidth(), PORT_NUMBERS_OFFSET+dst.getHeight());
+        gfx.drawString(Short.toString(this.dstPort), d.x, d.y);
+        
+        gfx.setComposite(origC);
+        gfx.setFont(origF);
     }
     
     /** sets up the stroke and color information for the link prior to it being drawn */
@@ -305,46 +360,86 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** draws the link as a wired link between endpoints */
     public void drawWiredLink(Graphics2D gfx) {
         drawLinkPreparation(gfx);
-        gfx.drawLine(src.getX() + offsetX, src.getY() + offsetY, 
-                     dst.getX() + offsetX, dst.getY() + offsetY);
+        drawWiredLinkNoPrep(gfx);
+    }
+    
+    private void drawWiredLinkNoPrep(Graphics2D gfx) {
+        Vector2i p1 = new Vector2i(src.getX() + offsetX, src.getY() + offsetY);
+        Vector2i p2 = new Vector2i(dst.getX() + offsetX, dst.getY() + offsetY);
+        
+        // draw the link between the objects' center points
+        gfx.drawLine(p1.x, p1.y, p2.x, p2.y);
+        
+        // draw an arrow head on directed links
+        if(Options.USE_DIRECTED_LINKS) {
+            Vector2i pI = IntersectionFinder.intersect(p1, p2, dst.getWidth(), dst.getHeight());
+            gfx.fill(getArrowHead(ARROW_HEAD_SIZE, p1.x, p1.y, pI.x, pI.y));
+        }
+    }
+    
+    /**
+     * Gets a path for an arrow head on an arrow drawn from x1,y1 to x2,y2.
+     *  
+     * @param sz  Size of the arrow head
+     * @param x1  initial x coordinate
+     * @param y1  initial y coordinate
+     * @param x2  final x coordinate
+     * @param y2  final y coordinate
+     * 
+     * @return  path describing an arrow head
+     */
+    public static GeneralPath getArrowHead(int sz, int x1, int y1, int x2, int y2) {
+        final double PHI = Math.toRadians(35);
+        double theta = Math.atan2(y2 - y1, x2 - x1);
+        Point2D.Double p1 = new Point2D.Double(x1, y1);
+        Point2D.Double p2 = new Point2D.Double(x2, y2);
+        GeneralPath path = new GeneralPath(new Line2D.Float(p1, p2));
+        double x = p2.x + sz*Math.cos(theta+Math.PI-PHI);
+        double y = p2.y + sz*Math.sin(theta+Math.PI-PHI);
+        path.moveTo((float)x, (float)y);
+        path.lineTo((float)p2.x, (float)p2.y);
+        x = p2.x + sz*Math.cos(theta+Math.PI+PHI);
+        y = p2.y + sz*Math.sin(theta+Math.PI+PHI);
+        path.lineTo((float)x, (float)y);
+        return path;
     }
     
     /** draws the link as a wireless link between endpoints */
     public void drawWirelessLink(Graphics2D gfx) {
         drawLinkPreparation(gfx);
         
-        double m = (dst.getY() - src.getY()) / (double)(dst.getX() - src.getX());
-        double d = 10;
-        double dy = Math.sqrt((d * d) / (m * m + 1));
-        if( dst.getY() < src.getY() ) dy = -dy;
-        double dx = m * dy;
-        boolean greater = src.getX() < dst.getX();
+        Vector2i p1 = new Vector2i(src.getX() + offsetX, src.getY() + offsetY);
+        Vector2i p2 = new Vector2i(dst.getX() + offsetX, dst.getY() + offsetY);
+        Vector2i pI = IntersectionFinder.intersect(p1, p2, dst.getWidth(), dst.getHeight());
         
-        int offset = 10;
-        double x = src.getX() - offset;
-        double y = src.getY();
-        if( Math.abs(dx) > Math.abs(dy) ) {
-            if( Math.abs(m) > 1.0 ) {
-                double t = dy;
-                dy = dx;
-                dx = t;
-            }
-        }
-        else if( Math.abs(dx) < Math.abs(dy) ) {
-            if( Math.abs(m) < 1.0 ) {
-                double t = dy;
-                dy = dx;
-                dx = t;
-            }
-        }
-        boolean right = false;
-        if( greater && dx<0 )  { dx = -dx; dy = -dy; right = true; }
-        if( !greater && dx>0 ) { dx = -dx; dy = -dy; right = true; }
+        // draw a dashed line 
+        gfx.setStroke(WIRELESS_LINE_DEFAULT_STROKE);
+        drawWiredLinkNoPrep(gfx);
         
-        while( (greater && (x+offset) < dst.getX()) || (!greater && (x+offset) > dst.getX()) ) {
-            x += dx;
-            y += dy;
-            gfx.drawArc((int)x, (int)y, (int)30, (int)10, right?180:270, 90);
+        // compute number of arcs to draw
+        int dx = pI.x - p1.x;
+        int dy = pI.y - p1.y;
+        double dist = Math.sqrt(dx*dx + dy*dy);
+        int numArcs = (int)(dist / WIRELESS_ARCS_SPACE_BETWEEN) + 1;
+        
+        // determine the how to draw the arcs
+        int angleBtwnPts = (int)(Math.toDegrees(Math.atan2(pI.y-p1.y, pI.x-p1.x)));
+        int startAngle = -angleBtwnPts - WIRELESS_ARC_DEGREES/2;
+        
+        // draw the arcs
+        double step = 1.0 / numArcs;
+        double alpha = 0.0;
+        for(int i=0; i<numArcs; i++) {
+            alpha += step;
+            double cx = p1.x*alpha + pI.x*(1.0-alpha);
+            double cy = p1.y*alpha + pI.y*(1.0-alpha);
+            
+            int x = (int)cx - WIRELESS_ARC_SIZE/2;
+            int y = (int)cy - WIRELESS_ARC_SIZE/2;
+     
+            gfx.drawArc(x, y, 
+                        WIRELESS_ARC_SIZE, WIRELESS_ARC_SIZE, 
+                        startAngle, WIRELESS_ARC_DEGREES);
         }
     }
     

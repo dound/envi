@@ -9,6 +9,7 @@ import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.Link.LinkExistsException;
 import org.openflow.gui.net.BackendConnection;
+import org.openflow.gui.net.protocol.LinkType;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.util.RefTrack;
 import org.pzgui.PZManager;
@@ -193,7 +194,7 @@ public class Topology {
     
     // ---------------- Link Tracking --------------- //
     
-    public Link addLink(NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
+    public Link addLink(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
         VirtualSwitchSpecification vDst = virtualNodes.get(dst.getID());
         if(vDst != null) {
             dst = vDst.getVirtualSwitchByPort(dstPort);
@@ -208,7 +209,7 @@ public class Topology {
                 return null; /* ignore unvirtualized ports on a display virtualized switch */
         }
         
-        Link l = new Link(dst, dstPort, src, srcPort);
+        Link l = new Link(linkType, dst, dstPort, src, srcPort);
         return l;
     }
     

@@ -85,6 +85,8 @@ public class IntersectionFinder {
     public static Vector2i intersect(Vector2i p1, Vector2i p2, int width, int height) {
         double dx = p2.getX() - p1.getX();
         double dy = p2.getY() - p1.getY();
+        if(dx == 0)
+            return new Vector2i(p2.x, p2.y - height / 2);
         double m = dy / (double)dx;
         
         // how far to back up from p2.getX(), p2.getY() to get to the edge

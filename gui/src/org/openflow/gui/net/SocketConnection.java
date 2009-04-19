@@ -5,6 +5,7 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 
 /**
  * Provides helper functions for setting up and sending and receiving binary 
@@ -104,6 +105,45 @@ public class SocketConnection implements DataInput, DataOutput {
      */
     public String readString(int bytesToRead) throws IOException {
         return SocketConnection.readString(in, bytesToRead);
+    }
+    
+    /**
+     * Reads from in to form a string.  A zero byte will be interpreted as the 
+     * end of the string.
+     * 
+     * @param in           buffer to read from
+     * 
+     * @return the string formed from the read bytes
+     */
+    public static String readNullTerminatedString(DataInput in) throws IOException {
+        // read the bytes which make up the string
+        ArrayList<Byte> buf = new ArrayList<Byte>();
+        while(true) {
+            byte b = in.readByte();
+            if(b == 0)
+                break;
+            else
+                buf.set(buf.size(), b);
+        }
+        
+        // handle the empty string case
+        if(buf.size() == 0)
+            return new String();
+        
+        // copy it into an array with no extra space so the string can be constructed
+        byte[] strBuf = new byte[buf.size()];
+        System.arraycopy(buf, 0, strBuf, 0, buf.size());
+        return new String(strBuf);
+    }
+    
+    /**
+     * Reads to form a string.  A zero byte will be interpreted as the 
+     * end of the string.
+     * 
+     * @return the string formed from the read bytes
+     */
+    public String readNullTerminatedString() throws IOException {
+        return readNullTerminatedString(in);
     }
     
     public long getBytesRead()                                           { return in.getBytesRead(); }

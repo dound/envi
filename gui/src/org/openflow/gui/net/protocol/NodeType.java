@@ -18,6 +18,24 @@ public enum NodeType {
     /** a host */
     HOST((short)100),
     
+    /** the input node */
+    TYPE_IN((short)1000),
+    
+    /** the output node */
+    TYPE_OUT((short)1001),
+    
+    /** a NetFPGA */
+    TYPE_NETFPGA((short)1002),
+    
+    /** a laptop */
+    TYPE_LAPTOP((short)1003),
+    
+    /** a hardware module */
+    TYPE_MODULE_HW((short)2000),
+    
+    /** a software module */
+    TYPE_MODULE_SW((short)2001),
+    
     ;
 
     /** the special value used to identify messages of this type */

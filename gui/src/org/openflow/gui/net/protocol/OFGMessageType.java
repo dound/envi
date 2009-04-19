@@ -72,6 +72,9 @@ public enum OFGMessageType {
      * ofp_desc_stats having ofp_switch_features appended.
      */
     STAT_REPLY((byte)0x21),
+    
+    /** Movement of a module. */
+    OP_MOVE_MODULE((byte)0xF0),
 
     ;
 
@@ -140,7 +143,7 @@ public enum OFGMessageType {
                 
             case STAT_REPLY:
                 return StatsType.decode(len, t, xid, in);
-
+    
             case DISCONNECT:
             case AUTH_REPLY:
             case POLL_START:
@@ -148,6 +151,7 @@ public enum OFGMessageType {
             case NODES_REQUEST:
             case LINKS_REQUEST:
             case STAT_REQUEST:
+            case OP_MOVE_MODULE:
                 throw new IOException("Received unexpected message type: " + t.toString());
                 
             default:

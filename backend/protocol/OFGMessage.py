@@ -138,6 +138,14 @@ class Node:
     TYPE_OPENFLOW_WIRELESS_ACCESS_POINT = 2
     TYPE_HOST = 100
 
+    # OpenPipes-specific types
+    TYPE_IN        = 1000
+    TYPE_OUT       = 1001
+    TYPE_NETFPGA   = 1002
+    TYPE_LAPTOP    = 1003
+    TYPE_MODULE_HW = 2000
+    TYPE_MODULE_SW = 2001
+
     def __init__(self, node_type, id):
         self.node_type = int(node_type)
         self.id = long(id)

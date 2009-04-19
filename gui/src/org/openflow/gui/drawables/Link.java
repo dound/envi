@@ -209,6 +209,19 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** how the draw a link */
     public static final BasicStroke LINE_DEFAULT_STROKE = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     
+    /** bounding square around the arc */
+    public static final int WIRELESS_ARC_SIZE = 40;
+    
+    /** amount of space between arcs */
+    public static final int WIRELESS_ARCS_SPACE_BETWEEN = 20;
+    
+    /** how many degrees the arc covers */
+    public static final int WIRELESS_ARC_DEGREES = 90;
+    
+    /** how to draw the line for wireless links */
+    public static final BasicStroke WIRELESS_LINE_DEFAULT_STROKE = 
+        new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, LINE_WIDTH, new float[]{LINE_WIDTH}, 0.0f);
+    
     /** whether to draw port numbers each link is attached to */
     public static boolean DRAW_PORT_NUMBERS = false;
     
@@ -372,38 +385,38 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     public void drawWirelessLink(Graphics2D gfx) {
         drawLinkPreparation(gfx);
         
-        double m = (dst.getY() - src.getY()) / (double)(dst.getX() - src.getX());
-        double d = 10;
-        double dy = Math.sqrt((d * d) / (m * m + 1));
-        if( dst.getY() < src.getY() ) dy = -dy;
-        double dx = m * dy;
-        boolean greater = src.getX() < dst.getX();
+        Vector2i p1 = new Vector2i(src.getX() + offsetX, src.getY() + offsetY);
+        Vector2i p2 = new Vector2i(dst.getX() + offsetX, dst.getY() + offsetY);
+        Vector2i pI = IntersectionFinder.intersect(p1, p2, dst.getWidth(), dst.getHeight());
         
-        int offset = 10;
-        double x = src.getX() - offset;
-        double y = src.getY();
-        if( Math.abs(dx) > Math.abs(dy) ) {
-            if( Math.abs(m) > 1.0 ) {
-                double t = dy;
-                dy = dx;
-                dx = t;
-            }
-        }
-        else if( Math.abs(dx) < Math.abs(dy) ) {
-            if( Math.abs(m) < 1.0 ) {
-                double t = dy;
-                dy = dx;
-                dx = t;
-            }
-        }
-        boolean right = false;
-        if( greater && dx<0 )  { dx = -dx; dy = -dy; right = true; }
-        if( !greater && dx>0 ) { dx = -dx; dy = -dy; right = true; }
+        // draw a dashed line 
+        gfx.setStroke(WIRELESS_LINE_DEFAULT_STROKE);
+        gfx.drawLine(p1.x,p1.y,pI.x,pI.y);
         
-        while( (greater && (x+offset) < dst.getX()) || (!greater && (x+offset) > dst.getX()) ) {
-            x += dx;
-            y += dy;
-            gfx.drawArc((int)x, (int)y, (int)30, (int)10, right?180:270, 90);
+        // compute number of arcs to draw
+        int dx = pI.x - p1.x;
+        int dy = pI.y - p1.y;
+        double dist = Math.sqrt(dx*dx + dy*dy);
+        int numArcs = (int)(dist / WIRELESS_ARCS_SPACE_BETWEEN) + 1;
+        
+        // determine the how to draw the arcs
+        int angleBtwnPts = (int)(Math.toDegrees(Math.atan2(pI.y-p1.y, pI.x-p1.x)));
+        int startAngle = -angleBtwnPts - WIRELESS_ARC_DEGREES/2;
+        
+        // draw the arcs
+        double step = 1.0 / numArcs;
+        double alpha = 0.0;
+        for(int i=0; i<numArcs; i++) {
+            alpha += step;
+            double cx = p1.x*alpha + pI.x*(1.0-alpha);
+            double cy = p1.y*alpha + pI.y*(1.0-alpha);
+            
+            int x = (int)cx - WIRELESS_ARC_SIZE/2;
+            int y = (int)cy - WIRELESS_ARC_SIZE/2;
+     
+            gfx.drawArc(x, y, 
+                        WIRELESS_ARC_SIZE, WIRELESS_ARC_SIZE, 
+                        startAngle, WIRELESS_ARC_DEGREES);
         }
     }
     

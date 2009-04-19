@@ -4,7 +4,7 @@ import struct
 
 from twisted.internet import reactor
 
-from OFGMessage import OFG_DEFAULT_PORT, OFGMessage, OFG_MESSAGES, Node, create_ofg_server
+from OFGMessage import OFG_DEFAULT_PORT, OFGMessage, OFG_MESSAGES, Node, NodesAdd, create_ofg_server
 from ltprotocol.ltprotocol import LTProtocol
 
 OP_MESSAGES = []
@@ -152,6 +152,37 @@ def test():
             print 'recv: %s' % str(ltm)
 
     server = create_ofg_server(OFG_DEFAULT_PORT, print_ltm)
+
+    # when the gui connects, tell it about the modules and nodes
+    def new_conn_callback(conn):
+        modules = [
+            OPModule(Node.TYPE_MODULE_HW, 0, "TTL / Checksum Validate"),
+            OPModule(Node.TYPE_MODULE_HW, 1, "MAC Lookup"),
+            OPModule(Node.TYPE_MODULE_HW, 2, "TTL Decrement"),
+            OPModule(Node.TYPE_MODULE_HW, 3, "TTL Decrement (FAULTY)"),
+            OPModule(Node.TYPE_MODULE_HW, 4, "Route Lookup"),
+            OPModule(Node.TYPE_MODULE_HW, 5, "Checksum Update"),
+            OPModule(Node.TYPE_MODULE_SW, 100, "TTL / Checksum Validate"),
+            OPModule(Node.TYPE_MODULE_SW, 101, "Comparison Module"),
+            ]
+        server.send_msg_to_client(conn, OPModulesAdd(modules))
+
+        nodes = [
+            Node(Node.TYPE_IN,       111),
+            Node(Node.TYPE_OUT,      999),
+            Node(Node.TYPE_NETFPGA, 1000),
+            Node(Node.TYPE_NETFPGA, 1001),
+            Node(Node.TYPE_NETFPGA, 1002),
+            Node(Node.TYPE_NETFPGA, 1003),
+            Node(Node.TYPE_NETFPGA, 1004),
+            Node(Node.TYPE_NETFPGA, 1005),
+            Node(Node.TYPE_LAPTOP,  2000),
+            Node(Node.TYPE_LAPTOP,  2001),
+            Node(Node.TYPE_LAPTOP,  2002),
+            ]
+        server.send_msg_to_client(conn, NodesAdd(nodes))
+
+    server.new_conn_callback = new_conn_callback
     reactor.run()
 
 if __name__ == "__main__":

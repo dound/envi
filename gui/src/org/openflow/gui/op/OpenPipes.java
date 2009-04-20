@@ -17,6 +17,7 @@ public final class OpenPipes {
         
         // create a manager to handle drawing the topology info received by the connection
         OPLayoutManager gm = new OPLayoutManager();
+        gm.loadDrawablePositionsFromFile("op.yaml");
         
         // create a manager to handle the connection itself
         ConnectionHandler cm = new OPConnectionHandler(gm, server, port);

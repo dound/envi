@@ -1,7 +1,6 @@
 package org.openflow.gui.op;
 
 import java.awt.Graphics2D;
-import javax.swing.JPanel;
 
 import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.pzgui.Drawable;
@@ -15,15 +14,8 @@ import org.pzgui.PZManager;
  * @author David Underhill
  */
 public class OPLayoutManager extends PZManager {
-    /** specifies the height in pixels of the area of the screen reserved for custom controls */
-    public static final int RESERVED_HEIGHT_BOTTOM = 400;
-    
-    /** panel where custom controls can be placed */
-    private JPanel pnlCustom = new JPanel();
-    
     public OPLayoutManager() {
-        super();
-        // TODO: layout the custom control panel 
+        super(); 
     }
     
     /** Adds the drawable as usual and then sets a custom switch graphic for some switch */
@@ -46,20 +38,6 @@ public class OPLayoutManager extends PZManager {
     public void removeDrawable(Drawable d) {
         super.removeDrawable(d);
         // TODO: any custom processing when a Drawable is removed
-    }
-
-    /** Overrides parent to reserve space for custom controls in the new window. */
-    public void attachWindow(final PZWindow w) {
-        super.attachWindow(w);
-        if(getWindowIndex(w) == 0) {
-            // set the title
-            w.setTitle("Example");
-            
-            // reserve space for a custom panel
-            w.getContentPane().add(pnlCustom);
-            w.setReservedHeightBottom(RESERVED_HEIGHT_BOTTOM);
-            w.setMySize(w.getWidth(), w.getHeight(), w.getZoom());
-        }
     }
     
     /**

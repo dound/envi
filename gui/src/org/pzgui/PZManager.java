@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.ho.yaml.YamlConfig;
 import org.ho.yaml.wrapper.DelayedCreationBeanWrapper;
@@ -147,6 +148,8 @@ public class PZManager extends Thread {
         // only draw each entity once
         if(drawables.contains(d))
             return;
+        
+        setLayoutableInfo(d);
 
         // determine which objects e should be drawn on top of
         boolean found = false;
@@ -344,6 +347,8 @@ public class PZManager extends Thread {
         YAML.setSuppressWarnings(false);
     }
     
+    protected ConcurrentHashMap<Long, LayoutableInfo> layoutablePositions = new ConcurrentHashMap<Long, LayoutableInfo>();
+    
     /**
      * Loads positions for Layoutable objects from a file.
      * 
@@ -358,18 +363,22 @@ public class PZManager extends Thread {
             return;
         }
         
-        HashMap<Long, LayoutableInfo> map = new HashMap<Long, LayoutableInfo>();
+        layoutablePositions.clear();
         for(LayoutableInfo info : infos)
-            map.put(info.idNum, info);
+            layoutablePositions.put(info.idNum, info);
         
-        for(Drawable d : drawables) {
-            if(d instanceof Layoutable) {
-                Layoutable l = (Layoutable)d;
-                LayoutableInfo i = map.get(l.getID());
-                l.setCanPositionChange(true);
-                l.setPos(i.x, i.y);
-                l.setCanPositionChange(!i.lock);
-            }
+        for(Drawable d : drawables)
+            setLayoutableInfo(d);
+    }
+    
+    /** Sets the positions of d if there is info about it in layoutblePositions. */
+    private void setLayoutableInfo(Drawable d) {
+        if(d instanceof Layoutable) {
+            Layoutable l = (Layoutable)d;
+            LayoutableInfo i = layoutablePositions.get(l.getID());
+            l.setCanPositionChange(true);
+            l.setPos(i.x, i.y);
+            l.setCanPositionChange(!i.lock);
         }
     }
 

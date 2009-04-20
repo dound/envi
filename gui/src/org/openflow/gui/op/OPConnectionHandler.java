@@ -15,7 +15,6 @@ import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.Topology;
 import org.openflow.gui.op.OPLayoutManager;
 import org.openflow.gui.drawables.Node;
-import org.openflow.gui.drawables.SimpleNode;
 import org.openflow.gui.drawables.SimpleNodeWithPorts;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.op.OPModule;
@@ -67,7 +66,8 @@ public class OPConnectionHandler extends ConnectionHandler
             // TODO: we just got connected - maybe send a msg to the backend
         }
         else {
-            // TODO: we just got disconnected - maybe need to do some cleanup
+            // TODO: we just got disconnected - remove all modules, test info
+            System.exit(-1);
         }
     }
     
@@ -77,9 +77,9 @@ public class OPConnectionHandler extends ConnectionHandler
      */
     public void process(final OFGMessage msg) {
         switch(msg.type) {
-        
         case OP_MODULES_ADD:
-            processModulesAdd((OPModulesAdd)msg);
+            for(OPModule m : ((OPModulesAdd)msg).modules)
+                super.processDrawableNodeAdd(processNodeAdd(m));
             break;
         
         case OP_TEST_INFO:
@@ -96,63 +96,74 @@ public class OPConnectionHandler extends ConnectionHandler
     public static final int[] INOUT_YS = new int[] {0,  5, 10, 5, 0};
     public static final int[] NETFPGA_XS = new int[]{0, 20, 20, 10, 10,  2, 2, 0, 0};
     public static final int[] NETFPGA_YS = new int[]{0,  0,  8,  8, 10, 10, 8, 8, 0};
-    public static final int[] LAPTOP_XS = new int[]{2, 17, 17, 19,  0,  2, 2};
-    public static final int[] LAPTOP_YS = new int[]{0,  0, 15, 17, 17, 15, 0};
+    public static final int[] LAPTOP_XS = new int[]{3, 18, 18, 21,  0,  3, 3};
+    public static final int[] LAPTOP_YS = new int[]{0,  0, 15, 21, 21, 15, 0};
     public static final Color DARK_GREEN = Color.GREEN.darker();
     public static final Color DARK_BLUE = Color.BLUE.darker();
+    public static final int MODULE_SIZE = 75;
+    
+    static {
+        int INOUT_SCALE = 5;
+        for(int i=0; i<INOUT_XS.length; i++) {
+            INOUT_XS[i] *= INOUT_SCALE;
+            INOUT_YS[i] *= INOUT_SCALE;
+        }
+        
+        int NETFPGA_SCALE = 10;
+        for(int i=0; i<NETFPGA_XS.length; i++) {
+            NETFPGA_XS[i] *= NETFPGA_SCALE;
+            NETFPGA_YS[i] *= NETFPGA_SCALE;
+        }
+        
+        int LAPTOP_SCALE = 5;
+        for(int i=0; i<LAPTOP_XS.length; i++) {
+            LAPTOP_XS[i] *= LAPTOP_SCALE;
+            LAPTOP_YS[i] *= LAPTOP_SCALE;
+        }
+    }
+    
     
     /**
      * Handles OpenPipes-specific nodes and uses the superclass implementation
      * for all other nodes.
      */
     protected Node processNodeAdd(org.openflow.gui.net.protocol.Node n) {
+        GeometricIcon gicon;
         Icon icon;
         switch(n.nodeType) {
         
         case TYPE_IN:
         case TYPE_OUT:
-            icon = new GeometricIcon(INOUT_XS, INOUT_YS, Color.WHITE, Color.BLACK, Constants.STROKE_DEFAULT);
+            gicon = new GeometricIcon(INOUT_XS, INOUT_YS, Color.WHITE, Color.BLACK, Constants.STROKE_DEFAULT);
+            gicon.setCenter(true);
+            icon = gicon;
             break;
             
         case TYPE_NETFPGA:
-            icon = new GeometricIcon(NETFPGA_XS, NETFPGA_YS, Color.GREEN, Color.BLACK, Constants.STROKE_DEFAULT);
+            gicon = new GeometricIcon(NETFPGA_XS, NETFPGA_YS, Color.GREEN, Color.BLACK, Constants.STROKE_DEFAULT);
+            gicon.setCenter(true);
+            icon = gicon;
             break;
             
         case TYPE_LAPTOP:
-            icon = new GeometricIcon(LAPTOP_XS, LAPTOP_YS, Color.BLUE, Color.BLACK, Constants.STROKE_DEFAULT);
+            gicon = new GeometricIcon(LAPTOP_XS, LAPTOP_YS, Color.BLUE, Color.BLACK, Constants.STROKE_DEFAULT);
+            gicon.setCenter(true);
+            icon = gicon;
             break;
             
         case TYPE_MODULE_HW:
+            icon = new ShapeIcon(new Rectangle2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_GREEN);
+            break;
+        
         case TYPE_MODULE_SW:
-            throw new Error("Error: received module in nodes list: " + n.nodeType.toString());
+            icon = new ShapeIcon(new Ellipse2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_BLUE);
+            break;
             
         default:
             return super.processNodeAdd(n);
         }
         
         return new SimpleNodeWithPorts(n.nodeType, n.id, icon);
-    }
-
-    private void processModulesAdd(OPModulesAdd msg) {
-        for(OPModule m : msg.modules) {
-            Icon icon;
-            switch(m.nodeType) {
-                case TYPE_MODULE_HW:
-                    icon = new ShapeIcon(new Rectangle2D.Double(0, 0, 30, 30), DARK_GREEN);
-                    break;
-                
-                case TYPE_MODULE_SW:
-                    icon = new ShapeIcon(new Ellipse2D.Double(0, 0, 30, 30), DARK_BLUE);
-                    break;
-                    
-                default:
-                    throw new Error("Error: received non-module in modules list: " + m.nodeType.toString());
-            }
-            
-            SimpleNode n = new SimpleNode(m.nodeType, m.id, icon);
-            n.setName(m.name);
-            manager.addDrawable(n);
-        }
     }
 
     /** handles displaying test info */

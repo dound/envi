@@ -21,8 +21,8 @@ import org.pzgui.StringDrawer;
  */
 public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
     public Node(String name, int x, int y, Icon icon) {
-        this.name = name;
-        this.icon = icon;
+        setName(name);
+        setIcon(icon);
         setPos(x, y);
     }
 

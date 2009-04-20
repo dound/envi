@@ -184,15 +184,18 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     
     /** add new nodes to the topology */
     private void processNodesAdd(NodesAdd msg) {
-        for(org.openflow.gui.net.protocol.Node msgNode : msg.nodes) {
-            Node n = processNodeAdd(msgNode);
-            if(n instanceof NodeWithPorts) {
-                if(!topology.addNode(connection, (NodeWithPorts)n))
-                    return;
+        for(org.openflow.gui.net.protocol.Node msgNode : msg.nodes)
+            processNodesAdd(processNodeAdd(msgNode));
+    }
+    
+    /** add new node to the topology */
+    protected void processNodesAdd(Node n) {
+        if(n instanceof NodeWithPorts) {
+            if(!topology.addNode(connection, (NodeWithPorts)n))
+                return;
                 
-                if(n instanceof OpenFlowSwitch)
-                    handleNewSwitch((OpenFlowSwitch)n);
-            }
+            if(n instanceof OpenFlowSwitch)
+                handleNewSwitch((OpenFlowSwitch)n);
         }
     }
     

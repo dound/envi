@@ -80,9 +80,11 @@ public class OPConnectionHandler extends ConnectionHandler
         
         case OP_MODULES_ADD:
             processModulesAdd((OPModulesAdd)msg);
+            break;
         
         case OP_TEST_INFO:
             processTestInfo((OPTestInfo)msg);
+            break;
         
         default:
             super.process(msg);

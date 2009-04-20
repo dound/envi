@@ -347,7 +347,16 @@ public class PZManager extends Thread {
         YAML.setSuppressWarnings(false);
     }
     
+    /** where layout positions from a file is saved */
     protected ConcurrentHashMap<Long, LayoutableInfo> layoutablePositions = new ConcurrentHashMap<Long, LayoutableInfo>();
+    
+    /** name of the last config file used */
+    private String lastConfigFilename = "";
+    
+    /** returns the last configuration file loaded or saved */ 
+    public String getLastConfigFilename() {
+        return lastConfigFilename;
+    }
     
     /**
      * Loads positions for Layoutable objects from a file.
@@ -355,6 +364,8 @@ public class PZManager extends Thread {
      * @param file  the filename to load from
      */
     public void loadDrawablePositionsFromFile(String file) {
+        lastConfigFilename = file;
+        
         LayoutableInfo[] infos;
         try {
             infos = YAML.loadType(new java.io.File(file), LayoutableInfo[].class);
@@ -388,6 +399,8 @@ public class PZManager extends Thread {
      * @param file  the filename to save to
      */
     public void saveDrawablePositionsToFile(String file) {
+        lastConfigFilename = file;
+        
         ArrayList<LayoutableInfo> infos = new ArrayList<LayoutableInfo>();
         for(Drawable d : drawables) {
             if(d instanceof Layoutable) {

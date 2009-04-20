@@ -74,7 +74,7 @@ OP_MESSAGES.append(OPTestInfo)
 
 class OPModule(Node):
     NAME_LEN = 32
-    SIZE = Node.SIZE + OPModule.NAME_LEN
+    SIZE = Node.SIZE + 32
 
     def __init__(self, node_type, node_id, name):
         Node.__init__(self, node_type, node_id)
@@ -120,7 +120,7 @@ class OPModulesList(OFGMessage):
 class OPModulesAdd(OPModulesList):
     @staticmethod
     def get_type():
-        return 0x11
+        return 0xF2
 
     def __init__(self, modules, xid=0):
         OPModulesList.__init__(self, modules, xid)

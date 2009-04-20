@@ -163,7 +163,7 @@ def test():
             OPModule(Node.TYPE_MODULE_HW, 4, "Route Lookup"),
             OPModule(Node.TYPE_MODULE_HW, 5, "Checksum Update"),
             OPModule(Node.TYPE_MODULE_SW, 100, "TTL / Checksum Validate"),
-            OPModule(Node.TYPE_MODULE_SW, 101, "Comparison Module"),
+            OPModule(Node.TYPE_MODULE_SW, 101, "Compar-ison Module"),
             ]
         server.send_msg_to_client(conn, OPModulesAdd(modules))
 

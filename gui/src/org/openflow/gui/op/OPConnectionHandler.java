@@ -15,7 +15,8 @@ import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.Topology;
 import org.openflow.gui.op.OPLayoutManager;
 import org.openflow.gui.drawables.Node;
-import org.openflow.gui.drawables.SimpleNodeWithPorts;
+import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
+import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.op.OPModule;
 import org.openflow.gui.net.protocol.op.OPModulesAdd;
@@ -100,7 +101,8 @@ public class OPConnectionHandler extends ConnectionHandler
     public static final int[] LAPTOP_YS = new int[]{0,  0, 15, 21, 21, 15, 0};
     public static final Color DARK_GREEN = Color.GREEN.darker();
     public static final Color DARK_BLUE = Color.BLUE.darker();
-    public static final int MODULE_SIZE = 75;
+    public static final int MODULE_SIZE = 80;
+    
     
     static {
         int INOUT_SCALE = 5;
@@ -130,6 +132,8 @@ public class OPConnectionHandler extends ConnectionHandler
     protected Node processNodeAdd(org.openflow.gui.net.protocol.Node n) {
         GeometricIcon gicon;
         Icon icon;
+        String name = "";
+        
         switch(n.nodeType) {
         
         case TYPE_IN:
@@ -137,6 +141,7 @@ public class OPConnectionHandler extends ConnectionHandler
             gicon = new GeometricIcon(INOUT_XS, INOUT_YS, Color.WHITE, Color.BLACK, Constants.STROKE_DEFAULT);
             gicon.setCenter(true);
             icon = gicon;
+            name = n.nodeType==NodeType.TYPE_IN ? "In" : "Out";
             break;
             
         case TYPE_NETFPGA:
@@ -152,18 +157,23 @@ public class OPConnectionHandler extends ConnectionHandler
             break;
             
         case TYPE_MODULE_HW:
-            icon = new ShapeIcon(new Rectangle2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_GREEN);
+            icon = new ShapeIcon(new Rectangle2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE*4/5), DARK_GREEN);
+            name = ((OPModule)n).name;
             break;
         
         case TYPE_MODULE_SW:
             icon = new ShapeIcon(new Ellipse2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_BLUE);
+            name = ((OPModule)n).name;
             break;
             
         default:
             return super.processNodeAdd(n);
         }
         
-        return new SimpleNodeWithPorts(n.nodeType, n.id, icon);
+        OPNodeWithNameAndPorts s = new OPNodeWithNameAndPorts(n.nodeType, name, n.id, icon);
+        if(n instanceof OPModule)
+            s.setNameColor(Color.WHITE);
+        return s;
     }
 
     /** handles displaying test info */

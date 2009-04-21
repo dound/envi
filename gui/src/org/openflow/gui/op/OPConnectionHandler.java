@@ -86,7 +86,8 @@ public class OPConnectionHandler extends ConnectionHandler
             MouseEvent me = (MouseEvent)e;
             if(d instanceof OPModule) {
                 OPModule m = (OPModule)d;
-               
+                m.dragDone();
+                
                 if(me.getButton() == MouseEvent.BUTTON1)
                     handleModulePlaced(m, me);
                 else

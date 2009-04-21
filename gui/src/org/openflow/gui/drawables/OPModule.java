@@ -86,7 +86,10 @@ public class OPModule extends OPNodeWithNameAndPorts {
         return original;
     }
     
-    /* where the module is being dragged */
+    /** whether the module is being dragged (only used with original modules) */
+    private boolean dragging = false;
+    
+    /** where the module is being dragged */
     private int dragX, dragY;
     
     public int getDragX() {
@@ -115,12 +118,14 @@ public class OPModule extends OPNodeWithNameAndPorts {
     
     public void setXPos(int x) {
         super.setXPos(x);
-        dragX = x;
+        if(!dragging)
+            dragX = x;
     }
     
     public void setYPos(int y) {
         super.setYPos(y);
-        dragY = y;
+        if(!dragging)
+            dragY = y;
     }
     
     /**
@@ -131,8 +136,13 @@ public class OPModule extends OPNodeWithNameAndPorts {
         if(isOriginal()) {
             dragX = x;
             dragY = y;
+            dragging = true;
         }
         else
             super.drag(x, y);
+    }
+    
+    public void dragDone() {
+        dragging = false;
     }
 }

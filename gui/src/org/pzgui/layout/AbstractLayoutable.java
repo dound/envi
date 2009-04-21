@@ -65,4 +65,17 @@ public abstract class AbstractLayoutable extends AbstractDrawable
     public void setCanPositionChange(boolean can) {
         canPositionChange = can;
     }
+    
+    /** returns true if the area described by getHeight()/getWidth() contains x, y */
+    public boolean contains(int x, int y) {
+        int left = getX()-getWidth()/2;
+        int top  = getY()-getHeight()/2;
+        
+        return( x>=left && x<left+getWidth() && y>=top && y<top+getHeight());
+    }
+    
+    /** Move the node when it is dragged */
+    public void drag(int x, int y) {
+        setPos(x, y);
+    }
 }

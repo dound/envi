@@ -1,5 +1,7 @@
 package org.openflow.gui.ex;
 
+import java.awt.AWTEvent;
+
 import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.Topology;
 import org.openflow.gui.ex.EXLayoutManager;
@@ -37,7 +39,7 @@ public class EXConnectionHandler extends ConnectionHandler
         manager.addDrawableEventListener(this);
     }
     
-    public void drawableEvent(Drawable d, String event) {
+    public void drawableEvent(Drawable d, AWTEvent e, String event) {
         if(event.equals("mouse_released")) {
             // TODO: handle a mouse click on a Drawable
         }

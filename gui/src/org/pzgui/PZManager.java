@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -782,10 +783,14 @@ public class PZManager extends Thread {
      * @return the Drawable at the specified position
      */
     public synchronized Drawable selectFrom(int x, int y, DrawableFilter filter) {
-        for(Drawable d : drawables)
+        // traverse the list from back to front so that we first consider 
+        // elements which are drawn on top (i.e., select what you see)
+        ListIterator<Drawable> itr = drawables.listIterator(drawables.size());
+        while(itr.hasPrevious()) {
+            Drawable d = itr.previous();
             if(d.contains(x, y) && (filter==null || filter.consider(d)))
                 return d;
-
+        }
         return null;
     }
 

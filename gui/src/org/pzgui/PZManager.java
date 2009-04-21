@@ -708,13 +708,20 @@ public class PZManager extends Thread {
      */
     public void setMousePos(int x, int y, boolean dragging) {
         mousePos.set(x, y);
-        hover(selectFrom(x, y));
+        hover(selectFrom(x, y, filterIgnoreSelectedNode));
     }
 
     /** Get whether the last click was of a double-click */
     public boolean wasDoubleClick() {
         return mouseUpTime - lastMouseUpTime < doubleClickThreshold_msec;
     }
+    
+    /** define a filter which accepts anything but currently selected object */
+    private final DrawableFilter filterIgnoreSelectedNode = new DrawableFilter() {
+        public boolean consider(Drawable d) {
+            return d != selectedEntity;
+        }
+    };
 
 
     // ------- Hovering and Selection ------- //
@@ -795,7 +802,7 @@ public class PZManager extends Thread {
     }
 
     /** Returns the currently hovered object, if any */
-    public synchronized Drawable gethovered() {
+    public synchronized Drawable getHovered() {
         return hoveredEntity;
     }
 

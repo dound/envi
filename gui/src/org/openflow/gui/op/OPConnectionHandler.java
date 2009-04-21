@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.pzgui.Constants;
 import org.pzgui.Drawable;
@@ -16,13 +18,14 @@ import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.Topology;
 import org.openflow.gui.op.OPLayoutManager;
 import org.openflow.gui.drawables.Node;
+import org.openflow.gui.drawables.OPModule;
 import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
 import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
-import org.openflow.gui.net.protocol.op.OPModule;
 import org.openflow.gui.net.protocol.op.OPModuleStatusReply;
 import org.openflow.gui.net.protocol.op.OPModulesAdd;
 import org.openflow.gui.net.protocol.op.OPTestInfo;
+import org.openflow.util.Pair;
 
 public class OPConnectionHandler extends ConnectionHandler
                                  implements DrawableEventListener {
@@ -35,6 +38,10 @@ public class OPConnectionHandler extends ConnectionHandler
     
     /** shape which will hold test output */
     private final OPNodeWithNameAndPorts testOutput;
+    
+    /** which nodes have which modules (maps type-ID pairs to node-list_of_modules pairs) */
+    private HashMap<Pair<NodeType, Long>, Pair<OPNodeWithNameAndPorts, ArrayList<OPModule>>> config
+        = new HashMap<Pair<NodeType, Long>, Pair<OPNodeWithNameAndPorts, ArrayList<OPModule>>> ();
     
     public static final int TEST_BOX_WIDTH  = 500;
     public static final int TEST_BOX_HEIGHT = 50;
@@ -80,10 +87,7 @@ public class OPConnectionHandler extends ConnectionHandler
     public void connectionStateChange() {
         super.connectionStateChange();
         
-        if(getConnection().isConnected()) {
-            // TODO: we just got connected - maybe send a msg to the backend
-        }
-        else {
+        if(!getConnection().isConnected()) {
             // TODO: we just got disconnected - remove all modules, test info
             System.exit(-1);
         }
@@ -96,7 +100,7 @@ public class OPConnectionHandler extends ConnectionHandler
     public void process(final OFGMessage msg) {
         switch(msg.type) {
         case OP_MODULES_ADD:
-            for(OPModule m : ((OPModulesAdd)msg).modules)
+            for(org.openflow.gui.net.protocol.op.OPModule m : ((OPModulesAdd)msg).modules)
                 super.processDrawableNodeAdd(processNodeAdd(m));
             break;
         
@@ -186,12 +190,12 @@ public class OPConnectionHandler extends ConnectionHandler
             
         case TYPE_MODULE_HW:
             icon = new ShapeIcon(new RoundRectangle2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE*4/5, 10, 10), DARK_GREEN, Color.BLACK);
-            name = ((OPModule)n).name;
+            name = ((org.openflow.gui.net.protocol.op.OPModule)n).name;
             return new org.openflow.gui.drawables.OPModule(true, name, n.id, icon);
         
         case TYPE_MODULE_SW:
             icon = new ShapeIcon(new Ellipse2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_BLUE, Color.BLACK);
-            name = ((OPModule)n).name;
+            name = ((org.openflow.gui.net.protocol.op.OPModule)n).name;
             return new org.openflow.gui.drawables.OPModule(false, name, n.id, icon);
             
         default:
@@ -202,8 +206,22 @@ public class OPConnectionHandler extends ConnectionHandler
     }
 
     private void processModuleStatusReply(OPModuleStatusReply msg) {
-        // TODO: not yet implemented
-        System.err.println("Not yet handled: " + msg);
+        Pair<NodeType, Long> key = new Pair<NodeType, Long>(msg.node.nodeType, msg.node.id);
+        Pair<OPNodeWithNameAndPorts, ArrayList<OPModule>> value = config.get(key);
+        if(value == null) {
+            System.err.println("Got module status for a module on an unknown node: " + msg);
+            return;
+        }
+        else {
+            for(OPModule m : value.b) {
+                if(msg.module.id==m.getID() && msg.module.nodeType==m.getType()) {
+                    m.setStatus(msg.status);
+                    return;
+                }
+            }
+        }
+        
+        System.err.println("Got module status for an unknown module on node " + value.a + ": " + msg);
     }
     
     /** handles displaying test info */

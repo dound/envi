@@ -128,9 +128,13 @@ public class OPConnectionHandler extends ConnectionHandler
                 moveModule(m, n);
                 config.get(key(n)).b.add(m);
                 m.setPos(e.getX(), e.getY());
+                return;
             }
         }
-        else if(m.getNodeInstalledOn() != null && !m.isOriginal()) {
+        
+        // dragged to empty space or an incompatible node
+        if(m.getNodeInstalledOn() != null && !m.isOriginal()) {
+            
             // dragged m to nowhere: uninstall request
             moveModule(m, null);
             manager.removeDrawable(m);

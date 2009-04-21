@@ -24,6 +24,17 @@ public class OPModule extends OPNodeWithNameAndPorts {
         original = false;
     }
     
+    /** status of the module, if known */
+    private String status = "Unknown: not yet queried.";
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String s) {
+        status = s;
+    }
+    
     /** whether the module is an original (i.e., do not remove) */
     private boolean original;
     

@@ -6,7 +6,7 @@ import org.pzgui.Drawable;
 import org.pzgui.PZManager;
 
 /**
- * Example extension to the base GUI manager.
+ * Provides OpenPipes-specific layout enhancements.
  * 
  * @author David Underhill
  */

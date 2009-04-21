@@ -18,7 +18,7 @@ public class OPLayoutManager extends PZManager {
     public void setMousePos(int x, int y, boolean dragging) {
         super.setMousePos(x, y, dragging);
         Drawable ds = getSelected();
-        Drawable dh = gethovered();
+        Drawable dh = getHovered();
         
         // always ok if we aren't dragging a module or nothing is selected
         if(ds==null || dh==null || !dragging || !(ds instanceof OPModule))

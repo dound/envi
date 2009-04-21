@@ -701,17 +701,13 @@ public class PZManager extends Thread {
         mouseUpTime = System.currentTimeMillis();
     }
 
-    /** Sets the current position of the mouse and whether dragging is going on */
+    /** 
+     * Sets the current position of the mouse and whether dragging is going on.
+     * Also track which object is being hovered over.
+     */
     public void setMousePos(int x, int y, boolean dragging) {
         mousePos.set(x, y);
-        if(!dragging) {
-            mouseStartPos.set(x, y);
-            mouseStartTime = System.currentTimeMillis();
-            
-            hover(selectFrom(x, y));
-        }
-        else if(hoveredEntity != null)
-            dehover();
+        hover(selectFrom(x, y));
     }
 
     /** Get whether the last click was of a double-click */
@@ -761,8 +757,7 @@ public class PZManager extends Thread {
     
     /**
      * Returns the Drawable which contains the location x, y.  If no such object
-     * exists, then null is returned.  The node is selected if setSelectedToTrue
-     * is true.
+     * exists, then null is returned.
      *
      * @param x           x position the drawable must contain
      * @param y           y position the drawable must contain
@@ -775,8 +770,7 @@ public class PZManager extends Thread {
 
     /**
      * Returns the object of type C which contains the location x, y.  If no 
-     * such object exists, then null is returned.  The node is selected if
-     * setSelectedToTrue is true.
+     * such object exists, then null is returned.
      *
      * @param x       x position the Drawable must contain
      * @param y       y position the Drawable must contain

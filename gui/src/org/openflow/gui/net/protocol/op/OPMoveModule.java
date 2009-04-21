@@ -3,6 +3,7 @@ package org.openflow.gui.net.protocol.op;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
 import org.openflow.gui.net.protocol.Node;
 import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
@@ -29,6 +30,26 @@ public class OPMoveModule extends OFGMessage {
     
     /** the place it is being moved to */
     public final Node to;
+    
+    /** Convert the Drawable version to the wire version */
+    private static final Node fromDrawable(OPNodeWithNameAndPorts n) {
+        if(n == null)
+            return OPMoveModule.NODE_NONE;
+        else
+            return new Node(n.getType(), n.getID());
+    }
+    
+    /**
+     * Convenience constructor which takes Drawable-derived arguments.  Converts
+     * the arguments to wire-format objects and calls the appropriate 
+     * constructor with those objects.  null arguments will be set to 
+     * OPMoveModule.NODE_NONE.
+     */
+    public OPMoveModule(org.openflow.gui.drawables.OPModule m,
+                        OPNodeWithNameAndPorts from,
+                        OPNodeWithNameAndPorts to) {
+        this(fromDrawable(m), fromDrawable(from), fromDrawable(to));
+    }
     
     /** adding or removing a module */
     public OPMoveModule(Node module, Node node, boolean add) {

@@ -45,9 +45,17 @@ public class OPConnectionHandler extends ConnectionHandler
     /** shape which will hold test output */
     private final OPNodeWithNameAndPorts testOutput;
     
-    /** which nodes have which modules (maps type-ID pairs to node-list_of_modules pairs) */
+    /** 
+     * Configuration of the network.  This map tracks which nodes have which 
+     * modules (maps type-ID pairs to node-list_of_modules pairs) 
+     */
     private HashMap<Pair<NodeType, Long>, Pair<OPNodeWithNameAndPorts, ArrayList<OPModule>>> config
         = new HashMap<Pair<NodeType, Long>, Pair<OPNodeWithNameAndPorts, ArrayList<OPModule>>> ();
+    
+    /** get the key for node n in the config data structure */
+    private Pair<NodeType, Long> key(OPNodeWithNameAndPorts n) {
+        return new Pair<NodeType, Long>(n.getType(), n.getID());
+    }
     
     public static final int TEST_BOX_WIDTH  = 500;
     public static final int TEST_BOX_HEIGHT = 50;
@@ -118,18 +126,24 @@ public class OPConnectionHandler extends ConnectionHandler
                 }
                 
                 moveModule(m, n);
+                config.get(key(n)).b.add(m);
             }
         }
-        else if(m.getNodeInstalledOn() != null) {
+        else if(m.getNodeInstalledOn() != null && !m.isOriginal()) {
             // dragged m to nowhere: uninstall request
             moveModule(m, null);
+            manager.removeDrawable(m);
         }
     }
     
     /** moves a module m to the specified node */
     private void moveModule(OPModule m, OPNodeWithNameAndPorts to) {
+        OPNodeWithNameAndPorts from = m.getNodeInstalledOn();
+        if(from != null)
+            config.get(key(from)).b.remove(m);
+        
         try {
-            OPMoveModule mvMsg = new OPMoveModule(m, m.getNodeInstalledOn(), to);
+            OPMoveModule mvMsg = new OPMoveModule(m, from, to);
             getConnection().sendMessage(mvMsg);
             m.installOnNode(to);
         }
@@ -275,7 +289,11 @@ public class OPConnectionHandler extends ConnectionHandler
             return super.processNodeAdd(n);
         }
         
-        return new OPNodeWithNameAndPorts(n.nodeType, name, n.id, icon);
+        OPNodeWithNameAndPorts ret = new OPNodeWithNameAndPorts(n.nodeType, name, n.id, icon);
+        if(ret.getType() == NodeType.TYPE_NETFPGA || ret.getType() == NodeType.TYPE_LAPTOP) {
+            config.put(key(ret), new Pair<OPNodeWithNameAndPorts, ArrayList<OPModule>>(ret, new ArrayList<OPModule>()));
+        }
+        return ret;
     }
 
     private void processModuleStatusReply(OPModuleStatusReply msg) {

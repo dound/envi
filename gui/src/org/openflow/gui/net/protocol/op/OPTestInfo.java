@@ -21,7 +21,7 @@ public class OPTestInfo extends OFGMessage {
     public final String output;
     
     public OPTestInfo(final int len, final int xid, final DataInput in) throws IOException {
-        super(OFGMessageType.OP_MOVE_MODULE, xid);
+        super(OFGMessageType.OP_TEST_INFO, xid);
         
         this.input  = SocketConnection.readNullTerminatedString(in);
         this.output = SocketConnection.readNullTerminatedString(in);

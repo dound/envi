@@ -205,7 +205,7 @@ public class PZManager extends Thread {
         // copy-in the new ordering
         classDrawOrder.clear();
         for(Class c : newOrder) {
-            classDrawOrder.add(c);
+            classDrawOrder.addFirst(c);
         }
 
         // re-sort drawables based on the new ordering

@@ -20,6 +20,7 @@ import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
 import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.op.OPModule;
+import org.openflow.gui.net.protocol.op.OPModuleStatusReply;
 import org.openflow.gui.net.protocol.op.OPModulesAdd;
 import org.openflow.gui.net.protocol.op.OPTestInfo;
 
@@ -99,6 +100,10 @@ public class OPConnectionHandler extends ConnectionHandler
                 super.processDrawableNodeAdd(processNodeAdd(m));
             break;
         
+        case OP_MODULE_STATUS_REPLY:
+            processModuleStatusReply((OPModuleStatusReply)msg);
+            break;
+            
         case OP_TEST_INFO:
             processTestInfo((OPTestInfo)msg);
             break;
@@ -196,6 +201,11 @@ public class OPConnectionHandler extends ConnectionHandler
         return new OPNodeWithNameAndPorts(n.nodeType, name, n.id, icon);
     }
 
+    private void processModuleStatusReply(OPModuleStatusReply msg) {
+        // TODO: not yet implemented
+        System.err.println("Not yet handled: " + msg);
+    }
+    
     /** handles displaying test info */
     private void processTestInfo(OPTestInfo msg) {
         testInput.setName(msg.input);

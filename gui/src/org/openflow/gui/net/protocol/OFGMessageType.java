@@ -4,6 +4,7 @@ import java.io.DataInput;
 import java.io.IOException;
 
 import org.openflow.gui.net.protocol.auth.AuthType;
+import org.openflow.gui.net.protocol.op.OPModuleStatusReply;
 import org.openflow.gui.net.protocol.op.OPModulesAdd;
 import org.openflow.gui.net.protocol.op.OPTestInfo;
 import org.openflow.protocol.StatsType;
@@ -84,6 +85,12 @@ public enum OFGMessageType {
     /** A list of modules to add. */
     OP_MODULES_ADD((byte)0xF2),
     
+    /** Request for a module's status */
+    OP_MODULE_STATUS_REQUEST((byte)0xF3),
+
+    /** Reply about a module's status */
+    OP_MODULE_STATUS_REPLY((byte)0xF4),
+    
     ;
 
     /** the special value used to identify messages of this type */
@@ -158,6 +165,9 @@ public enum OFGMessageType {
             case OP_TEST_INFO:
                 return new OPTestInfo(len, xid, in);
                 
+            case OP_MODULE_STATUS_REPLY:
+                return new OPModuleStatusReply(len, xid, in);
+                
             case DISCONNECT:
             case AUTH_REPLY:
             case POLL_START:
@@ -166,6 +176,7 @@ public enum OFGMessageType {
             case LINKS_REQUEST:
             case STAT_REQUEST:
             case OP_MOVE_MODULE:
+            case OP_MODULE_STATUS_REQUEST:
                 throw new IOException("Received unexpected message type: " + t.toString());
                 
             default:

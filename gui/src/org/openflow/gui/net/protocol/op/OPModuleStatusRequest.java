@@ -8,44 +8,39 @@ import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.OFGMessageType;
 
 /**
- * Tells the backend to move a module.
+ * Asks the backend about a status of a module.
  * 
  * @author David Underhill
- *
  */
-public class OPMoveModule extends OFGMessage {
-    /** the module being moved */
+public class OPModuleStatusRequest extends OFGMessage {
+    /** the node the module is on */
+    public final Node node;
+    
+    /** the module */
     public final Node module;
     
-    /** the place it is being moved from */
-    public final Node from;
-    
-    /** the place it is being moved to */
-    public final Node to;
-    
-    public OPMoveModule(Node module, Node from, Node to) {
-        super(OFGMessageType.OP_MOVE_MODULE, 0);
+    public OPModuleStatusRequest(Node module, Node node) {
+        super(OFGMessageType.OP_MODULE_STATUS_REQUEST, 0);
         if(!module.nodeType.isModule())
             throw new Error("Error: module must be of type OPModule");
+        
+        this.node = node;
         this.module = module;
-        this.from = from;
-        this.to = to;
     }
     
-    /** This returns the maximum length of this message */
+    /** This returns the length of this message */
     public int length() {
-        return super.length() + 3 * Node.SIZEOF;
+        return super.length() + 2 * Node.SIZEOF;
     }
     
     /** Writes the header (via super.write()), and this message */
     public void write(DataOutput out) throws IOException {
         super.write(out);
+        node.write(out);
         module.write(out);
-        from.write(out);
-        to.write(out);
     }
     
     public String toString() {
-        return super.toString() + TSSEP + "move " + module + " from " + from + " to " + to;
+        return super.toString() + TSSEP + "Request for status of module " + module + " on " + node;
     }
 }

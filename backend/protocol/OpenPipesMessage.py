@@ -129,6 +129,67 @@ class OPModulesAdd(OPModulesList):
         return 'MODULES_ADD: ' + OPModulesList.__str__(self)
 OFG_MESSAGES.append(OPModulesAdd)
 
+class OPModuleStatusRequest(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0xF3
+
+    def __init__(self, node, module, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.node = node
+        self.module = module
+
+    def length(self):
+        return OFGMessage.SIZE + 2 * Node.SIZE
+
+    def pack(self):
+        hdr = OFGMessage.pack(self)
+        body = self.node.pack() + self.module.pack()
+        return hdr + body
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        node = Node.unpack(body[:Node.SIZE])
+        body = body[Node.SIZE:]
+        module = Node.unpack(body[:Node.SIZE])
+        return OPModuleStatusRequest(node, module, xid)
+
+    def __str__(self):
+        fmt = 'OP_MODULE_STATUS_REQUEST: ' + OFGMessage.__str__(self) + " request status for module %s on %s"
+        return fmt % (self.module, self.node)
+OP_MESSAGES.append(OPModuleStatusRequest)
+
+class OPModuleStatusReply(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0xF4
+
+    def __init__(self, node, module, status, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.node = node
+        self.module = module
+        self.status = str(status)
+
+    def length(self):
+        return OFGMessage.SIZE + 2 * Node.SIZE + len(self.status) + 1
+
+    def pack(self):
+        hdr = OFGMessage.pack(self)
+        body = self.node.pack() + self.module.pack()
+        body += struct.pack('> %us' % (len(self.status)+1), self.status)
+        return hdr + body
+
+    @staticmethod
+    def unpack(body):
+        raise Exception('OPModuleStatusReply.unpack() not implemented (one-way message)')
+
+    def __str__(self):
+        fmt = 'OP_MODULE_STATUS_REPLY: ' + OFGMessage.__str__(self) + " status for module %s on %s: %s"
+        return fmt % (self.module, self.node, self.status)
+OP_MESSAGES.append(OPModuleStatusReply)
+
 OP_PROTOCOL = LTProtocol(OFG_MESSAGES + OP_MESSAGES, 'H', 'B')
 
 def run_op_server(port, recv_callback):
@@ -181,6 +242,13 @@ def test():
             Node(Node.TYPE_LAPTOP,  2002),
             ]
         server.send_msg_to_client(conn, NodesAdd(nodes))
+
+        server.send_msg_to_client(conn, OPTestInfo("hello world", "happy world"))
+
+        # tell the gui the route lookup module on netfpga 1000 works
+        n = Node(Node.TYPE_NETFPGA, 1000)
+        m = Node(Node.TYPE_MODULE_HW, 4)
+        server.send_msg_to_client(conn, OPModuleStatusReply(n, m, "it works!"))
 
     server.new_conn_callback = new_conn_callback
     reactor.run()

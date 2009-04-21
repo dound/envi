@@ -13,6 +13,8 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
+import org.openflow.gui.net.protocol.NodeType;
 import org.pzgui.PZWindow.JLabelWithPZWindowParent;
 
 /**
@@ -224,9 +226,20 @@ public class PZWindowEventListener implements ComponentListener,
             }
         }
         else {
-            // if a node is selected, handle dragging it
-            selNode.drag(x, y);
+            // if a node is selected, handle dragging it (only on ctrl-click
+            // for non-modules)
+            if(e.isControlDown() || isEasilyDraggable(selNode))
+                selNode.drag(x, y);
         }
+    }
+    
+    private boolean isEasilyDraggable(Drawable d) {
+        if(d instanceof OPNodeWithNameAndPorts) {
+            NodeType t = ((OPNodeWithNameAndPorts)d).getType();
+            if(t == NodeType.TYPE_MODULE_HW || t == NodeType.TYPE_MODULE_SW)
+                return true;
+        }
+        return false;
     }
 
     /** Tells the manager where the mouse is now. */

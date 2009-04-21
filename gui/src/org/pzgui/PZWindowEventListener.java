@@ -213,7 +213,7 @@ public class PZWindowEventListener implements ComponentListener,
         
         int x = window.getMX(e);
         int y = window.getMY(e);
-        manager.setMousePos(x, y, false);
+        manager.setMousePos(x, y, true);
 
         Drawable selNode = manager.getSelected();
         if(selNode == null) {

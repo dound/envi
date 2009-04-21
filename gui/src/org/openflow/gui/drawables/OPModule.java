@@ -38,6 +38,12 @@ public class OPModule extends OPNodeWithNameAndPorts {
         return nodeInstalledOn;
     }
     
+    /** global counter */
+    private static int NEXT_ID = 0;
+    
+    /** unique ID to differentiate modules since their can be copies of a given type-ID pair */
+    private int instanceID = NEXT_ID++;
+    
     /** 
      * Tries to install the module on a node - returns false if n is not 
      * compatible with this module as per isCompatibleWith().
@@ -149,5 +155,16 @@ public class OPModule extends OPNodeWithNameAndPorts {
     
     public void dragDone() {
         dragging = false;
+    }
+
+    public int hashCode() {
+        return super.hashCode() + 31 * instanceID;
+    }
+    
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if((o == null) || (o.getClass() != this.getClass())) return false;
+        OPModule m = (OPModule)o;
+        return m.getID() == getID() && m.getType() == getType() && m.instanceID == instanceID;
     }
 }

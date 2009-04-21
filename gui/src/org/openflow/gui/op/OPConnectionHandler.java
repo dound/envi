@@ -3,6 +3,7 @@ package org.openflow.gui.op;
 import java.awt.Color;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 
 import org.pzgui.Constants;
 import org.pzgui.Drawable;
@@ -28,6 +29,15 @@ public class OPConnectionHandler extends ConnectionHandler
     /** the manager for our single topology */
     private final OPLayoutManager manager;
     
+    /** shape which will hold test input */
+    private final OPNodeWithNameAndPorts testInput;
+    
+    /** shape which will hold test output */
+    private final OPNodeWithNameAndPorts testOutput;
+    
+    public static final int TEST_BOX_WIDTH  = 500;
+    public static final int TEST_BOX_HEIGHT = 50;
+    
     /**
      * Construct the front-end for EXConnectionHandler.
      * 
@@ -49,6 +59,12 @@ public class OPConnectionHandler extends ConnectionHandler
         // object - useful because this manager is able to send messages over
         // the connection to the backend.
         manager.addDrawableEventListener(this);
+        
+        testInput = new OPNodeWithNameAndPorts(NodeType.UNKNOWN, "", 1111, new ShapeIcon(new Rectangle2D.Double(0, 0, TEST_BOX_WIDTH, TEST_BOX_HEIGHT), LIGHT_YELLOW, Color.BLACK));
+        testOutput = new OPNodeWithNameAndPorts(NodeType.UNKNOWN, "", 9999, new ShapeIcon(new Rectangle2D.Double(0, 0, TEST_BOX_WIDTH, TEST_BOX_HEIGHT), Color.WHITE, Color.BLACK));
+        
+        manager.addDrawable(testInput);
+        manager.addDrawable(testOutput);
     }
     
     public void drawableEvent(Drawable d, String event) {
@@ -101,6 +117,7 @@ public class OPConnectionHandler extends ConnectionHandler
     public static final int[] LAPTOP_YS = new int[]{0,  0, 15, 21, 21, 15, 0};
     public static final Color DARK_GREEN = Color.GREEN.darker();
     public static final Color DARK_BLUE = Color.BLUE.darker();
+    public static final Color LIGHT_YELLOW = Color.YELLOW.brighter();
     public static final int MODULE_SIZE = 80;
     
     
@@ -137,11 +154,17 @@ public class OPConnectionHandler extends ConnectionHandler
         switch(n.nodeType) {
         
         case TYPE_IN:
+            gicon = new GeometricIcon(INOUT_XS, INOUT_YS, LIGHT_YELLOW, Color.BLACK, Constants.STROKE_DEFAULT);
+            gicon.setCenter(true);
+            icon = gicon;
+            name = "In";
+            break;
+            
         case TYPE_OUT:
             gicon = new GeometricIcon(INOUT_XS, INOUT_YS, Color.WHITE, Color.BLACK, Constants.STROKE_DEFAULT);
             gicon.setCenter(true);
             icon = gicon;
-            name = n.nodeType==NodeType.TYPE_IN ? "In" : "Out";
+            name = "Out";
             break;
             
         case TYPE_NETFPGA:
@@ -157,12 +180,12 @@ public class OPConnectionHandler extends ConnectionHandler
             break;
             
         case TYPE_MODULE_HW:
-            icon = new ShapeIcon(new Rectangle2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE*4/5), DARK_GREEN);
+            icon = new ShapeIcon(new RoundRectangle2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE*4/5, 10, 10), DARK_GREEN, Color.BLACK);
             name = ((OPModule)n).name;
             break;
         
         case TYPE_MODULE_SW:
-            icon = new ShapeIcon(new Ellipse2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_BLUE);
+            icon = new ShapeIcon(new Ellipse2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_BLUE, Color.BLACK);
             name = ((OPModule)n).name;
             break;
             
@@ -178,6 +201,7 @@ public class OPConnectionHandler extends ConnectionHandler
 
     /** handles displaying test info */
     private void processTestInfo(OPTestInfo msg) {
-        // TODO: not yet implemented
+        testInput.setName(msg.input);
+        testOutput.setName(msg.output);
     }
 }

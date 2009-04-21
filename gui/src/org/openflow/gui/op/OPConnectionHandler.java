@@ -182,21 +182,18 @@ public class OPConnectionHandler extends ConnectionHandler
         case TYPE_MODULE_HW:
             icon = new ShapeIcon(new RoundRectangle2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE*4/5, 10, 10), DARK_GREEN, Color.BLACK);
             name = ((OPModule)n).name;
-            break;
+            return new org.openflow.gui.drawables.OPModule(true, name, n.id, icon);
         
         case TYPE_MODULE_SW:
             icon = new ShapeIcon(new Ellipse2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_BLUE, Color.BLACK);
             name = ((OPModule)n).name;
-            break;
+            return new org.openflow.gui.drawables.OPModule(false, name, n.id, icon);
             
         default:
             return super.processNodeAdd(n);
         }
         
-        OPNodeWithNameAndPorts s = new OPNodeWithNameAndPorts(n.nodeType, name, n.id, icon);
-        if(n instanceof OPModule)
-            s.setNameColor(Color.WHITE);
-        return s;
+        return new OPNodeWithNameAndPorts(n.nodeType, name, n.id, icon);
     }
 
     /** handles displaying test info */

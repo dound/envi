@@ -10,6 +10,10 @@ from ltprotocol.ltprotocol import LTProtocol
 OP_MESSAGES = []
 
 class OPMoveModule(OFGMessage):
+    # used by MoveModule to represent when a module is added (from_node is NONE) or
+    # removed (to_node is NONE)
+    NODE_NONE = Node(Node.TYPE_UNKNOWN, -1)
+
     @staticmethod
     def get_type():
         return 0xF0

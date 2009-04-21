@@ -4,6 +4,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import org.openflow.gui.net.protocol.Node;
+import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.OFGMessageType;
 
@@ -14,6 +15,12 @@ import org.openflow.gui.net.protocol.OFGMessageType;
  *
  */
 public class OPMoveModule extends OFGMessage {
+    /** 
+     * Used by MoveModule to represent when a module is added (from_node is 
+     * NONE) or removed (to_node is NONE).
+     */
+    public static final Node NODE_NONE = new Node(NodeType.UNKNOWN, -1);
+        
     /** the module being moved */
     public final Node module;
     
@@ -23,6 +30,12 @@ public class OPMoveModule extends OFGMessage {
     /** the place it is being moved to */
     public final Node to;
     
+    /** adding or removing a module */
+    public OPMoveModule(Node module, Node node, boolean add) {
+        this(module, add ? NODE_NONE : node, add ? node : NODE_NONE);
+    }
+    
+    /** moving a module */
     public OPMoveModule(Node module, Node from, Node to) {
         super(OFGMessageType.OP_MOVE_MODULE, 0);
         if(!module.nodeType.isModule())

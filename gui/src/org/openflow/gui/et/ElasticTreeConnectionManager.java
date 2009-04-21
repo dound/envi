@@ -1,5 +1,6 @@
 package org.openflow.gui.et;
 
+import java.awt.AWTEvent;
 import java.io.IOException;
 
 import org.pzgui.Drawable;
@@ -77,7 +78,7 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
         tmManager = new TrafficMatrixManager(manager.getCurrentTrafficMatrix());
     }
     
-    public void drawableEvent(Drawable d, String event) {
+    public void drawableEvent(Drawable d, AWTEvent e, String event) {
         if(event.equals("mouse_released"))
             processFailEvent(d);
     }

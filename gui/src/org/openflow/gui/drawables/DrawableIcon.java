@@ -32,6 +32,6 @@ public class DrawableIcon extends AbstractDrawable {
     }
     
     public boolean contains(int x, int y) {
-        return icon.contains(x, y);
+        return icon.contains(x, y, x, y);
     }
 }

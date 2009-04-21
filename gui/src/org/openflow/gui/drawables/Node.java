@@ -180,11 +180,6 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
     
     // -------------------- Other ------------------- //
 
-    /** Move the node when it is dragged */
-    public void drag(int x, int y) {
-        setPos(x, y);
-    }
-    
     /** The height of this node */
     public int getHeight() {
         return icon.getHeight();

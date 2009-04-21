@@ -123,7 +123,7 @@ public class SocketConnection implements DataInput, DataOutput {
             if(b == 0)
                 break;
             else
-                buf.set(buf.size(), b);
+                buf.add(b);
         }
         
         // handle the empty string case
@@ -132,7 +132,8 @@ public class SocketConnection implements DataInput, DataOutput {
         
         // copy it into an array with no extra space so the string can be constructed
         byte[] strBuf = new byte[buf.size()];
-        System.arraycopy(buf, 0, strBuf, 0, buf.size());
+        for(int i=0; i<buf.size(); i++)
+            strBuf[i] = buf.get(i);
         return new String(strBuf);
     }
     

@@ -25,6 +25,11 @@ public class OPModule extends OPNodeWithNameAndPorts {
         setPos(mToCopy.dragX, mToCopy.dragY);
     }
     
+    /** returns true if this module is a hardware module */
+    public boolean isHardwareModule() {
+        return getType() == NodeType.TYPE_MODULE_HW;
+    }
+    
     /** node on which this module is installed, if any */
     private OPNodeWithNameAndPorts nodeInstalledOn = null;
     

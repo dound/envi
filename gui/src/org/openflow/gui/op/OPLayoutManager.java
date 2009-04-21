@@ -1,11 +1,8 @@
 package org.openflow.gui.op;
 
-import java.awt.Graphics2D;
-
-import org.openflow.gui.drawables.OpenFlowSwitch;
+import org.openflow.gui.drawables.OPModule;
+import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
 import org.pzgui.Drawable;
-import org.pzgui.PZWindow;
-import org.pzgui.icon.ImageIcon;
 import org.pzgui.PZManager;
 
 /**
@@ -18,46 +15,45 @@ public class OPLayoutManager extends PZManager {
         super(); 
     }
     
-    /** Adds the drawable as usual and then sets a custom switch graphic for some switch */
-    public void addDrawable(Drawable d) {
-        super.addDrawable(d);
-        // TODO: any custom processing when a Drawable is added
-        // example of drawing a particular switch specially
-        if(d instanceof OpenFlowSwitch) {
-            OpenFlowSwitch s = (OpenFlowSwitch)d;
-            if(s.getID() == 0x00ABCD00) {
-                s.setIcon(new ImageIcon("dgu.gif", 25, 25));
-            }
-        }
-    }
-    
-    /** 
-     * Removes the drawable as usual and then completely resets the fat tree 
-     * layout engine (assumes all switches are being removed).
-     */
-    public void removeDrawable(Drawable d) {
-        super.removeDrawable(d);
-        // TODO: any custom processing when a Drawable is removed
-    }
-    
-    /**
-     * Overrides the parent implementation by appending the drawing of the 
-     * additional widgets.
-     */
-    public void preRedraw(PZWindow window) {
-        super.preRedraw(window);
-        Graphics2D gfx = window.getDisplayGfx();
-        if(gfx == null)
+    public void setMousePos(int x, int y, boolean dragging) {
+        super.setMousePos(x, y, dragging);
+        Drawable ds = getSelected();
+        Drawable dh = gethovered();
+        
+        // always ok if we aren't dragging a module or nothing is selected
+        if(ds==null || dh==null || !dragging || !(ds instanceof OPModule))
             return;
         
-        // TODO: draw any desired additional stuff
-    }
-    
-    /** 
-     * Extends the parent implementation to do extra processing after a redraw.
-     */
-    public void postRedraw() {
-        super.postRedraw();
-        // TODO: any processing you need to do after a redraw
+        // do not highlight when hovering over nodes in certain cases
+        if(dh instanceof OPNodeWithNameAndPorts) {
+            OPModule m = (OPModule)ds;
+            OPNodeWithNameAndPorts n = (OPNodeWithNameAndPorts)dh;
+            switch(n.getType()) {
+            case UNKNOWN:
+            case TYPE_IN:
+            case TYPE_OUT:
+                dehover();
+                return;
+            
+            // don't highlight if we drag a SW module over a NetFPGA
+            case TYPE_NETFPGA:
+                if(!m.isHardwareModule()) {
+                    dehover();
+                    return;
+                }
+                break;
+            
+            // don't highlight if we drag a HW module over a Laptop
+            case TYPE_LAPTOP:
+                if(m.isHardwareModule()) {
+                    dehover();
+                    return;
+                }
+                break;
+                
+            default: 
+                // remaining cases ok
+            }
+        }
     }
 }

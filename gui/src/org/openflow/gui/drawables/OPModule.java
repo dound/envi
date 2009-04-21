@@ -22,6 +22,7 @@ public class OPModule extends OPNodeWithNameAndPorts {
     public OPModule(OPModule mToCopy) {
         super(mToCopy.getType(), mToCopy.getName(), mToCopy.getID(), mToCopy.getIcon());
         original = false;
+        setPos(mToCopy.dragX, mToCopy.dragY);
     }
     
     /** node on which this module is installed, if any */
@@ -32,14 +33,38 @@ public class OPModule extends OPNodeWithNameAndPorts {
         return nodeInstalledOn;
     }
     
-    /** installs the module on a node */
-    public void installOnNode(OPNodeWithNameAndPorts n) {
-        nodeInstalledOn = n;
+    /** 
+     * Tries to install the module on a node - returns false if n is not 
+     * compatible with this module as per isCompatibleWith().
+     * 
+     * @return true on success, false if incompatible
+     */
+    public boolean installOnNode(OPNodeWithNameAndPorts n) {
+        if(!isCompatibleWith(n)) {
+            nodeInstalledOn = n;
+            return true;
+        }
+        else
+            return false;
     }
     
     /** uninstalls a module */
     public void uninstall() {
         installOnNode(null);
+    }
+    
+    /**
+     * Returns whether this module is compatible with n (i.e., it can be 
+     * installed on n).
+     */
+    public boolean isCompatibleWith(OPNodeWithNameAndPorts n) {
+        if(getType()==NodeType.TYPE_MODULE_HW && n.getType()==NodeType.TYPE_NETFPGA)
+            return true;
+        
+        if(getType()==NodeType.TYPE_MODULE_SW && n.getType()==NodeType.TYPE_LAPTOP)
+            return true;
+        
+        return false;
     }
     
     /** status of the module, if known */

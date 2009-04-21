@@ -770,26 +770,27 @@ public class PZManager extends Thread {
      * @return the drawable at the specified position
      */
     public synchronized Drawable selectFrom(int x, int y) {
-        return selectFrom(0, x, y);
+        return selectFrom(x, y, null);
     }
 
     /**
-     * Returns the Drawable which contains the location x, y.  If no such object
-     * exists, then null is returned.  The node is selected if setSelectedToTrue
-     * is true.
+     * Returns the object of type C which contains the location x, y.  If no 
+     * such object exists, then null is returned.  The node is selected if
+     * setSelectedToTrue is true.
      *
-     * @param startIndex  where to start searching within the drawables list
-     * @param x           x position the drawable must contain
-     * @param y           y position the drawable must contain
+     * @param x       x position the Drawable must contain
+     * @param y       y position the Drawable must contain
+     * @param fitler  a Drawable filter; only nodes for which 
+     *                filter.consider() returns true will be considered for 
+     *                selection.  If this filter is null, then all nodes will be
+     *                considered.
      *
-     * @return the drawable at the specified position
+     * @return the Drawable at the specified position
      */
-    public synchronized Drawable selectFrom(int startIndex, int x, int y) {
-        for(int i=startIndex; i<drawables.size(); i++) {
-            Drawable d = drawables.get(i);
-            if(d.contains(x, y))
+    public synchronized Drawable selectFrom(int x, int y, DrawableFilter filter) {
+        for(Drawable d : drawables)
+            if(d.contains(x, y) && (filter==null || filter.consider(d)))
                 return d;
-        }
 
         return null;
     }

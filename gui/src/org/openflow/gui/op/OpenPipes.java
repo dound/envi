@@ -1,5 +1,7 @@
 package org.openflow.gui.op;
 
+import java.util.ArrayList;
+
 import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.OpenFlowGUI;
 import org.openflow.gui.Options;
@@ -18,6 +20,10 @@ public final class OpenPipes {
         // create a manager to handle drawing the topology info received by the connection
         OPLayoutManager gm = new OPLayoutManager();
         gm.loadDrawablePositionsFromFile("op.yaml");
+        ArrayList<Class> drawOrder = new ArrayList<Class>();
+        drawOrder.add(org.openflow.gui.drawables.OPModule.class);
+        drawOrder.add(org.openflow.gui.drawables.OPNodeWithNameAndPorts.class);
+        gm.setDrawOrder(drawOrder);
         
         // create a manager to handle the connection itself
         ConnectionHandler cm = new OPConnectionHandler(gm, server, port);

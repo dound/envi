@@ -24,6 +24,24 @@ public class OPModule extends OPNodeWithNameAndPorts {
         original = false;
     }
     
+    /** node on which this module is installed, if any */
+    private OPNodeWithNameAndPorts nodeInstalledOn = null;
+    
+    /** gets the node the module is installed on */
+    public OPNodeWithNameAndPorts getNodeInstalledOn() {
+        return nodeInstalledOn;
+    }
+    
+    /** installs the module on a node */
+    public void installOnNode(OPNodeWithNameAndPorts n) {
+        nodeInstalledOn = n;
+    }
+    
+    /** uninstalls a module */
+    public void uninstall() {
+        installOnNode(null);
+    }
+    
     /** status of the module, if known */
     private String status = "Unknown: not yet queried.";
     

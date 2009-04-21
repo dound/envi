@@ -61,4 +61,9 @@ public enum NodeType {
 
         return UNKNOWN;
     }
+    
+    /** Returns whether this is a module */
+    public boolean isModule() {
+        return this==TYPE_MODULE_HW || this==TYPE_MODULE_SW;
+    }
 }

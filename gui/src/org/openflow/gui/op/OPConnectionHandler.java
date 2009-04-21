@@ -13,6 +13,7 @@ import java.util.HashMap;
 import org.pzgui.Constants;
 import org.pzgui.Drawable;
 import org.pzgui.DrawableEventListener;
+import org.pzgui.DrawableFilter;
 import org.pzgui.icon.GeometricIcon;
 import org.pzgui.icon.Icon;
 import org.pzgui.icon.ShapeIcon;
@@ -28,6 +29,7 @@ import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.op.OPModuleStatusReply;
 import org.openflow.gui.net.protocol.op.OPModuleStatusRequest;
 import org.openflow.gui.net.protocol.op.OPModulesAdd;
+import org.openflow.gui.net.protocol.op.OPMoveModule;
 import org.openflow.gui.net.protocol.op.OPTestInfo;
 import org.openflow.util.Pair;
 
@@ -86,7 +88,7 @@ public class OPConnectionHandler extends ConnectionHandler
                 OPModule m = (OPModule)d;
                
                 if(me.getButton() == MouseEvent.BUTTON1)
-                    handleModulePlaced(m, e);
+                    handleModulePlaced(m, me);
                 else
                     handleModuleStatusRequested(m);
             }
@@ -94,10 +96,48 @@ public class OPConnectionHandler extends ConnectionHandler
         }
     }
     
-    private void handleModulePlaced(OPModule m, AWTEvent e) {
-        
+    /** define a filter which accepts anything but OPModule objects */
+    private static final DrawableFilter filterIgnoreModules = new DrawableFilter() {
+        public boolean consider(Drawable d) {
+            return !(d instanceof OPModule);
+        }
+    };
+    
+    /** handles the dragging (i.e., install, move, or uninstall) of a module */
+    private void handleModulePlaced(OPModule m, MouseEvent e) {
+        Drawable d = manager.selectFrom(e.getX(), e.getY(), filterIgnoreModules);
+        if(d instanceof OPNodeWithNameAndPorts) {
+            // dragged m to a new place: install request
+            OPNodeWithNameAndPorts n = (OPNodeWithNameAndPorts)d;
+            if(m.isCompatibleWith(n)) {
+                // duplicate if m is an original
+                if(m.isOriginal()) {
+                    m = new OPModule(m);
+                    manager.addDrawable(m);
+                }
+                
+                moveModule(m, n);
+            }
+        }
+        else if(m.getNodeInstalledOn() != null) {
+            // dragged m to nowhere: uninstall request
+            moveModule(m, null);
+        }
     }
     
+    /** moves a module m to the specified node */
+    private void moveModule(OPModule m, OPNodeWithNameAndPorts to) {
+        try {
+            OPMoveModule mvMsg = new OPMoveModule(m, m.getNodeInstalledOn(), to);
+            getConnection().sendMessage(mvMsg);
+            m.installOnNode(to);
+        }
+        catch(IOException e) {
+            System.err.println("Error: failed to " + (to==null ? "un" : "") + "install module due to network error: " + e.getMessage());
+        }
+    }
+    
+    /** handles requesting the status of the specified module */
     private void handleModuleStatusRequested(OPModule m) {
         // ignore the request if the module is not installed 
         OPNodeWithNameAndPorts n = m.getNodeInstalledOn();
@@ -121,10 +161,8 @@ public class OPConnectionHandler extends ConnectionHandler
     public void connectionStateChange() {
         super.connectionStateChange();
         
-        if(!getConnection().isConnected()) {
-            // TODO: we just got disconnected - remove all modules, test info
+        if(!getConnection().isConnected())
             System.exit(-1);
-        }
     }
     
     /** 

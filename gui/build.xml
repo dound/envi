@@ -7,7 +7,7 @@
   <property name="bin.dir"    value="bin"/>
   <property name="lib.dir"    value="lib"/>
   <property name="jarfile"    value="openflow_gui.jar"/>
-  <property name="main-class" value="org.openflow.gui.OpenFlowGUI"/>
+  <property name="main-class" value="org.openflow.gui.op.OpenPipes"/>
 
   <path id="classpath">
     <fileset dir="${lib.dir}" includes="*.jar"/>

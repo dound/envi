@@ -41,7 +41,18 @@ public class SimpleNodeWithPorts extends NodeWithPorts {
     public NodeType getType() {
         return type;
     }
-     
+    
+    public int hashCode() {
+        return super.hashCode() + 9 * type.hashCode();
+    }
+    
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if((o == null) || (o.getClass() != this.getClass())) return false;
+        SimpleNodeWithPorts n = (SimpleNodeWithPorts)o;
+        return n.getID() == getID() && n.getType() == getType();
+    }
+    
     public String toString() {
         String body = type.toString() + "-" + DPIDUtil.toString(getID());
         

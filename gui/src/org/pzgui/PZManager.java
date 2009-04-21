@@ -387,6 +387,9 @@ public class PZManager extends Thread {
         if(d instanceof Layoutable) {
             Layoutable l = (Layoutable)d;
             LayoutableInfo i = layoutablePositions.get(l.getID());
+            if(i == null)
+                return;
+            
             l.setCanPositionChange(true);
             l.setPos(i.x, i.y);
             l.setCanPositionChange(!i.lock);

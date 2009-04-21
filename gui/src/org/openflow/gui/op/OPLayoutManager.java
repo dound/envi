@@ -32,6 +32,8 @@ public class OPLayoutManager extends PZManager {
             case UNKNOWN:
             case TYPE_IN:
             case TYPE_OUT:
+            case TYPE_MODULE_HW:
+            case TYPE_MODULE_SW:
                 dehover();
                 return;
             

@@ -40,6 +40,14 @@ public abstract class Icon extends Component {
         draw((Graphics2D)g, getX(), getY(), (int)(scaleH * getHeight()), (int)(scaleW * getWidth()));
     }
     
+    /** whether x,y is contained by this icon */
+    public boolean contains(int x, int y, int iconX, int iconY) {
+        int left = iconX-getWidth()/2;
+        int top  = iconY-getHeight()/2;
+        
+        return( x>=left && x<left+getWidth() && y>=top && y<top+getHeight());
+    }
+    
     /** Returns the default size of this icon. */
     public abstract Dimension getSize();
     

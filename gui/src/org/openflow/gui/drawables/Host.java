@@ -14,11 +14,11 @@ import org.pzgui.icon.ShapeIcon;
  * @author David Underhill
  */
 public class Host extends NodeWithPorts {
-    public Host(int ip) {
+    public Host(long ip) {
         this("", 0, 0, ip);
     }
     
-    public Host(String name, int x, int y, int ip) {
+    public Host(String name, int x, int y, long ip) {
         super(name, x, y, new ShapeIcon(DEFAULT_SHAPE, DEFAULT_FILL));
         this.ip = ip;
     }
@@ -39,7 +39,7 @@ public class Host extends NodeWithPorts {
     // --------------------- ID --------------------- //
     
     /** IP address of this host */
-    private int ip;
+    private long ip;
     
     /** returns a string version of the switch's datapath ID */
     public String getDebugName() {
@@ -52,7 +52,7 @@ public class Host extends NodeWithPorts {
     }
     
     /** sets the IP address of this host */
-    public void setID(int ip) {
+    public void setID(long ip) {
         this.ip = ip;
     }
     

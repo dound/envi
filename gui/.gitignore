@@ -3,3 +3,4 @@ bin
 nbdist
 doc
 ofgkey
+*.yaml

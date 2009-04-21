@@ -1,5 +1,6 @@
 package org.pzgui;
 
+import java.awt.AWTEvent;
 import java.awt.Graphics2D;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -7,9 +8,11 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.ho.yaml.YamlConfig;
 import org.ho.yaml.wrapper.DelayedCreationBeanWrapper;
@@ -147,6 +150,8 @@ public class PZManager extends Thread {
         // only draw each entity once
         if(drawables.contains(d))
             return;
+        
+        setLayoutableInfo(d);
 
         // determine which objects e should be drawn on top of
         boolean found = false;
@@ -202,7 +207,7 @@ public class PZManager extends Thread {
         // copy-in the new ordering
         classDrawOrder.clear();
         for(Class c : newOrder) {
-            classDrawOrder.add(c);
+            classDrawOrder.addFirst(c);
         }
 
         // re-sort drawables based on the new ordering
@@ -344,12 +349,25 @@ public class PZManager extends Thread {
         YAML.setSuppressWarnings(false);
     }
     
+    /** where layout positions from a file is saved */
+    protected ConcurrentHashMap<Long, LayoutableInfo> layoutablePositions = new ConcurrentHashMap<Long, LayoutableInfo>();
+    
+    /** name of the last config file used */
+    private String lastConfigFilename = "";
+    
+    /** returns the last configuration file loaded or saved */ 
+    public String getLastConfigFilename() {
+        return lastConfigFilename;
+    }
+    
     /**
      * Loads positions for Layoutable objects from a file.
      * 
      * @param file  the filename to load from
      */
     public void loadDrawablePositionsFromFile(String file) {
+        lastConfigFilename = file;
+        
         LayoutableInfo[] infos;
         try {
             infos = YAML.loadType(new java.io.File(file), LayoutableInfo[].class);
@@ -358,18 +376,25 @@ public class PZManager extends Thread {
             return;
         }
         
-        HashMap<Long, LayoutableInfo> map = new HashMap<Long, LayoutableInfo>();
+        layoutablePositions.clear();
         for(LayoutableInfo info : infos)
-            map.put(info.idNum, info);
+            layoutablePositions.put(info.idNum, info);
         
-        for(Drawable d : drawables) {
-            if(d instanceof Layoutable) {
-                Layoutable l = (Layoutable)d;
-                LayoutableInfo i = map.get(l.getID());
-                l.setCanPositionChange(true);
-                l.setPos(i.x, i.y);
-                l.setCanPositionChange(!i.lock);
-            }
+        for(Drawable d : drawables)
+            setLayoutableInfo(d);
+    }
+    
+    /** Sets the positions of d if there is info about it in layoutblePositions. */
+    private void setLayoutableInfo(Drawable d) {
+        if(d instanceof Layoutable) {
+            Layoutable l = (Layoutable)d;
+            LayoutableInfo i = layoutablePositions.get(l.getID());
+            if(i == null)
+                return;
+            
+            l.setCanPositionChange(true);
+            l.setPos(i.x, i.y);
+            l.setCanPositionChange(!i.lock);
         }
     }
 
@@ -379,6 +404,8 @@ public class PZManager extends Thread {
      * @param file  the filename to save to
      */
     public void saveDrawablePositionsToFile(String file) {
+        lastConfigFilename = file;
+        
         ArrayList<LayoutableInfo> infos = new ArrayList<LayoutableInfo>();
         for(Drawable d : drawables) {
             if(d instanceof Layoutable) {
@@ -675,23 +702,26 @@ public class PZManager extends Thread {
         mouseUpTime = System.currentTimeMillis();
     }
 
-    /** Sets the current position of the mouse and whether dragging is going on */
+    /** 
+     * Sets the current position of the mouse and whether dragging is going on.
+     * Also track which object is being hovered over.
+     */
     public void setMousePos(int x, int y, boolean dragging) {
         mousePos.set(x, y);
-        if(!dragging) {
-            mouseStartPos.set(x, y);
-            mouseStartTime = System.currentTimeMillis();
-            
-            hover(selectFrom(x, y));
-        }
-        else if(hoveredEntity != null)
-            dehover();
+        hover(selectFrom(x, y, filterIgnoreSelectedNode));
     }
 
     /** Get whether the last click was of a double-click */
     public boolean wasDoubleClick() {
         return mouseUpTime - lastMouseUpTime < doubleClickThreshold_msec;
     }
+    
+    /** define a filter which accepts anything but currently selected object */
+    private final DrawableFilter filterIgnoreSelectedNode = new DrawableFilter() {
+        public boolean consider(Drawable d) {
+            return d != selectedEntity;
+        }
+    };
 
 
     // ------- Hovering and Selection ------- //
@@ -735,8 +765,7 @@ public class PZManager extends Thread {
     
     /**
      * Returns the Drawable which contains the location x, y.  If no such object
-     * exists, then null is returned.  The node is selected if setSelectedToTrue
-     * is true.
+     * exists, then null is returned.
      *
      * @param x           x position the drawable must contain
      * @param y           y position the drawable must contain
@@ -744,32 +773,36 @@ public class PZManager extends Thread {
      * @return the drawable at the specified position
      */
     public synchronized Drawable selectFrom(int x, int y) {
-        return selectFrom(0, x, y);
+        return selectFrom(x, y, null);
     }
 
     /**
-     * Returns the Drawable which contains the location x, y.  If no such object
-     * exists, then null is returned.  The node is selected if setSelectedToTrue
-     * is true.
+     * Returns the object of type C which contains the location x, y.  If no 
+     * such object exists, then null is returned.
      *
-     * @param startIndex  where to start searching within the drawables list
-     * @param x           x position the drawable must contain
-     * @param y           y position the drawable must contain
+     * @param x       x position the Drawable must contain
+     * @param y       y position the Drawable must contain
+     * @param fitler  a Drawable filter; only nodes for which 
+     *                filter.consider() returns true will be considered for 
+     *                selection.  If this filter is null, then all nodes will be
+     *                considered.
      *
-     * @return the drawable at the specified position
+     * @return the Drawable at the specified position
      */
-    public synchronized Drawable selectFrom(int startIndex, int x, int y) {
-        for(int i=startIndex; i<drawables.size(); i++) {
-            Drawable d = drawables.get(i);
-            if(d.contains(x, y))
+    public synchronized Drawable selectFrom(int x, int y, DrawableFilter filter) {
+        // traverse the list from back to front so that we first consider 
+        // elements which are drawn on top (i.e., select what you see)
+        ListIterator<Drawable> itr = drawables.listIterator(drawables.size());
+        while(itr.hasPrevious()) {
+            Drawable d = itr.previous();
+            if(d.contains(x, y) && (filter==null || filter.consider(d)))
                 return d;
         }
-
         return null;
     }
 
     /** Returns the currently hovered object, if any */
-    public synchronized Drawable gethovered() {
+    public synchronized Drawable getHovered() {
         return hoveredEntity;
     }
 
@@ -812,8 +845,8 @@ public class PZManager extends Thread {
     /**
      * Updates the slider labels and notify those listening for traffic matrix changes.
      */
-    public void fireDrawableEvent(Drawable d, String event) {
+    public void fireDrawableEvent(Drawable d, AWTEvent e, String event) {
         for(DrawableEventListener del : drawableEventListeners)
-            del.drawableEvent(d, event);
+            del.drawableEvent(d, e, event);
     }
 }

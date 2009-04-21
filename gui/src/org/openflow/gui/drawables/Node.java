@@ -21,8 +21,8 @@ import org.pzgui.StringDrawer;
  */
 public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
     public Node(String name, int x, int y, Icon icon) {
-        this.name = name;
-        this.icon = icon;
+        setName(name);
+        setIcon(icon);
         setPos(x, y);
     }
 
@@ -180,11 +180,6 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
     
     // -------------------- Other ------------------- //
 
-    /** Move the node when it is dragged */
-    public void drag(int x, int y) {
-        setPos(x, y);
-    }
-    
     /** The height of this node */
     public int getHeight() {
         return icon.getHeight();

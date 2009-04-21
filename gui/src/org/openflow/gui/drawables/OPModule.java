@@ -48,10 +48,12 @@ public class OPModule extends OPNodeWithNameAndPorts {
      * Tries to install the module on a node - returns false if n is not 
      * compatible with this module as per isCompatibleWith().
      * 
+     * @param n  the module to install on (null indicates that it is uninstalled)
+     * 
      * @return true on success, false if incompatible
      */
     public boolean installOnNode(OPNodeWithNameAndPorts n) {
-        if(!isCompatibleWith(n)) {
+        if(n==null || isCompatibleWith(n)) {
             nodeInstalledOn = n;
             return true;
         }

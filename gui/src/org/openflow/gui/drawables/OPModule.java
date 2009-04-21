@@ -22,7 +22,6 @@ public class OPModule extends OPNodeWithNameAndPorts {
     public OPModule(OPModule mToCopy) {
         super(mToCopy.getType(), mToCopy.getName(), mToCopy.getID(), mToCopy.getIcon());
         original = false;
-        setPos(mToCopy.dragX, mToCopy.dragY);
     }
     
     /** returns true if this module is a hardware module */

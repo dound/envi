@@ -127,6 +127,7 @@ public class OPConnectionHandler extends ConnectionHandler
                 
                 moveModule(m, n);
                 config.get(key(n)).b.add(m);
+                m.setPos(e.getX(), e.getY());
             }
         }
         else if(m.getNodeInstalledOn() != null && !m.isOriginal()) {

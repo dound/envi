@@ -59,6 +59,11 @@ public class OPMoveModule extends OFGMessage {
     }
     
     public String toString() {
-        return super.toString() + TSSEP + "move " + module + " from " + from + " to " + to;
+        if(from.equals(NODE_NONE))
+            return super.toString() + TSSEP + "add " + module + " to " + to;
+        else if(to.equals(NODE_NONE))
+            return super.toString() + TSSEP + "remove " + module + " from " + from;
+        else
+            return super.toString() + TSSEP + "move " + module + " from " + from + " to " + to;
     }
 }

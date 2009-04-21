@@ -82,25 +82,36 @@ public class OPConnectionHandler extends ConnectionHandler
     public void drawableEvent(Drawable d, AWTEvent e, String event) {
         if(event.equals("mouse_released")) {
             MouseEvent me = (MouseEvent)e;
-            if(me.getButton() != MouseEvent.BUTTON1 && d instanceof OPModule) {
+            if(d instanceof OPModule) {
                 OPModule m = (OPModule)d;
-                
-                // ignore the request if the module is not installed 
-                OPNodeWithNameAndPorts n = m.getNodeInstalledOn();
-                if(n == null)
-                    return;
-                
-                // send a request for the module's status
-                org.openflow.gui.net.protocol.Node msgN = new org.openflow.gui.net.protocol.Node(n.getType(), n.getID());
-                org.openflow.gui.net.protocol.Node msgM = new org.openflow.gui.net.protocol.Node(m.getType(), m.getID());
-                OPModuleStatusRequest req = new OPModuleStatusRequest(msgN, msgM);
-                try {
-                    this.getConnection().sendMessage(req);
-                } catch (IOException ex) {
-                    System.err.println("Error: unable to send status request: " + req);
-                }
+               
+                if(me.getButton() == MouseEvent.BUTTON1)
+                    handleModulePlaced(m, e);
+                else
+                    handleModuleStatusRequested(m);
             }
                 
+        }
+    }
+    
+    private void handleModulePlaced(OPModule m, AWTEvent e) {
+        
+    }
+    
+    private void handleModuleStatusRequested(OPModule m) {
+        // ignore the request if the module is not installed 
+        OPNodeWithNameAndPorts n = m.getNodeInstalledOn();
+        if(n == null)
+            return;
+        
+        // send a request for the module's status
+        org.openflow.gui.net.protocol.Node msgN = new org.openflow.gui.net.protocol.Node(n.getType(), n.getID());
+        org.openflow.gui.net.protocol.Node msgM = new org.openflow.gui.net.protocol.Node(m.getType(), m.getID());
+        OPModuleStatusRequest req = new OPModuleStatusRequest(msgN, msgM);
+        try {
+            this.getConnection().sendMessage(req);
+        } catch (IOException ex) {
+            System.err.println("Error: unable to send status request: " + req);
         }
     }
     

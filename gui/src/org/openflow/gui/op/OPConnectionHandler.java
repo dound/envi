@@ -1,9 +1,12 @@
 package org.openflow.gui.op;
 
+import java.awt.AWTEvent;
 import java.awt.Color;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -23,6 +26,7 @@ import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
 import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.op.OPModuleStatusReply;
+import org.openflow.gui.net.protocol.op.OPModuleStatusRequest;
 import org.openflow.gui.net.protocol.op.OPModulesAdd;
 import org.openflow.gui.net.protocol.op.OPTestInfo;
 import org.openflow.util.Pair;
@@ -75,9 +79,28 @@ public class OPConnectionHandler extends ConnectionHandler
         manager.addDrawable(testOutput);
     }
     
-    public void drawableEvent(Drawable d, String event) {
+    public void drawableEvent(Drawable d, AWTEvent e, String event) {
         if(event.equals("mouse_released")) {
-            // TODO: handle a mouse click on a Drawable
+            MouseEvent me = (MouseEvent)e;
+            if(me.getButton() != MouseEvent.BUTTON1 && d instanceof OPModule) {
+                OPModule m = (OPModule)d;
+                
+                // ignore the request if the module is not installed 
+                OPNodeWithNameAndPorts n = m.getNodeInstalledOn();
+                if(n == null)
+                    return;
+                
+                // send a request for the module's status
+                org.openflow.gui.net.protocol.Node msgN = new org.openflow.gui.net.protocol.Node(n.getType(), n.getID());
+                org.openflow.gui.net.protocol.Node msgM = new org.openflow.gui.net.protocol.Node(m.getType(), m.getID());
+                OPModuleStatusRequest req = new OPModuleStatusRequest(msgN, msgM);
+                try {
+                    this.getConnection().sendMessage(req);
+                } catch (IOException ex) {
+                    System.err.println("Error: unable to send status request: " + req);
+                }
+            }
+                
         }
     }
     
@@ -191,12 +214,12 @@ public class OPConnectionHandler extends ConnectionHandler
         case TYPE_MODULE_HW:
             icon = new ShapeIcon(new RoundRectangle2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE*4/5, 10, 10), DARK_GREEN, Color.BLACK);
             name = ((org.openflow.gui.net.protocol.op.OPModule)n).name;
-            return new org.openflow.gui.drawables.OPModule(true, name, n.id, icon);
+            return new OPModule(true, name, n.id, icon);
         
         case TYPE_MODULE_SW:
             icon = new ShapeIcon(new Ellipse2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_BLUE, Color.BLACK);
             name = ((org.openflow.gui.net.protocol.op.OPModule)n).name;
-            return new org.openflow.gui.drawables.OPModule(false, name, n.id, icon);
+            return new OPModule(false, name, n.id, icon);
             
         default:
             return super.processNodeAdd(n);
@@ -215,7 +238,8 @@ public class OPConnectionHandler extends ConnectionHandler
         else {
             for(OPModule m : value.b) {
                 if(msg.module.id==m.getID() && msg.module.nodeType==m.getType()) {
-                    m.setStatus(msg.status);
+                    m.setStatus(msg.status + " (" + new java.util.Date().toString() + ")");
+                    manager.displayIcon(msg.status, 5000, 18, m.getX(), m.getY());
                     return;
                 }
             }

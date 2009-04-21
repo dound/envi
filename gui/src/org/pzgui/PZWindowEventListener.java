@@ -96,11 +96,12 @@ public class PZWindowEventListener implements ComponentListener,
      * null if no file was chosen.
      * 
      * @param prompt  the message to show in the prompt
+     * @param defaultFN  the default filename
      * 
      * @return the filename, or null if none was chosen
      */
-    private String getFilename(String prompt) {
-        String file = DialogHelper.getInput(prompt);
+    private String getFilename(String prompt, String defaultFN) {
+        String file = DialogHelper.getInput(prompt, defaultFN);
         if(file != null && !file.endsWith(".yaml"))
             return file + ".yaml";
         else
@@ -121,12 +122,12 @@ public class PZWindowEventListener implements ComponentListener,
         PZManager manager = window.getManager();
         
         if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_O) {
-            String file = getFilename("What file do you want to save to?");
+            String file = getFilename("What file do you want to save to?", manager.getLastConfigFilename());
             if(file != null)
                 manager.loadDrawablePositionsFromFile(file);
         }
         else if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_S) {
-            String file = getFilename("What file do you want to save to?");
+            String file = getFilename("What file do you want to save to?", manager.getLastConfigFilename());
             if(file != null)
                 manager.saveDrawablePositionsToFile(file);
         }
@@ -189,7 +190,7 @@ public class PZWindowEventListener implements ComponentListener,
         
         Drawable d = manager.getSelected();
         if(d != null)
-            manager.fireDrawableEvent(d, "mouse_released");
+            manager.fireDrawableEvent(d, e, "mouse_released");
         
         manager.noteMouseUp();
         manager.deselect();
@@ -210,7 +211,7 @@ public class PZWindowEventListener implements ComponentListener,
         
         int x = window.getMX(e);
         int y = window.getMY(e);
-        manager.setMousePos(x, y, false);
+        manager.setMousePos(x, y, true);
 
         Drawable selNode = manager.getSelected();
         if(selNode == null) {

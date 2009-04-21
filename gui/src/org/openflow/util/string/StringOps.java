@@ -354,34 +354,47 @@ public abstract class StringOps {
    */
   public static String splitIntoLines(String s, int firstLineMaxLen, int maxLineLen, String newlineIdentifier, boolean trim) {
     String ret = "";
-    boolean firstLine = true;
 
     if (trim) {
       s = s.trim();
     }
-    while (s.length() > ((firstLine) ? firstLineMaxLen : maxLineLen)) {
-
+    
+    int len = firstLineMaxLen;
+    while (s.length() > len) {
       //find a good place to split (don't split a word!)
-      int actualSplit = 1;
+      int actualSplit = -1;
 
       //look for whitespace to break on (but don't go to the first char!)
-      for (int i = ((firstLine) ? firstLineMaxLen : maxLineLen) - 1; i > 0; i--) {
-        if (s.charAt(i) == ' ' || s.charAt(i) == '\t') {
+      char c = '\0';
+      for (int i = len - 1; i > 0; i--) {
+        c = s.charAt(i);
+        if(c==' ' || c=='\t' || c=='-') {
           actualSplit = i;
           break;
         }
       }
 
+      // choose the break spot
+      int end, start;
+      if(actualSplit < 0) {
+          end = len;
+          start = end;
+      } 
+      else {
+          end = actualSplit;
+          start = actualSplit + (c=='-' ? 0 : 1);
+      }
+      
       //add the new line
-      ret = ret.concat(s.substring(0, actualSplit) + newlineIdentifier);
+      ret = ret.concat(s.substring(0, end) + newlineIdentifier);
 
       //remove the characters just added to ret
-      s = s.substring(actualSplit + 1);
+      s = s.substring(start);
 
       if (trim) {
         s = s.trim();
       }
-      firstLine = false;
+      len = maxLineLen;
     }
 
     return ret.concat(s); //add whatever remains of s

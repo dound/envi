@@ -32,6 +32,8 @@
     <delete dir="${bin.dir}"/>
     <delete dir="nbdist"/>
     <delete dir="nb_project/build"/>
+    <delete file="jnlp/dgu.gif"/>
+    <delete file="jnlp/${jarfile}"/>
   </target>
 
   <target name="build" depends="init">

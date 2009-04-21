@@ -192,7 +192,7 @@ public class PZWindowEventListener implements ComponentListener,
         
         Drawable d = manager.getSelected();
         if(d != null)
-            manager.fireDrawableEvent(d, "mouse_released");
+            manager.fireDrawableEvent(d, e, "mouse_released");
         
         manager.noteMouseUp();
         manager.deselect();

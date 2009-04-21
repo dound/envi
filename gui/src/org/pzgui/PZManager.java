@@ -1,5 +1,6 @@
 package org.pzgui;
 
+import java.awt.AWTEvent;
 import java.awt.Graphics2D;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -837,8 +838,8 @@ public class PZManager extends Thread {
     /**
      * Updates the slider labels and notify those listening for traffic matrix changes.
      */
-    public void fireDrawableEvent(Drawable d, String event) {
+    public void fireDrawableEvent(Drawable d, AWTEvent e, String event) {
         for(DrawableEventListener del : drawableEventListeners)
-            del.drawableEvent(d, event);
+            del.drawableEvent(d, e, event);
     }
 }

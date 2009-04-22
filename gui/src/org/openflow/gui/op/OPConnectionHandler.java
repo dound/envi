@@ -39,7 +39,9 @@ import org.openflow.util.Pair;
 
 public class OPConnectionHandler extends ConnectionHandler
                                  implements DrawableEventListener {
-
+    /** whether multiple modules can be installed on a single node */
+    public static final boolean ALLOW_MULTIPLE_MODULES_PER_NODE = false;
+    
     /** the manager for our single topology */
     private final OPLayoutManager manager;
     
@@ -140,7 +142,7 @@ public class OPConnectionHandler extends ConnectionHandler
         if(d instanceof OPNodeWithNameAndPorts) {
             // dragged m to a new place: install request
             OPNodeWithNameAndPorts n = (OPNodeWithNameAndPorts)d;
-            if(m.isCompatibleWith(n)) {
+            if(m.isCompatibleWith(n) && (ALLOW_MULTIPLE_MODULES_PER_NODE || config.get(key(n)).b.size()==0)) {
                 // duplicate if m is an original
                 if(m.isOriginal()) {
                     m = new OPModule(m);

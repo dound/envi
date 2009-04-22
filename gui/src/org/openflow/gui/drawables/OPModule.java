@@ -129,21 +129,23 @@ public class OPModule extends OPNodeWithNameAndPorts {
     /** Draw the object using super.drawObject() and then add the name in the middle */
     public void drawObject(Graphics2D gfx) {
         super.drawObject(gfx);
-        if(!isOriginal())
-            return;
-        
+
+        // draw the marker,  if there is one
         int x = getX();
         int y = getY();
+        Icon m = getMarker();
+        if(m != null)
+            m.draw(gfx, x, y);
+        
+        // no more to do if this isn't an original
+        if(!isOriginal())
+            return;
         
         if(dragX!=x || dragY!=y) {
             super.setPos(dragX, dragY);
             super.drawObject(gfx);
             super.setPos(x, y);
         }
-        
-        Icon m = getMarker();
-        if(m != null)
-            m.draw(gfx, x, y);
     }
     
     public void setXPos(int x) {

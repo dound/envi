@@ -113,6 +113,19 @@ public class OPModule extends OPNodeWithNameAndPorts {
         return dragY;
     }
     
+    /** a marker to draw on the node, if any */
+    private Icon marker = null;
+    
+    /** returns the current marker (may be null) */
+    public Icon getMarker() {
+        return marker;
+    }
+    
+    /** sets the marker to m (if m is null, the marker will be removed) */
+    public void setMarker(Icon m) {
+        marker = m;
+    }
+    
     /** Draw the object using super.drawObject() and then add the name in the middle */
     public void drawObject(Graphics2D gfx) {
         super.drawObject(gfx);
@@ -127,6 +140,10 @@ public class OPModule extends OPNodeWithNameAndPorts {
             super.drawObject(gfx);
             super.setPos(x, y);
         }
+        
+        Icon m = getMarker();
+        if(m != null)
+            m.draw(gfx, x, y);
     }
     
     public void setXPos(int x) {

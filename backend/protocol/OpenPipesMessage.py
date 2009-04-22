@@ -4,7 +4,7 @@ import struct
 
 from twisted.internet import reactor
 
-from OFGMessage import OFG_DEFAULT_PORT, OFGMessage, OFG_MESSAGES, Node, NodesAdd, create_ofg_server
+from OFGMessage import OFG_DEFAULT_PORT, OFGMessage, OFG_MESSAGES, LinksAdd, LinksDel, Node, NodesAdd, create_ofg_server
 from ltprotocol.ltprotocol import LTProtocol
 
 OP_MESSAGES = []
@@ -212,9 +212,13 @@ def run_op_server(port, recv_callback):
 
 def test():
     # simply print out all received messages
-    def print_ltm(_, ltm):
+    def print_ltm(xport, ltm):
         if ltm is not None:
             print 'recv: %s' % str(ltm)
+            t = ltm.get_type()
+            if t==LinksAdd.get_type() or t==LinksDel.get_type():
+                # got request to add/del a link: tell the GUI we've done so
+                xport.write(OP_PROTOCOL.pack_with_header(ltm))
 
     server = create_ofg_server(OFG_DEFAULT_PORT, print_ltm)
 

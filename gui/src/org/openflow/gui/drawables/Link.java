@@ -367,14 +367,14 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         Vector2i p1 = new Vector2i(src.getX() + offsetX, src.getY() + offsetY);
         Vector2i p2 = new Vector2i(dst.getX() + offsetX, dst.getY() + offsetY);
         
-        // draw the link between the objects' center points
-        gfx.drawLine(p1.x, p1.y, p2.x, p2.y);
-        
         // draw an arrow head on directed links
         if(Options.USE_DIRECTED_LINKS) {
-            Vector2i pI = IntersectionFinder.intersect(p1, p2, dst.getWidth(), dst.getHeight());
-            gfx.fill(getArrowHead(ARROW_HEAD_SIZE, p1.x, p1.y, pI.x, pI.y));
+            p2 = IntersectionFinder.intersect(p1, p2, dst.getWidth(), dst.getHeight());
+            gfx.fill(getArrowHead(ARROW_HEAD_SIZE, p1.x, p1.y, p2.x, p2.y));
         }
+        
+        // draw the link between the objects' center points
+        gfx.drawLine(p1.x, p1.y, p2.x, p2.y);
     }
     
     /**

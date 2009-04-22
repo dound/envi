@@ -162,6 +162,27 @@ public class OPConnectionHandler extends ConnectionHandler
         
         // dragged to empty space or an incompatible node
         if(m.getNodeInstalledOn() != null && !m.isOriginal()) {
+         // disconnect the links associated with the module being removed
+            org.openflow.gui.net.protocol.Link[] links = new org.openflow.gui.net.protocol.Link[m.getLinks().size()];
+            int i = 0;
+            for(org.openflow.gui.drawables.Link l : m.getLinks()) {
+                links[i++] = new org.openflow.gui.net.protocol.Link(
+                        LinkType.WIRE,
+                        new org.openflow.gui.net.protocol.Node(((OPNodeWithNameAndPorts)l.getDestination()).getType(), l.getDestination().getID()),
+                        l.getMyPort(l.getDestination()),
+                        new org.openflow.gui.net.protocol.Node(((OPNodeWithNameAndPorts)l.getSource()).getType(), l.getSource().getID()),
+                        l.getMyPort(l.getSource())
+                        );
+            }
+            
+            // tell the backend about the link removals
+            LinksDel msg = new LinksDel(links);
+            try {
+                getConnection().sendMessage(msg);
+            }
+            catch(IOException ex) {
+                System.err.println("Failed to send link delete (" + ex + "): " + msg);
+            }
             
             // dragged m to nowhere: uninstall request
             moveModule(m, null);

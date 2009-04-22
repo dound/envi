@@ -4,6 +4,7 @@ import org.openflow.gui.drawables.OPModule;
 import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
 import org.pzgui.Drawable;
 import org.pzgui.PZManager;
+import org.pzgui.PZWindow;
 
 /**
  * Provides OpenPipes-specific layout enhancements.
@@ -13,6 +14,16 @@ import org.pzgui.PZManager;
 public class OPLayoutManager extends PZManager {
     public OPLayoutManager() {
         super(); 
+    }
+    
+    /**
+     * Extends the base implementation to use OPWindowEventListener instead of
+     * the default.
+     */
+    public void attachWindow(final PZWindow w, boolean addDefaultEventListener) {
+        super.attachWindow(w, true);
+        
+        w.setCustomTitle(OpenPipes.OPENPIPES_TITLE);
     }
     
     public void setMousePos(int x, int y, boolean dragging) {

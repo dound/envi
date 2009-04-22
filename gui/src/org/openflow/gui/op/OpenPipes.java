@@ -9,6 +9,8 @@ import org.openflow.gui.op.OPConnectionHandler;
 import org.openflow.gui.op.OPLayoutManager;
 
 public final class OpenPipes {
+    public static final String OPENPIPES_TITLE = "OpenFlow GUI: OpenPipes";
+
     /** cannot instantiate this class */
     private OpenPipes() {}
     

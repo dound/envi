@@ -166,6 +166,18 @@ class Node:
             return 'AP'
         elif node_type == Node.TYPE_HOST:
             return 'Host'
+        elif node_type == Node.TYPE_IN:
+            return 'In'
+        elif node_type == Node.TYPE_OUT:
+            return 'Out'
+        elif node_type == Node.TYPE_NETFPGA:
+            return 'NetFPGA'
+        elif node_type == Node.TYPE_LAPTOP:
+            return 'Laptp'
+        elif node_type == Node.TYPE_MODULE_HW:
+            return 'Module(HW)'
+        elif node_type == Node.TYPE_MODULE_SW:
+            return 'Module(SW)'
         else:
             return 'unknown'
 

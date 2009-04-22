@@ -21,6 +21,7 @@ import org.pzgui.icon.ShapeIcon;
 import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.Topology;
 import org.openflow.gui.op.OPLayoutManager;
+import org.openflow.gui.drawables.LayoutableIcon;
 import org.openflow.gui.drawables.Node;
 import org.openflow.gui.drawables.OPModule;
 import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
@@ -87,6 +88,9 @@ public class OPConnectionHandler extends ConnectionHandler
         
         testInput = new OPNodeWithNameAndPorts(NodeType.UNKNOWN, "", 1111, new ShapeIcon(new Rectangle2D.Double(0, 0, TEST_BOX_WIDTH, TEST_BOX_HEIGHT), LIGHT_YELLOW, Color.BLACK));
         testOutput = new OPNodeWithNameAndPorts(NodeType.UNKNOWN, "", 9999, new ShapeIcon(new Rectangle2D.Double(0, 0, TEST_BOX_WIDTH, TEST_BOX_HEIGHT), Color.WHITE, Color.BLACK));
+        
+        // a background for the pallete
+        manager.addDrawable(new LayoutableIcon(5555, new ShapeIcon(new Rectangle2D.Double(0, 0, TEST_BOX_WIDTH, 1500), new Color(230,230,230), Color.BLACK), 0, 0));
         
         manager.addDrawable(testInput);
         manager.addDrawable(testOutput);

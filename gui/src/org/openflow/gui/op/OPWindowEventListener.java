@@ -6,14 +6,13 @@ import org.pzgui.PZWindow;
 import org.pzgui.PZWindowEventListener;
 
 public class OPWindowEventListener extends PZWindowEventListener {
+    public static final String MODE_CHANGED_EVENT = "mode_changed";
+    
     /** the global link add mode */
     private static boolean linkAddMode = false;
     
     /** the global link delete mode status */
     private static boolean linkDeleteMode = false;
-    
-    /** whether the mode has changed since last asked */
-    private static boolean modeHasChanged = false;
     
     /** returns true if we are in link add mode */
     public static boolean isLinkAddMode() {
@@ -30,26 +29,16 @@ public class OPWindowEventListener extends PZWindowEventListener {
         return !isLinkAddMode() && !isLinkDeleteMode();
     }
     
-    /**
-     * Returns true if the mode has changed since the last time this method was
-     * called.
-     */
-    public static boolean hasModeChanged() {
-        boolean ret = modeHasChanged;
-        modeHasChanged = false;
-        return ret;
-    }
-    
     /** 
-     * Updates the specified window's title wth the new mode and records the 
-     * the mode change.
+     * Updates the specified window's title with the new mode.
      */
     private void modeChanged(PZWindow w) {
-        modeHasChanged = true;
         if(isModuleStatusMode())
             w.setCustomTitle(OpenPipes.OPENPIPES_TITLE);
         else
             w.setCustomTitle(OpenPipes.OPENPIPES_TITLE + " - " + getModeName());
+        
+        w.getManager().fireDrawableEvent(null, null, MODE_CHANGED_EVENT);
     }
     
     /** returns a string representation of the current mode */

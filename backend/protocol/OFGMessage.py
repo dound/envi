@@ -184,7 +184,7 @@ class NodesList(OFGMessage):
         return OFGMessage.pack(self) + ''.join([node.pack() for node in self.nodes])
 
     @staticmethod
-    def unpack(body):
+    def unpack_child(cls, body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
         num_nodes = len(body) / Node.SIZE
@@ -192,7 +192,7 @@ class NodesList(OFGMessage):
         for _ in range(num_nodes):
             nodes.append(Node.unpack(body[Node.SIZE:]))
             body = body[:Node.SIZE]
-        return NodesList(nodes, xid)
+        return cls(nodes, xid)
 
     def __str__(self):
         return OFGMessage.__str__(self) + ' nodes=[%s]' % ''.join([str(node) + ',' for node in self.nodes])
@@ -205,6 +205,10 @@ class NodesAdd(NodesList):
     def __init__(self, nodes, xid=0):
         NodesList.__init__(self, nodes, xid)
 
+    @staticmethod
+    def unpack(body):
+        return NodesList.unpack_child(NodesAdd, bod)
+
     def __str__(self):
         return 'NODES_ADD: ' + NodesList.__str__(self)
 OFG_MESSAGES.append(NodesAdd)
@@ -216,6 +220,10 @@ class NodesDel(NodesList):
 
     def __init__(self, dpids, xid=0):
         NodesList.__init__(self, dpids, xid)
+
+    @staticmethod
+    def unpack(body):
+        return NodesList.unpack_child(NodesDel, body)
 
     def __str__(self):
         return 'NODES_DEL: ' + NodesList.__str__(self)
@@ -309,7 +317,7 @@ class LinksList(OFGMessage):
         return hdr + ''.join([link.pack() for link in self.links])
 
     @staticmethod
-    def unpack(body):
+    def unpack_child(cls, body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
         num_links = len(body) / Link.SIZE
@@ -317,7 +325,7 @@ class LinksList(OFGMessage):
         for _ in range(num_links):
             links.append(Link.unpack(body[:Link.SIZE]))
             body = body[Link.SIZE:]
-        return LinksList(links, xid)
+        return cls(links, xid)
 
     def links_to_string(self):
         return '[' + ', '.join([str(l) for l in self.links]) + ']'
@@ -333,6 +341,10 @@ class LinksAdd(LinksList):
     def __init__(self, links, xid=0):
         LinksList.__init__(self, links, xid)
 
+    @staticmethod
+    def unpack(body):
+        return LinksList.unpack_child(LinksAdd, body)
+
     def __str__(self):
         return 'LINKS_ADD: ' + LinksList.__str__(self)
 OFG_MESSAGES.append(LinksAdd)
@@ -344,6 +356,10 @@ class LinksDel(LinksList):
 
     def __init__(self, links, xid=0):
         LinksList.__init__(self, links, xid)
+
+    @staticmethod
+    def unpack(body):
+        return LinksList.unpack_child(LinksDel, body)
 
     def __str__(self):
         return 'LINKS_DEL: ' + LinksList.__str__(self)
@@ -462,7 +478,7 @@ class FlowsList(OFGMessage):
         return hdr + ''.join([flow.pack() for flow in self.flows])
 
     @staticmethod
-    def unpack(body):
+    def unpack_child(cls, body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
         num_flows = struct.unpack('> I', body)[0]
@@ -472,7 +488,7 @@ class FlowsList(OFGMessage):
             f = Flow.unpack(body)
             flows.append(f)
             body = body[f.length():]
-        return FlowsList(flows, xid)
+        return cls(flows, xid)
 
     def flows_to_string(self):
         return '[' + ', '.join([str(f) for f in self.flows]) + ']'
@@ -488,6 +504,10 @@ class FlowsAdd(FlowsList):
     def __init__(self, flows, xid=0):
         FlowsList.__init__(self, flows, xid)
 
+    @staticmethod
+    def unpack(body):
+        return FlowsList.unpack_child(FlowsAdd, body)
+
     def __str__(self):
         return 'FLOWS_ADD: ' + FlowsList.__str__(self)
 OFG_MESSAGES.append(FlowsAdd)
@@ -499,6 +519,10 @@ class FlowsDel(FlowsList):
 
     def __init__(self, flows, xid=0):
         FlowsList.__init__(self, flows, xid)
+
+    @staticmethod
+    def unpack(body):
+        return FlowsList.unpack_child(FlowsDel, body)
 
     def __str__(self):
         return 'FLOWS_DEL: ' + FlowsList.__str__(self)

@@ -24,6 +24,9 @@ import org.openflow.gui.op.OPLayoutManager;
 import org.openflow.gui.drawables.Node;
 import org.openflow.gui.drawables.OPModule;
 import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
+import org.openflow.gui.net.protocol.LinkType;
+import org.openflow.gui.net.protocol.LinksAdd;
+import org.openflow.gui.net.protocol.LinksDel;
 import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.op.OPModuleStatusReply;
@@ -98,10 +101,20 @@ public class OPConnectionHandler extends ConnectionHandler
                 
                 if(me.getButton() == MouseEvent.BUTTON1)
                     handleModulePlaced(m, me);
-                else
-                    handleModuleStatusRequested(m);
+                else {
+                    if(OPWindowEventListener.isModuleStatusMode())
+                        handleModuleStatusRequested(m);
+                    else if(OPWindowEventListener.isLinkAddMode())
+                        handleLinkChange(m, true);
+                    else
+                        handleLinkChange(m, false);
+                }
             }
                 
+        }
+        else if(event.equals(OPWindowEventListener.MODE_CHANGED_EVENT)) {
+            // clear any partial work done in a different mode
+            clearLinkEndpoint();
         }
     }
     
@@ -176,6 +189,63 @@ public class OPConnectionHandler extends ConnectionHandler
             this.getConnection().sendMessage(req);
         } catch (IOException ex) {
             System.err.println("Error: unable to send status request: " + req);
+        }
+    }
+    
+    /** the mrker to place on the selected link endpoint */
+    private static final Icon LINK_ENDPOINT_MARKER = new ShapeIcon(new Ellipse2D.Double(0, 0, 30, 30), Color.RED, Color.BLACK);
+    
+    /** endpoint of a link being added/removed, if the process has been started */
+    private OPModule linkEndpoint = null;
+    
+    /** clears the link endpoint and any marker on it */
+    private void clearLinkEndpoint() {
+        if(linkEndpoint != null) {
+            linkEndpoint.setMarker(null);
+            linkEndpoint = null;
+        }
+    }
+    
+    /** handles the request for the addition or deletion of a link */
+    private void handleLinkChange(OPModule m, boolean add) {
+        // cannot link to original modules (they are the "palette")
+        if(m.isOriginal()) {
+            clearLinkEndpoint();
+            return;
+        }
+        
+        if(linkEndpoint == null) {
+            // remember and mark the first choice
+            linkEndpoint = m;
+            linkEndpoint.setMarker(LINK_ENDPOINT_MARKER);
+        }
+        else {
+            OPModule srcM = linkEndpoint;
+            clearLinkEndpoint();
+            
+            // cannot link a module to itself
+            if(srcM.equals(m))
+                return;
+            
+            // create the link add/del message to the backend
+            OFGMessage msg;
+            org.openflow.gui.net.protocol.Link[] link;
+            org.openflow.gui.net.protocol.Node src = new org.openflow.gui.net.protocol.Node(srcM.getType(), srcM.getID());
+            org.openflow.gui.net.protocol.Node dst = new org.openflow.gui.net.protocol.Node(m.getType(), m.getID());
+            short p = 0;
+            link = new org.openflow.gui.net.protocol.Link[] {new org.openflow.gui.net.protocol.Link(LinkType.WIRE, src, p, dst, p)};
+            if(add)
+                msg = new LinksAdd(link);
+            else
+                msg = new LinksDel(link);
+            
+            // send it
+            try {
+                getConnection().sendMessage(msg);
+            }
+            catch(IOException ex) {
+                System.err.println("Error: failed to send (" + ex.getMessage() + "): " + msg);
+            }
         }
     }
     

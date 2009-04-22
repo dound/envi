@@ -19,7 +19,7 @@ public class OPModuleStatusRequest extends OFGMessage {
     /** the module */
     public final Node module;
     
-    public OPModuleStatusRequest(Node module, Node node) {
+    public OPModuleStatusRequest(Node node, Node module) {
         super(OFGMessageType.OP_MODULE_STATUS_REQUEST, 0);
         if(!module.nodeType.isModule())
             throw new Error("Error: module must be of type OPModule");

@@ -139,7 +139,7 @@ public class PZManager extends Thread {
     /** Entities to draw on the GUIs */
     private Vector<Drawable> drawables = new Vector<Drawable>();
 
-    /** the order in which certain types of objects should be drawn (first=front) */
+    /** the order in which certain types of objects should be drawn (last=front) */
     private LinkedList<Class> classDrawOrder = new LinkedList<Class>();
     
     /**
@@ -608,7 +608,7 @@ public class PZManager extends Thread {
         Graphics2D gfx = window.getDisplayGfx();
         if(gfx == null)
             return;
-
+        
         // setup the view based on the pan and zoom settings
         Vector2i offset = new Vector2i(window.getDrawOffsetX(), window.getDrawOffsetY());
         float zoom = window.getZoom();
@@ -618,13 +618,28 @@ public class PZManager extends Thread {
         for(Drawable e : drawables)
             e.unsetDrawn();
         
-        // draw anything which needs to be drawn before the objects themselves
-        for(Drawable e : drawables)
-            e.drawBeforeObject(gfx);
+        // draw objects in the requested order
+        int dIndex = 0;
+        for(Class c : classDrawOrder) {
+            for(; dIndex<drawables.size(); dIndex++) {
+                Drawable d = drawables.get(dIndex);
+                if(!c.isInstance(d))
+                    break; // next class of drawables
+                
+                // draw anything which needs to be drawn before the objects themselves
+                d.drawBeforeObject(gfx);
         
-        // draw all of the objects
-        for(Drawable e : drawables)
-            e.drawObject(gfx);
+                // draw all of the objects
+                d.drawObject(gfx);
+            }
+        }
+        
+        // draw any leftover objects
+        for(; dIndex<drawables.size(); dIndex++) {
+            Drawable d = drawables.get(dIndex);
+            d.drawBeforeObject(gfx);
+            d.drawObject(gfx);
+        }
         
         // draw any unexpired icons
         for(int i=0; i<icons.size(); i++) {

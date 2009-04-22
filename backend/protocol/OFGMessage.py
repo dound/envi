@@ -159,12 +159,12 @@ class Node:
         return Node(t[0], t[1])
 
     @staticmethod
-    def type_to_str(link_type):
-        if link_type == Node.TYPE_OPENFLOW_SWITCH:
+    def type_to_str(node_type):
+        if node_type == Node.TYPE_OPENFLOW_SWITCH:
             return 'OFSwitch'
-        elif link_type == Node.TYPE_OPENFLOW_WIRELESS_ACCESS_POINT:
+        elif node_type == Node.TYPE_OPENFLOW_WIRELESS_ACCESS_POINT:
             return 'AP'
-        elif link_type == Node.TYPE_HOST:
+        elif node_type == Node.TYPE_HOST:
             return 'Host'
         else:
             return 'unknown'

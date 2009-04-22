@@ -125,8 +125,12 @@ public class OPConnectionHandler extends ConnectionHandler
                     manager.addDrawable(m);
                 }
                 
-                moveModule(m, n);
-                config.get(key(n)).b.add(m);
+                // only need to send a message if the module is moving to a 
+                // different node
+                if(!n.equals(m.getNodeInstalledOn())) {
+                    moveModule(m, n);
+                    config.get(key(n)).b.add(m);
+                }
                 m.setPos(e.getX(), e.getY());
                 return;
             }

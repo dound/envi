@@ -87,8 +87,8 @@ class PollStart(OFGMessage):
         return PollStart(interval, lm, xid)
 
     def __str__(self):
-        fmt = 'POLL_START: ' + OFGMessage.__str__(self) + ' interval=%s msg=%s'
-        return fmt % (self.interval, str(self.lm))
+        fmt = 'POLL_START: ' + OFGMessage.__str__(self) + ' interval=%.1fsec msg=%s'
+        return fmt % (self.interval * 10.0, str(self.lm))
 OFG_MESSAGES.append(PollStart)
 
 class PollStop(OFGMessage):
@@ -114,7 +114,7 @@ class PollStop(OFGMessage):
         return PollStop(xid_to_stop_polling, xid)
 
     def __str__(self):
-        return 'POLL_STOP: ' + OFGMessage.__str__(self) + ' xid_to_stop_polling=' + self.xid_to_stop_polling
+        return 'POLL_STOP: ' + OFGMessage.__str__(self) + ' xid_to_stop_polling=%u' % self.xid_to_stop_polling
 OFG_MESSAGES.append(PollStop)
 
 class NodesRequest(OFGMessage):

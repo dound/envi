@@ -18,20 +18,41 @@ public class OPNodeWithNameAndPorts extends SimpleNodeWithPorts {
         super(type, name, x, y, id, icon);
     }
     
+    /** color to draw the name */
     private Color nameColor = Constants.COLOR_DEFAULT;
     
+    /** a marker to draw on the node, if any */
+    private Icon marker = null;
+    
+    /** gets the color to draw the name */
     public Color getNameColor() {
         return nameColor;
     }
     
+    /** sets the color to draw the name */
     public void setNameColor(Color c) {
         nameColor = c;
+    }
+
+    /** returns the current marker (may be null) */
+    public Icon getMarker() {
+        return marker;
+    }
+    
+    /** sets the marker to m (if m is null, the marker will be removed) */
+    public void setMarker(Icon m) {
+        marker = m;
     }
     
     /** Draw the object using super.drawObject() and then add the name in the middle */
     public void drawObject(Graphics2D gfx) {
         super.drawObject(gfx);
 
+        // draw the marker,  if there is one
+        Icon m = getMarker();
+        if(m != null)
+            m.draw(gfx, getX(), getY());
+        
         String name = getName();
         if(name==null || name.length()==0)
             return;

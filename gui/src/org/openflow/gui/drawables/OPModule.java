@@ -131,19 +131,6 @@ public class OPModule extends OPNodeWithNameAndPorts {
         return dragY;
     }
     
-    /** a marker to draw on the node, if any */
-    private Icon marker = null;
-    
-    /** returns the current marker (may be null) */
-    public Icon getMarker() {
-        return marker;
-    }
-    
-    /** sets the marker to m (if m is null, the marker will be removed) */
-    public void setMarker(Icon m) {
-        marker = m;
-    }
-    
     public void drawBeforeObject(Graphics2D gfx) {
         /* do nothing: wait to draw our links until later! */
     }
@@ -153,12 +140,8 @@ public class OPModule extends OPNodeWithNameAndPorts {
         super.drawBeforeObject(gfx);
         super.drawObject(gfx);
 
-        // draw the marker,  if there is one
         int x = getX();
         int y = getY();
-        Icon m = getMarker();
-        if(m != null)
-            m.draw(gfx, x, y);
         
         // no more to do if this isn't an original
         if(!isOriginal())

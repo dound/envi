@@ -110,7 +110,12 @@ public class OPConnectionHandler extends ConnectionHandler
                         handleLinkChange(m, false);
                 }
             }
-                
+            else if(me.getButton() != MouseEvent.BUTTON1) {
+                if(OPWindowEventListener.isLinkAddMode())
+                    handleLinkChange(d, true);
+                else
+                    handleLinkChange(d, false);
+            }
         }
         else if(event.equals(OPWindowEventListener.MODE_CHANGED_EVENT)) {
             // clear any partial work done in a different mode
@@ -196,7 +201,7 @@ public class OPConnectionHandler extends ConnectionHandler
     private static final Icon LINK_ENDPOINT_MARKER = new ShapeIcon(new Ellipse2D.Double(0, 0, 30, 30), Color.RED, Color.BLACK);
     
     /** endpoint of a link being added/removed, if the process has been started */
-    private OPModule linkEndpoint = null;
+    private OPNodeWithNameAndPorts linkEndpoint = null;
     
     /** clears the link endpoint and any marker on it */
     private void clearLinkEndpoint() {
@@ -207,31 +212,59 @@ public class OPConnectionHandler extends ConnectionHandler
     }
     
     /** handles the request for the addition or deletion of a link */
-    private void handleLinkChange(OPModule m, boolean add) {
-        // cannot link to original modules (they are the "palette")
-        if(m.isOriginal()) {
+    private void handleLinkChange(Drawable d, boolean add) {
+        // check to see if the node requested to be hooked up is a valid one
+        final OPNodeWithNameAndPorts n;
+        boolean ok = true;
+        if(d instanceof OPModule) {
+            OPModule m = (OPModule)d;
+            n = m;
+            
+            // cannot link to original modules (they are the "palette")
+            if(m.isOriginal())
+                ok = false;
+        }
+        else if(d instanceof OPNodeWithNameAndPorts) {
+            n = (OPNodeWithNameAndPorts)d;
+            if(n.getType()==NodeType.TYPE_IN || n.getType()==NodeType.TYPE_OUT) {
+                if(n.getType() == NodeType.TYPE_IN && linkEndpoint!=null)
+                    ok = false; // IN cannot be a destination
+                else if(n.getType() == NodeType.TYPE_OUT && linkEndpoint==null)
+                    ok = false; // OUT cannot be a source
+            }
+            else
+                ok = false; // only IN, OUT, and OPModule can be connected by links
+        }
+        else {
+            n = null;
+            ok = false;
+        }
+        
+        // bail out if an invalid choice was made
+        if(!ok) {
+            System.err.println("not ok: " + d);
             clearLinkEndpoint();
             return;
         }
         
         if(linkEndpoint == null) {
             // remember and mark the first choice
-            linkEndpoint = m;
+            linkEndpoint = n;
             linkEndpoint.setMarker(LINK_ENDPOINT_MARKER);
         }
         else {
-            OPModule srcM = linkEndpoint;
+            OPNodeWithNameAndPorts srcN = linkEndpoint;
             clearLinkEndpoint();
             
             // cannot link a module to itself
-            if(srcM.equals(m))
+            if(srcN.equals(n))
                 return;
             
             // create the link add/del message to the backend
             OFGMessage msg;
             org.openflow.gui.net.protocol.Link[] link;
-            org.openflow.gui.net.protocol.Node src = new org.openflow.gui.net.protocol.Node(srcM.getType(), srcM.getID());
-            org.openflow.gui.net.protocol.Node dst = new org.openflow.gui.net.protocol.Node(m.getType(), m.getID());
+            org.openflow.gui.net.protocol.Node src = new org.openflow.gui.net.protocol.Node(srcN.getType(), srcN.getID());
+            org.openflow.gui.net.protocol.Node dst = new org.openflow.gui.net.protocol.Node(n.getType(), n.getID());
             short p = 0;
             link = new org.openflow.gui.net.protocol.Link[] {new org.openflow.gui.net.protocol.Link(LinkType.WIRE, src, p, dst, p)};
             if(add)

@@ -13,7 +13,7 @@ OP_MESSAGES = []
 class OPMoveModule(OFGMessage):
     # used by MoveModule to represent when a module is added (from_node is NONE) or
     # removed (to_node is NONE)
-    NODE_NONE = Node(Node.TYPE_UNKNOWN, -1)
+    NODE_NONE = Node(Node.TYPE_UNKNOWN, 0x00000000FFFFFFFFL)
 
     @staticmethod
     def get_type():
@@ -45,8 +45,18 @@ class OPMoveModule(OFGMessage):
         return OPMoveModule(module, from_node, to_node, xid)
 
     def __str__(self):
-        fmt = 'OP_MOVE_MODULE: ' + OFGMessage.__str__(self) + " move %s from %s to %s"
-        return fmt % (self.module, self.from_node, self.to_node)
+        noneID = OPMoveModule.NODE_NONE.id
+        noneT = OPMoveModule.NODE_NONE.node_type
+        if self.from_node.id==noneID and self.from_node.node_type==noneT:
+            fmt = 'OP_MOVE_MODULE: ' + OFGMessage.__str__(self) + " add %s to %s"
+            return fmt % (self.module, self.to_node)
+        elif self.to_node.id == noneID and self.to_node.node_type == noneT:
+            fmt = 'OP_MOVE_MODULE: ' + OFGMessage.__str__(self) + " remove %s from %s"
+            return fmt % (self.module, self.from_node)
+        else:
+            fmt = 'OP_MOVE_MODULE: ' + OFGMessage.__str__(self) + " move %s from %s to %s"
+            return fmt % (self.module, self.from_node, self.to_node)
+
 OP_MESSAGES.append(OPMoveModule)
 
 class OPTestInfo(OFGMessage):

@@ -20,7 +20,7 @@ public class OPMoveModule extends OFGMessage {
      * Used by MoveModule to represent when a module is added (from_node is 
      * NONE) or removed (to_node is NONE).
      */
-    public static final Node NODE_NONE = new Node(NodeType.UNKNOWN, -1);
+    public static final Node NODE_NONE = new Node(NodeType.UNKNOWN, 0x00000000FFFFFFFFL);
         
     /** the module being moved */
     public final Node module;

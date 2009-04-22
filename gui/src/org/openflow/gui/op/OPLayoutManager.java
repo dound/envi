@@ -21,9 +21,12 @@ public class OPLayoutManager extends PZManager {
      * the default.
      */
     public void attachWindow(final PZWindow w, boolean addDefaultEventListener) {
-        super.attachWindow(w, true);
+        super.attachWindow(w, false);
         
         w.setCustomTitle(OpenPipes.OPENPIPES_TITLE);
+        
+        if(addDefaultEventListener)
+            w.addEventListener(new OPWindowEventListener());
     }
     
     public void setMousePos(int x, int y, boolean dragging) {

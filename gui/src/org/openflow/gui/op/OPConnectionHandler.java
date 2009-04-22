@@ -246,7 +246,6 @@ public class OPConnectionHandler extends ConnectionHandler
         
         // bail out if an invalid choice was made
         if(!ok) {
-            System.err.println("not ok: " + d);
             clearLinkEndpoint();
             return;
         }

@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import org.openflow.gui.net.SocketConnection;
 import org.openflow.gui.net.protocol.Node;
+import org.openflow.util.string.DPIDUtil;
 
 /**
  * Structure to specify a module.
@@ -15,6 +16,25 @@ public class OPModule extends Node {
     public static final int NAME_LEN = 32;
     public static final int SIZEOF = Node.SIZEOF + NAME_LEN;
 
+    /** extracts the portion of the ID which correspond to module ID */
+    public static final int extractModuleID(long id) {
+        return (int)(id & 0x00000000FFFFFFFFL);
+    }
+    
+    /** extracts the portion of the ID which correspond to module copy ID */
+    public static final int extractCopyID(long id) {
+        return (int)(id >>> 32);
+    }
+    
+    /** create the node ID from its constituent parts */
+    public static final long createNodeID(long mid, int cid) {
+        if((0xFFFFFFFF00000000L & mid) != 0)
+            throw new Error("Error: upper 4 bytes of module IDs should be 0 for original modules!  Got: " + mid);
+        
+        long clid = cid;
+        return (clid << 32L) | mid;
+    }
+
     /** name of the module */
     public final String name;
     
@@ -22,8 +42,8 @@ public class OPModule extends Node {
         super(in);
         name = SocketConnection.readString(in, NAME_LEN);
     }
-    
+        
     public String toString() {
-        return super.toString() + ":" + name;
+        return nodeType + "{" + DPIDUtil.toString(extractModuleID(id)) + "}-" + extractCopyID(id) + ":" + name;
     }
 }

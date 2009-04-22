@@ -15,10 +15,10 @@ public final class Options {
     public static final short DEFAULT_PORT = 2503;
     
     /** whether to automatically request link info for all new switches */
-    public static final boolean AUTO_REQUEST_LINK_INFO_FOR_NEW_SWITCH = true;
+    public static final boolean AUTO_REQUEST_LINK_INFO_FOR_NEW_SWITCH = false;
     
     /** whether to automatically request that link stats be periodically sent for all new links */
-    public static final boolean AUTO_TRACK_STATS_FOR_NEW_LINK = true;
+    public static final boolean AUTO_TRACK_STATS_FOR_NEW_LINK = false;
     
     /** how often to refresh basic port statistics */
     public static final int STATS_REFRESH_RATE_MSEC = 2000;

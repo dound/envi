@@ -12,6 +12,8 @@ public class OPModule extends OPNodeWithNameAndPorts {
      */
     public OPModule(boolean hw, String name, long id, Icon icon) {
         super(hw ? NodeType.TYPE_MODULE_HW : NodeType.TYPE_MODULE_SW, name, id, icon);
+        if(getCopyID() != 0)
+            throw new Error("Error: copy ID should be 0 for original modules!  Got: " + getCopyID());
         setNameColor(Color.WHITE);
         original = true;
     }
@@ -20,7 +22,9 @@ public class OPModule extends OPNodeWithNameAndPorts {
      * Returns a copy of mToCopy whose isOriginal() method will return false.
      */
     public OPModule(OPModule mToCopy) {
-        super(mToCopy.getType(), mToCopy.getName(), mToCopy.getID(), mToCopy.getIcon());
+        super(mToCopy.getType(), mToCopy.getName(),
+              org.openflow.gui.net.protocol.op.OPModule.createNodeID(mToCopy.getID(), NEXT_COPY_ID++), 
+              mToCopy.getIcon());
         original = false;
         setNameColor(Color.YELLOW);
     }
@@ -39,10 +43,24 @@ public class OPModule extends OPNodeWithNameAndPorts {
     }
     
     /** global counter */
-    private static int NEXT_ID = 0;
+    private static int NEXT_COPY_ID = 1;
     
-    /** unique ID to differentiate modules since their can be copies of a given type-ID pair */
-    private int instanceID = NEXT_ID++;
+    /**
+     * Returns the unique ID associated with this module type.
+     */
+    public int getModuleID() {
+        return org.openflow.gui.net.protocol.op.OPModule.extractModuleID(getID());
+    }
+    
+    /**
+     * Returns the unique copy ID for this module if it is not an original.
+     * All originals have copy ID 0.
+     * 
+     * @return  the copy ID
+     */
+    public int getCopyID() {
+        return org.openflow.gui.net.protocol.op.OPModule.extractCopyID(getID());
+    }
     
     /** 
      * Tries to install the module on a node - returns false if n is not 
@@ -176,16 +194,5 @@ public class OPModule extends OPNodeWithNameAndPorts {
     
     public void dragDone() {
         dragging = false;
-    }
-
-    public int hashCode() {
-        return super.hashCode() + 31 * instanceID;
-    }
-    
-    public boolean equals(Object o) {
-        if(this == o) return true;
-        if((o == null) || (o.getClass() != this.getClass())) return false;
-        OPModule m = (OPModule)o;
-        return m.getID() == getID() && m.getType() == getType() && m.instanceID == instanceID;
     }
 }

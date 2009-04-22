@@ -135,7 +135,7 @@ public class OPConnectionHandler extends ConnectionHandler
                 // duplicate if m is an original
                 if(m.isOriginal()) {
                     m = new OPModule(m);
-                    manager.addDrawable(m);
+                    getTopology().addNode(getConnection(), m);
                 }
                 
                 // only need to send a message if the module is moving to a 

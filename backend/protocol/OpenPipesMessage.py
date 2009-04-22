@@ -80,6 +80,24 @@ class OPModule(Node):
     NAME_LEN = 32
     SIZE = Node.SIZE + 32
 
+    @staticmethod
+    def extractModuleID(nid):
+        """Extracts the portion of the ID which correspond to module ID"""
+        return int(nid & 0x00000000FFFFFFFFL)
+
+    @staticmethod
+    def extractCopyID(nid):
+        """Extracts the portion of the ID which correspond to module copy ID"""
+        return int(nid >> 32L)
+
+    @staticmethod
+    def createNodeID(mid, cid):
+        """create the node ID from its constituent parts"""
+        if (0xFFFFFFFF00000000L & mid) != 0:
+            raise Exception("Error: upper 4 bytes of module IDs should be 0 for original modules!  Got: %0X" % mid)
+
+        return (cid << 32L) | mid
+
     def __init__(self, node_type, node_id, name):
         Node.__init__(self, node_type, node_id)
         self.name = str(name)
@@ -225,12 +243,12 @@ def test():
     # when the gui connects, tell it about the modules and nodes
     def new_conn_callback(conn):
         modules = [
-            OPModule(Node.TYPE_MODULE_HW, 0, "TTL / Checksum Validate"),
             OPModule(Node.TYPE_MODULE_HW, 1, "MAC Lookup"),
             OPModule(Node.TYPE_MODULE_HW, 2, "TTL Decrement"),
             OPModule(Node.TYPE_MODULE_HW, 3, "TTL Decrement (FAULTY)"),
             OPModule(Node.TYPE_MODULE_HW, 4, "Route Lookup"),
             OPModule(Node.TYPE_MODULE_HW, 5, "Checksum Update"),
+            OPModule(Node.TYPE_MODULE_HW, 6, "TTL / Checksum Validate"),
             OPModule(Node.TYPE_MODULE_SW, 100, "TTL / Checksum Validate"),
             OPModule(Node.TYPE_MODULE_SW, 101, "Compar-ison Module"),
             ]

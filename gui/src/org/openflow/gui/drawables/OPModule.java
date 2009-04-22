@@ -144,8 +144,13 @@ public class OPModule extends OPNodeWithNameAndPorts {
         marker = m;
     }
     
+    public void drawBeforeObject(Graphics2D gfx) {
+        /* do nothing: wait to draw our links until later! */
+    }
+    
     /** Draw the object using super.drawObject() and then add the name in the middle */
     public void drawObject(Graphics2D gfx) {
+        super.drawBeforeObject(gfx);
         super.drawObject(gfx);
 
         // draw the marker,  if there is one

@@ -4,7 +4,8 @@ import struct
 
 from twisted.internet import reactor
 
-from OFGMessage import OFG_DEFAULT_PORT, OFGMessage, OFG_MESSAGES, LinksAdd, LinksDel, Node, NodesAdd, create_ofg_server
+from OFGMessage import OFG_DEFAULT_PORT, OFG_MESSAGES
+from OFGMessage import OFGMessage, LinksAdd, LinksDel, Node, NodesAdd
 from ltprotocol.ltprotocol import LTProtocol
 
 OP_MESSAGES = []
@@ -238,7 +239,9 @@ def test():
                 # got request to add/del a link: tell the GUI we've done so
                 xport.write(OP_PROTOCOL.pack_with_header(ltm))
 
-    server = create_ofg_server(OFG_DEFAULT_PORT, print_ltm)
+    from ltprotocol.ltprotocol import LTTwistedServer
+    server = LTTwistedServer(OP_PROTOCOL, print_ltm)
+    server.listen(OFG_DEFAULT_PORT)
 
     # when the gui connects, tell it about the modules and nodes
     def new_conn_callback(conn):

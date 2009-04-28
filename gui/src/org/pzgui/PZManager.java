@@ -139,7 +139,7 @@ public class PZManager extends Thread {
     /** Entities to draw on the GUIs */
     private Vector<Drawable> drawables = new Vector<Drawable>();
 
-    /** the order in which certain types of objects should be drawn (first=front) */
+    /** the order in which certain types of objects should be drawn (last=front) */
     private LinkedList<Class> classDrawOrder = new LinkedList<Class>();
     
     /**
@@ -608,7 +608,27 @@ public class PZManager extends Thread {
         Graphics2D gfx = window.getDisplayGfx();
         if(gfx == null)
             return;
-
+        
+        // All drawables from index drawSplits[i-1] to drawSplits[i] (both 
+        // exclusive) will be drawn after the previous split and before the next
+        int[] drawSplits = new int[classDrawOrder.size()+1];
+        drawSplits[classDrawOrder.size()] = drawables.size();
+        
+        // determine the grouping ranges
+        int cIndex=0, dIndex=0;
+        for(; cIndex<classDrawOrder.size(); cIndex++) {
+            Class c = classDrawOrder.get(cIndex);
+            
+            // find the first occurrence not from class c
+            for(; dIndex<drawables.size(); dIndex++) {
+                if(c.isInstance(drawables.get(dIndex))) {
+                    // include up to but excluding dIndex in the cIndex round
+                    drawSplits[cIndex] = dIndex;
+                    break;
+                }
+            }
+        }
+        
         // setup the view based on the pan and zoom settings
         Vector2i offset = new Vector2i(window.getDrawOffsetX(), window.getDrawOffsetY());
         float zoom = window.getZoom();
@@ -618,13 +638,20 @@ public class PZManager extends Thread {
         for(Drawable e : drawables)
             e.unsetDrawn();
         
-        // draw anything which needs to be drawn before the objects themselves
-        for(Drawable e : drawables)
-            e.drawBeforeObject(gfx);
+        int prevSplitEnd = 0;
+        for(int end : drawSplits) {
+            // draw anything which needs to be drawn before the objects themselves
+            for(int i=prevSplitEnd; i<end; i++)
+                drawables.get(i).drawBeforeObject(gfx);
         
-        // draw all of the objects
-        for(Drawable e : drawables)
-            e.drawObject(gfx);
+            // draw all of the objects
+            for(int i=prevSplitEnd; i<end; i++)
+                drawables.get(i).drawObject(gfx);
+            
+            // don't go backwards
+            if(end > prevSplitEnd)
+                prevSplitEnd = end;
+        }
         
         // draw any unexpired icons
         for(int i=0; i<icons.size(); i++) {

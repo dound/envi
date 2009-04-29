@@ -112,6 +112,13 @@ public class Topology {
     public Set<Long> getNodeIDs() {
         return nodesMap.keySet();
     }
+
+    /**
+     * Gets whether this topology has a node with the specified ID.
+     */
+    public boolean hasNode(Long id) {
+        return getNode(id) != null;
+    }
     
     /**
      * Gets the node with the specified ID, if any such node exists in this

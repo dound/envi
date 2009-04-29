@@ -20,16 +20,26 @@ public class MultipleConnectionAndTopologyHandler<CH extends ConnectionHandler> 
     
     
     /**
-     * Start the GUI front-end.
-     * 
-     * @param cm       the initial connection manager
+     * Initialize the multiple connection and topology manager with the initial
+     * connection.
      */
-    public MultipleConnectionAndTopologyHandler(CH cm) {
+    public MultipleConnectionAndTopologyHandler() {
+        this(null);
+    }
+    
+    /**
+     * Initialize the multiple connection and topology manager with the initial
+     * connection.
+     * 
+     * @param ch  the initial connection manager (if null then it starts with no
+     *            connections)
+     */
+    public MultipleConnectionAndTopologyHandler(CH ch) {
         topologies = new CopyOnWriteArrayList<Topology>();
         connections = new CopyOnWriteArrayList<CH>();
         
-        if(cm != null)
-            addConnectionManager(cm);
+        if(ch != null)
+            addConnectionManager(ch);
     }
     
     

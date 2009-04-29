@@ -45,11 +45,6 @@ public class MultipleConnectionAndTopologyHandler {
             topologies.add(conn.getTopology());
     }
     
-    /** Returns the primary connection to the backend */
-    public ConnectionHandler getConnectionManager() {
-        return connections.get(0);
-    }
-
     /** 
      * Returns the requested connection to the backend.
      * 
@@ -102,11 +97,6 @@ public class MultipleConnectionAndTopologyHandler {
     
     
     // ----------------- Topologies ----------------- //
-    
-    /** Returns the first topology */
-    public Topology getTopology() {
-        return topologies.get(0);
-    }
 
     /** 
      * Returns the requested connection to the backend.

@@ -11,12 +11,12 @@ import org.pzgui.PZManager;
  * 
  * @author David Underhill
  */
-public class MultipleConnectionAndTopologyHandler {
+public class MultipleConnectionAndTopologyHandler<CH extends ConnectionHandler> {
     /** topology(ies) being tracked */
     private final CopyOnWriteArrayList<Topology> topologies;
     
     /** connection(s) to the backend */
-    private final CopyOnWriteArrayList<ConnectionHandler> connections;
+    private final CopyOnWriteArrayList<CH> connections;
     
     
     /**
@@ -24,9 +24,9 @@ public class MultipleConnectionAndTopologyHandler {
      * 
      * @param cm       the initial connection manager
      */
-    public MultipleConnectionAndTopologyHandler(ConnectionHandler cm) {
+    public MultipleConnectionAndTopologyHandler(CH cm) {
         topologies = new CopyOnWriteArrayList<Topology>();
-        connections = new CopyOnWriteArrayList<ConnectionHandler>();
+        connections = new CopyOnWriteArrayList<CH>();
         
         if(cm != null)
             addConnectionManager(cm);
@@ -39,7 +39,7 @@ public class MultipleConnectionAndTopologyHandler {
      * Add a connection manager.  That manager's topology is registered in the
      * topology list if it is not already present.
      */
-    public void addConnectionManager(ConnectionHandler conn) {
+    public void addConnectionManager(CH conn) {
         connections.add(conn);
         if(!topologies.contains(conn.getTopology()))
             topologies.add(conn.getTopology());
@@ -50,7 +50,7 @@ public class MultipleConnectionAndTopologyHandler {
      * 
      *  @param index  the index of the connection to get
      */
-    public ConnectionHandler getConnectionManager(int index) {
+    public CH getConnectionManager(int index) {
         return connections.get(index);
     }
     
@@ -67,11 +67,11 @@ public class MultipleConnectionAndTopologyHandler {
      * @param index  the index of the connection to remove
      */
     public void removeConnection(int index) {
-        ConnectionHandler conn = connections.remove(index);
+        CH conn = connections.remove(index);
         conn.shutdown();
         
         // remove the topology if nobody references it now
-        for(ConnectionHandler cm : connections)
+        for(CH cm : connections)
             if(cm.getTopology()== conn.getTopology())
                 return;
         topologies.remove(conn.getTopology());
@@ -84,7 +84,7 @@ public class MultipleConnectionAndTopologyHandler {
         long start = System.currentTimeMillis();
         
         // shutdown all connections
-        ConnectionHandler conn = getConnectionManager(0);
+        CH conn = getConnectionManager(0);
         while(getNumConnectionManagers() > 0)
             removeConnection(0);
         

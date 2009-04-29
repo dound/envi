@@ -642,11 +642,11 @@ public class PZManager extends Thread {
         for(int end : drawSplits) {
             // draw anything which needs to be drawn before the objects themselves
             for(int i=prevSplitEnd; i<end; i++)
-                drawables.get(i).drawBeforeObject(gfx);
+                drawBeforeObject(gfx, drawables.get(i));
         
             // draw all of the objects
             for(int i=prevSplitEnd; i<end; i++)
-                drawables.get(i).drawObject(gfx);
+                drawObject(gfx, drawables.get(i));
             
             // don't go backwards
             if(end > prevSplitEnd)
@@ -664,6 +664,24 @@ public class PZManager extends Thread {
         
         // back to the original view
         resetGraphicsView(gfx, offset, zoom);
+    }
+    
+    /** 
+     * Calls the drawBeforeObject(gfx) method on d.  This method is simply 
+     * present so it can be overriden to extend how the drawing of individual
+     * Drawables is done.
+     */
+    protected void drawBeforeObject(Graphics2D gfx, Drawable d) {
+        d.drawBeforeObject(gfx);
+    }
+    
+    /** 
+     * Calls the drawObject(gfx) method on d.  This method is simply 
+     * present so it can be overriden to extend how the drawing of individual
+     * Drawables is done.
+     */
+    protected void drawObject(Graphics2D gfx, Drawable d) {
+        d.drawObject(gfx);
     }
 
 

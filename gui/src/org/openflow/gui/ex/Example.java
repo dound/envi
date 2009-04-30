@@ -2,9 +2,9 @@ package org.openflow.gui.ex;
 
 import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.OpenFlowGUI;
-import org.openflow.gui.Options;
 import org.openflow.gui.ex.EXConnectionHandler;
 import org.openflow.gui.ex.EXLayoutManager;
+import org.openflow.util.Pair;
 import org.pzgui.layout.Edge;
 import org.pzgui.layout.Vertex;
 
@@ -14,8 +14,9 @@ public final class Example {
     
     /** run the front-end */
     public static void main(String args[]) {
-        String server = OpenFlowGUI.getServer(args);
-        Short port = Options.DEFAULT_PORT;
+        Pair<String, Short> serverPort = OpenFlowGUI.getServer(args);
+        String server = serverPort.a;
+        short port = serverPort.b;
         
         // create a manager to handle drawing the topology info received by the connection
         EXLayoutManager gm = new EXLayoutManager();

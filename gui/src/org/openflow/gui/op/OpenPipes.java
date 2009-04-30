@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.OpenFlowGUI;
-import org.openflow.gui.Options;
 import org.openflow.gui.op.OPConnectionHandler;
 import org.openflow.gui.op.OPLayoutManager;
+import org.openflow.util.Pair;
 
 public final class OpenPipes {
     public static final String OPENPIPES_TITLE = "OpenFlow GUI: OpenPipes";
@@ -16,8 +16,9 @@ public final class OpenPipes {
     
     /** run the front-end */
     public static void main(String args[]) {
-        String server = OpenFlowGUI.getServer(args);
-        Short port = Options.DEFAULT_PORT;
+        Pair<String, Short> serverPort = OpenFlowGUI.getServer(args);
+        String server = serverPort.a;
+        short port = serverPort.b;
         
         // create a manager to handle drawing the topology info received by the connection
         OPLayoutManager gm = new OPLayoutManager();

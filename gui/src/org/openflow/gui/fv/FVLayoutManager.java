@@ -38,7 +38,7 @@ public class FVLayoutManager extends PZLayoutManager {
         ArrayList<SliceTransform> xforms = new ArrayList<SliceTransform>();
         Paint slicePaints[] = new Paint[]{Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW, Color.PINK, Color.ORANGE};
         for(int i=0; i<numSlices; i++) {
-            AffineTransform t = computeTransform(i);
+            AffineTransform t = computeTransform(i,numSlices);
             Paint p = slicePaints[i % slicePaints.length];
             
             try {
@@ -54,9 +54,22 @@ public class FVLayoutManager extends PZLayoutManager {
     }
     
     /** computes the transform for a particular slice */
-    private AffineTransform computeTransform(int slice) {
-        // TODO: compute a better transform
-        return AffineTransform.getTranslateInstance(slice*10, slice*10);
+    private AffineTransform computeTransform(int slice, int nSlices) {
+	    double m00, m01, m02;
+	    double m10, m11, m12;
+	    int WindowHeight=800;  // FIXME : calculate dynamically
+	    double shear = 10;
+	    // we don't change the xcord at all; x' = x
+	    m00 = 1;	
+	    m01 = 0;
+	    m02 = 0;
+	    // y' = squishing + translate; no projection for now
+	    m10 = 0 ;
+	    m11 = 1/(double) nSlices;
+	    m12 = WindowHeight* (double) slice/nSlices;
+
+	    return new AffineTransform(m00,m10,m01,m11,m02,m12);
+        // return AffineTransform.getTranslateInstance(slice*10, slice*10);
     }
     
     /**

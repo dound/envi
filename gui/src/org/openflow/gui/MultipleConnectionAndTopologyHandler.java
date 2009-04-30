@@ -11,25 +11,35 @@ import org.pzgui.PZManager;
  * 
  * @author David Underhill
  */
-public class MultipleConnectionAndTopologyHandler {
+public class MultipleConnectionAndTopologyHandler<CH extends ConnectionHandler> {
     /** topology(ies) being tracked */
     private final CopyOnWriteArrayList<Topology> topologies;
     
     /** connection(s) to the backend */
-    private final CopyOnWriteArrayList<ConnectionHandler> connections;
+    private final CopyOnWriteArrayList<CH> connections;
     
     
     /**
-     * Start the GUI front-end.
-     * 
-     * @param cm       the initial connection manager
+     * Initialize the multiple connection and topology manager with the initial
+     * connection.
      */
-    public MultipleConnectionAndTopologyHandler(ConnectionHandler cm) {
+    public MultipleConnectionAndTopologyHandler() {
+        this(null);
+    }
+    
+    /**
+     * Initialize the multiple connection and topology manager with the initial
+     * connection.
+     * 
+     * @param ch  the initial connection manager (if null then it starts with no
+     *            connections)
+     */
+    public MultipleConnectionAndTopologyHandler(CH ch) {
         topologies = new CopyOnWriteArrayList<Topology>();
-        connections = new CopyOnWriteArrayList<ConnectionHandler>();
+        connections = new CopyOnWriteArrayList<CH>();
         
-        if(cm != null)
-            addConnectionManager(cm);
+        if(ch != null)
+            addConnectionManager(ch);
     }
     
     
@@ -39,23 +49,18 @@ public class MultipleConnectionAndTopologyHandler {
      * Add a connection manager.  That manager's topology is registered in the
      * topology list if it is not already present.
      */
-    public void addConnectionManager(ConnectionHandler conn) {
+    public void addConnectionManager(CH conn) {
         connections.add(conn);
         if(!topologies.contains(conn.getTopology()))
             topologies.add(conn.getTopology());
     }
     
-    /** Returns the primary connection to the backend */
-    public ConnectionHandler getConnectionManager() {
-        return connections.get(0);
-    }
-
     /** 
      * Returns the requested connection to the backend.
      * 
      *  @param index  the index of the connection to get
      */
-    public ConnectionHandler getConnectionManager(int index) {
+    public CH getConnectionManager(int index) {
         return connections.get(index);
     }
     
@@ -72,11 +77,11 @@ public class MultipleConnectionAndTopologyHandler {
      * @param index  the index of the connection to remove
      */
     public void removeConnection(int index) {
-        ConnectionHandler conn = connections.remove(index);
+        CH conn = connections.remove(index);
         conn.shutdown();
         
         // remove the topology if nobody references it now
-        for(ConnectionHandler cm : connections)
+        for(CH cm : connections)
             if(cm.getTopology()== conn.getTopology())
                 return;
         topologies.remove(conn.getTopology());
@@ -89,7 +94,7 @@ public class MultipleConnectionAndTopologyHandler {
         long start = System.currentTimeMillis();
         
         // shutdown all connections
-        ConnectionHandler conn = getConnectionManager(0);
+        CH conn = getConnectionManager(0);
         while(getNumConnectionManagers() > 0)
             removeConnection(0);
         
@@ -102,11 +107,6 @@ public class MultipleConnectionAndTopologyHandler {
     
     
     // ----------------- Topologies ----------------- //
-    
-    /** Returns the first topology */
-    public Topology getTopology() {
-        return topologies.get(0);
-    }
 
     /** 
      * Returns the requested connection to the backend.

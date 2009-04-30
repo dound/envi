@@ -1,5 +1,8 @@
 package org.openflow.gui;
 
+import java.util.ArrayList;
+
+import org.openflow.util.Pair;
 import org.pzgui.DialogHelper;
 import org.pzgui.PZManager;
 import org.pzgui.layout.Edge;
@@ -14,57 +17,27 @@ import org.pzgui.layout.Vertex;
 public final class OpenFlowGUI {
     private OpenFlowGUI() { /* this class may not be instantiated */ }
     
-    /**
-     * Gets the server to connect to.
-     * 
-     * @param args  the command-line arguments to extract a server from; if
-     *              one is not provided then the user will be prompted for one
-     * 
-     * @return  the server to connect to
+    /** 
+     * Run a simple version of the GUI by starting a single connection which 
+     * will populate a single topology drawn by a PZLayoutManager.
      */
-    public static String getServer(String args[]) {
-        // use the first argument as our server name, if provided
-        String server = null;
-        if(args.length > 0)
-            server = args[0];
+    public static void main(String args[]) {
+        Pair<String, Short> serverPort = getServer(args);
+        String server = serverPort.a;
+        short port = serverPort.b;
         
-        // ask the user for the backend's IP if it wasn't already given
-        if(server == null || server.length()==0)
-            server = DialogHelper.getInput("What is the IP or hostname of the backend?", Options.DEFAULT_SERVER_IP);
-
-        if(server == null) {
-            System.out.println("Goodbye");
-            System.exit(0);
-        }
+        // create a manager to handle drawing the topology info received by the connection
+        PZLayoutManager gm = new PZLayoutManager();
         
-        return server;
-    }
-
-    /**
-     * Gets the port to connect to.
-     * 
-     * @param args  the command-line arguments to extract a server from; if
-     *              a second one is not provided then the user will be prompted 
-     *              for one
-     * 
-     * @return  the port to connect to
-     */
-    public static short getPort(String args[]) {
-        String strPort = null;
-        try {
-            // use the second argument as our server name, if provided
-            if(args.length > 1 && args[1].length() > 0) {
-                strPort = args[1];
-                return Short.valueOf(strPort);
-            }
-        }
-        catch(NumberFormatException e) {
-            DialogHelper.displayError("Bad port number: " + strPort);
-            System.exit(-1);
-        }
-            
-        // use the default port if one was not provided
-        return Options.DEFAULT_PORT;
+        // layout the nodes with the spring algorithm by default
+        gm.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(gm.getGraph()));
+        
+        // create a manager to handle the connection itself
+        ConnectionHandler cm = makeDefaultConnection(gm, server, port, true, true);
+        
+        // start our managers
+        gm.start();
+        cm.getConnection().start();
     }
     
     /**
@@ -83,25 +56,92 @@ public final class OpenFlowGUI {
         return new ConnectionHandler(new Topology(manager), server, port, subscribeSwitches, subscribeLinks);
     }
     
-    /** 
-     * Run a simple version of the GUI by starting a single connection which 
-     * will populate a single topology drawn by a PZLayoutManager.
+    /**
+     * Gets the IP[:PORT] to connect to.
+     * 
+     * @param args  the command-line arguments to extract a server from; if
+     *              one is not provided then the user will be prompted for one
+     * 
+     * @return  the server to connect to
      */
-    public static void main(String args[]) {
-        String server = getServer(args);
-        short port = getPort(args);
+    public static Pair<String, Short> getServer(String args[]) {
+        ArrayList<Pair<String, Short>> servers = getServers(args, true);
+        return servers.get(0);
+    }
+    
+    /**
+     * Gets the IP[:PORT](s) to connect to.  If no servers are specified, the 
+     * user is prompted to specify one.  If the user does not specify anything
+     * when prompted, then the program terminates.
+     * 
+     * 
+     * @param args  the command-line arguments to extract server(s) from; if
+     *              none are provided then the user will be prompted for one
+     * 
+     * @return  the server to connect to
+     */
+    public static ArrayList<Pair<String, Short>> getServers(String args[]) {
+        return getServers(args, false);
+    }
+    
+    private static ArrayList<Pair<String, Short>> getServers(String args[], boolean limitToOne) {
+        // get the server(s) to connect to
+        ArrayList<Pair<String, Short>> servers = new ArrayList<Pair<String, Short>>();
         
-        // create a manager to handle drawing the topology info received by the connection
-        PZLayoutManager gm = new PZLayoutManager();
+        if(args.length == 0) {
+            // if none are specified, prompt the user like the base gui
+            servers.add(promptForServer());
+        }
+        else {
+            // each argument is a server to connect to
+            for(String arg : args) {
+                servers.add(parseServerIdentifier(arg));
+                if(limitToOne)
+                    break;
+            }
+        }
         
-        // layout the nodes with the spring algorithm by default
-        gm.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(gm.getGraph()));
+        if(servers.size() == 0) {
+            System.out.println("Goodbye");
+            System.exit(0);
+        }
         
-        // create a manager to handle the connection itself
-        ConnectionHandler cm = makeDefaultConnection(gm, server, port, true, true);
+        return servers;
+    }
+    
+    /**
+     * Returns the parse of a IP[:PORT].  If PORT is omitted, the 
+     * Options.DEFAULT_PORT is returned for the port value.
+     * 
+     * @return IP-port pair
+     */
+    public static Pair<String, Short> parseServerIdentifier(String s) {
+        int indexOfColon = s.indexOf(':');
         
-        // start our managers
-        gm.start();
-        cm.getConnection().start();
+        String server;
+        Short port = Options.DEFAULT_PORT;
+        if(indexOfColon > 0) {
+            server = s.substring(0, indexOfColon);
+            String strPort = s.substring(indexOfColon + 1);
+            try {
+                port = Short.valueOf(strPort);
+            }
+            catch(NumberFormatException e) {
+                throw new Error("Error: invalid port number: " + strPort);
+            }
+        }
+        else
+            server = s;
+        
+        return new Pair<String, Short>(server, port);
+    }
+    
+    /**
+     * Ask the user for the backend's IP[:PORT] in dialog box.
+     */
+    public static Pair<String, Short> promptForServer() {
+        String server = DialogHelper.getInput("What is the IP or hostname of the backend?", 
+                                              Options.DEFAULT_SERVER_IP);
+        return parseServerIdentifier(server);
     }
 }

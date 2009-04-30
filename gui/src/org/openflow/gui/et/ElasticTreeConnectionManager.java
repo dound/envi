@@ -8,7 +8,6 @@ import org.pzgui.DrawableEventListener;
 
 import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.OpenFlowGUI;
-import org.openflow.gui.Options;
 import org.openflow.gui.Topology;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.NodeWithPorts;
@@ -29,6 +28,7 @@ import org.openflow.gui.net.protocol.et.ETSwitchesRequest;
 import org.openflow.gui.net.protocol.et.ETTrafficMatrix;
 import org.openflow.gui.stats.LinkStats;
 import org.openflow.protocol.Match;
+import org.openflow.util.Pair;
 
 /**
  * Handles Elastic Tree-specific communications.  Also provides the main method
@@ -40,8 +40,9 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
                          implements DrawableEventListener, TrafficMatrixChangeListener {
     /** run the front-end */
     public static void main(String args[]) {
-        String server = OpenFlowGUI.getServer(args);
-        Short port = Options.DEFAULT_PORT;
+        Pair<String, Short> serverPort = OpenFlowGUI.getServer(args);
+        String server = serverPort.a;
+        short port = serverPort.b;
         
         // create a manager to handle drawing the topology info received by the connection
         ElasticTreeManager gm = new ElasticTreeManager(6);

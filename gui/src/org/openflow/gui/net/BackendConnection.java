@@ -2,9 +2,7 @@ package org.openflow.gui.net;
 
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.OFGMessageType;
-import org.openflow.gui.net.protocol.LinksSubscribe;
 import org.openflow.gui.net.protocol.PollStart;
-import org.openflow.gui.net.protocol.NodesSubscribe;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -18,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class BackendConnection<MSG_TYPE extends Message> extends Thread {
     /** whether to print messages we send and receive */
-    public static final boolean PRINT_MESSAGES = false;
+    public static final boolean PRINT_MESSAGES = true;
     
     /** how much time to remember a request before expiring it */
     private static final long REQUEST_LIFETIME_MSEC = 2000;
@@ -140,27 +138,16 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
     /** whether the connection has been turned off */
     private boolean shutdown = false;
     
-    /** whether to subscribe to switch updates */
-    private boolean subscribeToSwitchChanges;
-    
-    /** whether to subscribe to link updates */
-    private boolean subscribeToLinkChanges;
-    
     /**
      * Connect to the server at the specified address and port.
      * 
      * @param ip                 the IP where the server lives
      * @param port               the port the server listens on
-     * @param subscribeSwitches  whether to subscribe to switch changes
-     * @param subscribeLinks     whether to subscribe to link changes
      */
-    public BackendConnection(MessageProcessor<MSG_TYPE> mp, String ip, int port, 
-                          boolean subscribeSwitches, boolean subscribeLinks) {
+    public BackendConnection(MessageProcessor<MSG_TYPE> mp, String ip, int port) {
         msgProcessor = mp;
         serverIP = ip;
-        serverPort = port;
-        subscribeToSwitchChanges = subscribeSwitches;
-        subscribeToLinkChanges = subscribeLinks;
+        serverPort = port;  
     }
     
     /**
@@ -251,18 +238,6 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
         System.out.println("Now connected to server");
         stats.connected();
         msgProcessor.connectionStateChange();
-        
-        // ask the backend for a list of switches and links
-        try {
-            if(isSubscribeToSwitchChanges())
-                sendMessage(new NodesSubscribe(true));
-            
-            if(subscribeToLinkChanges)
-                sendMessage(new LinksSubscribe(true));
-        }
-        catch(IOException e) {
-            System.err.println("Error: unable to setup subscriptions");
-        }
     }
     
     /** tells the connection to disconnect and then connect again */
@@ -398,39 +373,5 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
                 } catch(IOException e){}
             }
         }
-    }
-
-    /** Returns whether the connection is subscribed to switch changes */
-    public boolean isSubscribeToSwitchChanges() {
-        return subscribeToSwitchChanges;
-    }
-    
-    /** 
-     * Sets whether the connection is subscribed to switch changes and sends 
-     * the appropriate subscription request if this is different. 
-     */
-    public void setSubscribeToSwitchChanges(boolean b) throws IOException {
-        if(b == subscribeToSwitchChanges)
-            return;
-        
-        sendMessage(new NodesSubscribe(b));
-        subscribeToSwitchChanges = b;
-    }
-
-    /** Returns whether the connection is subscribed to link changes */
-    public boolean isSubscribeToLinkChanges() {
-        return subscribeToSwitchChanges;
-    }
-    
-    /** 
-     * Sets whether the connection is subscribed to link changes and sends 
-     * the appropriate subscription request if this is different. 
-     */
-    public void setSubscribeToLinkChanges(boolean b) throws IOException {
-        if(b == subscribeToLinkChanges)
-            return;
-        
-        sendMessage(new LinksSubscribe(b));
-        subscribeToLinkChanges = b;
     }
 }

@@ -199,7 +199,7 @@ class NodesAdd(NodesList):
 
     @staticmethod
     def unpack(body):
-        return NodesList.unpack_child(NodesAdd, bod)
+        return NodesList.unpack_child(NodesAdd, body)
 
     def __str__(self):
         return 'NODES_ADD: ' + NodesList.__str__(self)

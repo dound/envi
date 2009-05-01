@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class BackendConnection<MSG_TYPE extends Message> extends Thread {
     /** whether to print messages we send and receive */
-    public static final boolean PRINT_MESSAGES = true;
+    public static final boolean PRINT_MESSAGES = false;
     
     /** how much time to remember a request before expiring it */
     private static final long REQUEST_LIFETIME_MSEC = 2000;

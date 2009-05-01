@@ -33,7 +33,7 @@ public enum OFGMessageType {
     /** Tell the backend to stop polling a message */
     POLL_STOP((byte)0x0F),
 
-    /** Query for list of nodes. */
+    /** Query for nodes */
     NODES_REQUEST((byte)0x10),
 
     /** Reply with list of nodes added. */
@@ -42,7 +42,7 @@ public enum OFGMessageType {
     /** Reply with list of nodes deleted. */
     NODES_DELETE((byte)0x12),
 
-    /** Query for list of links for the specified switch */
+    /** Query of links */
     LINKS_REQUEST((byte)0x13),
 
     /** Reply with list of links added.  Body is array of book_link_spec. */
@@ -51,17 +51,14 @@ public enum OFGMessageType {
     /** Reply with list of links deleted.  Body is array of book_link_spec. */
     LINKS_DELETE((byte)0x15),
     
-    /** Request to change whether the one is subscribed to have node changes pushed */ 
-    NODES_SUBSCRIBE((byte)0x16),
-    
-    /** Request to change whether the one is subscribed to have link changes pushed */
-    LINKS_SUBSCRIBE((byte)0x17),
+    /** Query for flows */
+    FLOWS_REQUEST((byte)0x16),
 
     /** List of flows to add. */
-    FLOWS_ADD((byte)0x18),
+    FLOWS_ADD((byte)0x17),
 
     /** List of flows to delete. */
-    FLOWS_DELETE((byte)0x19),
+    FLOWS_DELETE((byte)0x18),
     
     /**
      * Statistics request.  Body is book_stat_message, with osr_body as defined 

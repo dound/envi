@@ -13,10 +13,12 @@ import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.MessageProcessor;
 import org.openflow.gui.net.protocol.LinksAdd;
 import org.openflow.gui.net.protocol.LinksDel;
-import org.openflow.gui.net.protocol.LinksRequest;
 import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.OFGMessageType;
+import org.openflow.gui.net.protocol.Request;
+import org.openflow.gui.net.protocol.RequestLinks;
+import org.openflow.gui.net.protocol.RequestType;
 import org.openflow.gui.net.protocol.StatsHeader;
 import org.openflow.gui.net.protocol.SwitchDescriptionRequest;
 import org.openflow.gui.net.protocol.NodesAdd;
@@ -50,6 +52,12 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     /** whether the connection is being shut down */
     private boolean shutting_down = false;
     
+    /** whether to subscribe to switch updates */
+    private boolean subscribeToSwitchChanges;
+    
+    /** whether to subscribe to link updates */
+    private boolean subscribeToLinkChanges;
+    
     /**
      * Create a connection bound to the server at the specified address and port
      * which will be used to populate the specified topology.
@@ -63,7 +71,9 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     public ConnectionHandler(Topology topo, String ip, int port, 
                              boolean subscribeSwitches, boolean subscribeLinks) {
         topology = topo;
-        connection = new BackendConnection<OFGMessage>(this, ip, port, subscribeSwitches, subscribeLinks);
+        connection = new BackendConnection<OFGMessage>(this, ip, port);
+        subscribeToSwitchChanges = subscribeSwitches;
+        subscribeToLinkChanges = subscribeLinks;
     }
     
     public BackendConnection<OFGMessage> getConnection() {
@@ -78,6 +88,23 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     public void connectionStateChange() {
         if(!connection.isConnected())
             topology.removeAllNodes(connection);
+        else {
+            // ask the backend for a list of switches and links
+            try {
+                if(isSubscribeToSwitchChanges()) {
+                    connection.sendMessage(new Request(OFGMessageType.NODES_REQUEST, RequestType.ONETIME));
+                    connection.sendMessage(new Request(OFGMessageType.NODES_REQUEST, RequestType.SUBSCRIBE));
+                }
+                
+                if(subscribeToLinkChanges) {
+                    connection.sendMessage(new RequestLinks(RequestType.ONETIME));
+                    connection.sendMessage(new RequestLinks(RequestType.SUBSCRIBE));
+                }
+            }
+            catch(IOException e) {
+                System.err.println("Error: unable to setup subscriptions");
+            }
+        }
     }
     
     /** 
@@ -170,7 +197,9 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         // get the links associated with this switch
         long dpid = s.getID();
         try {
-            getConnection().sendMessage(new LinksRequest(dpid));
+            org.openflow.gui.net.protocol.Node n;
+            n = new org.openflow.gui.net.protocol.Node(NodeType.OPENFLOW_SWITCH, dpid);
+            getConnection().sendMessage(new RequestLinks(RequestType.ONETIME, n));
         } catch (IOException e) {
             System.err.println("Warning: unable to get switches for switch + " + DPIDUtil.toString(dpid));
         }
@@ -342,5 +371,41 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     public void shutdown() {
         shutting_down = true;
         connection.shutdown();
+    }
+
+    /** Returns whether the connection is subscribed to switch changes */
+    public boolean isSubscribeToSwitchChanges() {
+        return subscribeToSwitchChanges;
+    }
+    
+    /** 
+     * Sets whether the connection is subscribed to switch changes and sends 
+     * the appropriate subscription request if this is different. 
+     */
+    public void setSubscribeToSwitchChanges(boolean b) throws IOException {
+        if(b == subscribeToSwitchChanges)
+            return;
+        
+        RequestType rt = b ? RequestType.SUBSCRIBE : RequestType.UNSUBSCRIBE;
+        connection.sendMessage(new Request(OFGMessageType.NODES_REQUEST, rt));
+        subscribeToSwitchChanges = b;
+    }
+
+    /** Returns whether the connection is subscribed to link changes */
+    public boolean isSubscribeToLinkChanges() {
+        return subscribeToSwitchChanges;
+    }
+    
+    /** 
+     * Sets whether the connection is subscribed to link changes and sends 
+     * the appropriate subscription request if this is different. 
+     */
+    public void setSubscribeToLinkChanges(boolean b) throws IOException {
+        if(b == subscribeToLinkChanges)
+            return;
+        
+        RequestType rt = b ? RequestType.SUBSCRIBE : RequestType.UNSUBSCRIBE;
+        connection.sendMessage(new RequestLinks(rt));
+        subscribeToLinkChanges = b;
     }
 }

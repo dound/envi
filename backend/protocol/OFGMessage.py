@@ -117,18 +117,6 @@ class PollStop(OFGMessage):
         return 'POLL_STOP: ' + OFGMessage.__str__(self) + ' xid_to_stop_polling=%u' % self.xid_to_stop_polling
 OFG_MESSAGES.append(PollStop)
 
-class NodesRequest(OFGMessage):
-    @staticmethod
-    def get_type():
-        return 0x10
-
-    def __init__(self, xid=0):
-        OFGMessage.__init__(self, xid)
-
-    def __str__(self):
-        return 'NODES_REQUEST: ' + OFGMessage.__str__(self)
-OFG_MESSAGES.append(NodesRequest)
-
 class Node:
     SIZE = 10
 
@@ -138,9 +126,9 @@ class Node:
     TYPE_OPENFLOW_WIRELESS_ACCESS_POINT = 2
     TYPE_HOST = 100
 
-    def __init__(self, node_type, id):
+    def __init__(self, node_type, node_id):
         self.node_type = int(node_type)
-        self.id = long(id)
+        self.id = long(node_id)
 
     def pack(self):
         return struct.pack('> HQ', self.node_type, self.id)
@@ -176,7 +164,7 @@ class NodesList(OFGMessage):
         return OFGMessage.pack(self) + ''.join([node.pack() for node in self.nodes])
 
     @staticmethod
-    def unpack_child(cls, body):
+    def unpack_child(clz, body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
         num_nodes = len(body) / Node.SIZE
@@ -184,7 +172,7 @@ class NodesList(OFGMessage):
         for _ in range(num_nodes):
             nodes.append(Node.unpack(body[Node.SIZE:]))
             body = body[:Node.SIZE]
-        return cls(nodes, xid)
+        return clz(nodes, xid)
 
     def __str__(self):
         return OFGMessage.__str__(self) + ' nodes=[%s]' % ''.join([str(node) + ',' for node in self.nodes])
@@ -199,7 +187,7 @@ class NodesAdd(NodesList):
 
     @staticmethod
     def unpack(body):
-        return NodesList.unpack_child(NodesAdd, bod)
+        return NodesList.unpack_child(NodesAdd, body)
 
     def __str__(self):
         return 'NODES_ADD: ' + NodesList.__str__(self)
@@ -220,32 +208,6 @@ class NodesDel(NodesList):
     def __str__(self):
         return 'NODES_DEL: ' + NodesList.__str__(self)
 OFG_MESSAGES.append(NodesDel)
-
-class LinksRequest(OFGMessage):
-    @staticmethod
-    def get_type():
-        return 0x13
-
-    def __init__(self, src_dpid, xid=0):
-        OFGMessage.__init__(self, xid)
-        self.src_dpid = long(src_dpid)
-
-    def length(self):
-        return OFGMessage.SIZE + 8
-
-    def pack(self):
-        return OFGMessage.pack(self) + struct.pack('> Q', self.src_dpid)
-
-    @staticmethod
-    def unpack(body):
-        xid = struct.unpack('> I', body[:4])[0]
-        body = body[4:]
-        src_dpid = struct.unpack('> Q', body[:8])[0]
-        return LinksRequest(src_dpid, xid)
-
-    def __str__(self):
-        return 'LINKS_REQUEST: ' + OFGMessage.__str__(self) + ' src_dpid=' + dpidstr(self.src_dpid)
-OFG_MESSAGES.append(LinksRequest)
 
 class Link:
     SIZE = 2 + (2 * (Node.SIZE + 2))
@@ -309,7 +271,7 @@ class LinksList(OFGMessage):
         return hdr + ''.join([link.pack() for link in self.links])
 
     @staticmethod
-    def unpack_child(cls, body):
+    def unpack_child(clz, body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
         num_links = len(body) / Link.SIZE
@@ -317,7 +279,7 @@ class LinksList(OFGMessage):
         for _ in range(num_links):
             links.append(Link.unpack(body[:Link.SIZE]))
             body = body[Link.SIZE:]
-        return cls(links, xid)
+        return clz(links, xid)
 
     def links_to_string(self):
         return '[' + ', '.join([str(l) for l in self.links]) + ']'
@@ -357,62 +319,6 @@ class LinksDel(LinksList):
         return 'LINKS_DEL: ' + LinksList.__str__(self)
 OFG_MESSAGES.append(LinksDel)
 
-class Subscribe(OFGMessage):
-    def __init__(self, subscribe, xid=0):
-        OFGMessage.__init__(self, xid)
-        self.subscribe = subscribe
-
-    def length(self):
-        return OFGMessage.SIZE + 1
-
-    def pack(self):
-        return OFGMessage.pack(self) + struct.pack('> B', (1 if self.subscribe else 0))
-
-    @staticmethod
-    def unpack(body):
-        xid = struct.unpack('> I', body[:4])[0]
-        body = body[4:]
-        subscribe = struct.unpack('> B', body[:1])[0]
-        return (True if subscribe==1 else False, xid)
-
-    def __str__(self):
-        what = ' ' if self.subscribe else ' un'
-        return 'SUBSCRIBE: ' + OFGMessage.__str__(self) + what + 'subscribe'
-
-class NodesSubscribe(Subscribe):
-    @staticmethod
-    def get_type():
-        return 0x16
-
-    def __init__(self, xid, subscribe):
-        Subscribe.__init__(self, xid, subscribe)
-
-    @staticmethod
-    def unpack(body):
-        t = Subscribe.unpack(body)
-        return NodesSubscribe(t[0], t[1])
-
-    def __str__(self):
-        return 'NODES_' + Subscribe.__str__(self)
-OFG_MESSAGES.append(NodesSubscribe)
-
-class LinksSubscribe(Subscribe):
-    @staticmethod
-    def get_type():
-        return 0x17
-
-    def __init__(self, subscribe, xid=0):
-        Subscribe.__init__(self, subscribe, xid)
-
-    @staticmethod
-    def unpack(body):
-        t = Subscribe.unpack(body)
-        return LinksSubscribe(t[0], t[1])
-
-    def __str__(self):
-        return 'LINKS_' + Subscribe.__str__(self)
-OFG_MESSAGES.append(LinksSubscribe)
-
 class FlowHop:
     SIZE = 10
 
@@ -432,6 +338,8 @@ class FlowHop:
         return '%s/%u' % (dpidstr(self.dpid), self.port)
 
 class Flow:
+    TYPE_UNKNOWN = 0
+
     def __init__(self, path):
         self.path = path
 
@@ -454,6 +362,10 @@ class Flow:
     def length(self):
         return FlowHop.SIZE * len(self.path)
 
+    @staticmethod
+    def type_to_str(flow_type):
+        return 'unknown'
+
     def __str__(self):
         return 'Path{%s}' % ''.join('%s:%u' % (dpidstr(hop.dpid), hop.port) for hop in self.path)
 
@@ -470,7 +382,7 @@ class FlowsList(OFGMessage):
         return hdr + ''.join([flow.pack() for flow in self.flows])
 
     @staticmethod
-    def unpack_child(cls, body):
+    def unpack_child(clz, body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
         num_flows = struct.unpack('> I', body)[0]
@@ -480,7 +392,7 @@ class FlowsList(OFGMessage):
             f = Flow.unpack(body)
             flows.append(f)
             body = body[f.length():]
-        return cls(flows, xid)
+        return clz(flows, xid)
 
     def flows_to_string(self):
         return '[' + ', '.join([str(f) for f in self.flows]) + ']'
@@ -520,6 +432,115 @@ class FlowsDel(FlowsList):
         return 'FLOWS_DEL: ' + FlowsList.__str__(self)
 OFG_MESSAGES.append(FlowsDel)
 
+class Request(OFGMessage):
+    TYPE_UNKNOWN = 0
+    TYPE_ONETIME = 1
+    TYPE_SUBSCRIBE = 2
+    TYPE_UNSUBSCRIBE = 3
+
+    def __init__(self, request_type, otype, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.request_type = request_type
+        self.type = otype
+
+    def length(self):
+        return OFGMessage.SIZE + 3
+
+    def pack(self):
+        return OFGMessage.pack(self) + struct.pack('> 2H', self.request_type, self.type)
+
+    @staticmethod
+    def unpack_child(clz, body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        t = struct.unpack('> BH', body)
+        return clz(t[0], t[1], xid)
+
+    @staticmethod
+    def type_to_str(request_type):
+        if request_type == Request.TYPE_ONETIME:
+            return 'ONETIME'
+        elif request_type == Request.TYPE_SUBSCRIBE:
+            return 'SUBSCRIBE'
+        elif request_type == Request.TYPE_UNSUBSCRIBE:
+            return 'UNSUBSCRIBE'
+        else:
+            return 'unknown'
+
+    def otype_to_str(self, otype):
+        return str(otype)
+
+    def __str__(self):
+        rstr = Request.type_to_str(self.request_type)
+        ostr = self.otype_to_str(self.type)
+        return OFGMessage.__str__(self) + ' %s %s' % (rstr, ostr)
+
+class NodesRequest(Request):
+    @staticmethod
+    def get_type():
+        return 0x10
+
+    def __init__(self, request_type, node_type, xid=0):
+        Request.__init__(self, request_type, node_type, xid)
+
+    @staticmethod
+    def unpack(body):
+        return Request.unpack_child(NodesRequest, body)
+
+    def otype_to_str(self, otype):
+        return Node.type_to_str(otype)
+
+    def __str__(self):
+        return 'REQUEST for Nodes: ' + Request.__str__(self)
+OFG_MESSAGES.append(NodesRequest)
+
+class LinksRequest(Request):
+    @staticmethod
+    def get_type():
+        return 0x13
+
+    def __init__(self, request_type, link_type, src_node, xid=0):
+        Request.__init__(self, request_type, link_type, xid)
+        self.src_node = src_node
+
+    def pack(self):
+        return Request.pack(self) + self.src_node.pack()
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        t = struct.unpack('> BH', body[:3])
+        body = body[3:]
+        src_node = Node.unpack(body)
+        return LinksRequest(t[0], t[1], src_node, xid)
+
+    def otype_to_str(self, otype):
+        return Link.type_to_str(otype)
+
+    def __str__(self):
+        return 'REQUEST for Links: ' + Request.__str__(self)
+OFG_MESSAGES.append(LinksRequest)
+
+class FlowsRequest(Request):
+    @staticmethod
+    def get_type():
+        return 0x16
+
+    def __init__(self, request_type, flow_type, xid=0):
+        Request.__init__(self, request_type, flow_type, xid)
+
+    @staticmethod
+    def unpack(body):
+        return Request.unpack_child(FlowsRequest, body)
+
+    def otype_to_str(self, otype):
+        return Flow.type_to_str(otype)
+
+    def __str__(self):
+        return 'REQUEST for Flows: ' + Request.__str__(self)
+OFG_MESSAGES.append(FlowsRequest)
+
 OFG_PROTOCOL = LTProtocol(OFG_MESSAGES, 'H', 'B')
 
 def create_ofg_server(port, recv_callback):
@@ -549,7 +570,7 @@ def test():
     def print_ltm(_, ltm):
         if ltm is not None:
             print 'recv: %s' % str(ltm)
-            if ltm.get_type() == NodesSubscribe.get_type():
+            if ltm.get_type() == NodesRequest.get_type():
                 nodes = [Node(Node.TYPE_OPENFLOW_SWITCH, i+1) for i in range(20)]
                 server.send(NodesAdd(nodes))
                 server.send(LinksAdd([Link(i % 2 + 1, nodes[i], 0, nodes[i+1], 1) for i in range(19)]))

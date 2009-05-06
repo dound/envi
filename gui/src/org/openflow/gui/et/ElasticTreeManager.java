@@ -18,7 +18,23 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.LegendTitle;
+import org.jfree.data.xy.DefaultXYDataset;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.ui.RectangleEdge;
+import org.jfree.ui.RectangleInsets;
 import org.openflow.gui.net.protocol.et.ETTrafficMatrix;
 import org.openflow.gui.drawables.DrawableIcon;
 import org.openflow.gui.drawables.Link;
@@ -226,7 +242,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JRadioButton optNetModeHW = new JRadioButton("Deployment");
     private JRadioButton optNetModeSW = new JRadioButton("Example");
     
-    private JPanel pnlChart = new JPanel();
+    private ChartPanel pnlChart;
     private JPanel pnlSliders = new JPanel();
     
     // control panel components
@@ -298,25 +314,41 @@ public class ElasticTreeManager extends PZLayoutManager {
         GroupLayout layout = initPanel(pnlCustomAttached, "");
         pnlCustomAttached.setBorder(null);
         pnlCustomAttached.setBackground(Color.BLACK);
+        pnlChart = new ChartPanel(chart);
+        
+        // maximize the width of pnlChart
+        pnlChart.setPreferredSize(new Dimension(2000, 200));
+        
+        // don't let the pnlChart get too tall
+        pnlChart.setMinimumSize(new Dimension(400, RESERVED_HEIGHT_BOTTOM - 35));
+        pnlChart.setMaximumSize(new Dimension(2000, RESERVED_HEIGHT_BOTTOM - 35));
+        
+        // manual gap
+        JLabel gap1 = new JLabel("");
+        gap1.setMinimumSize(new Dimension(1, 7));
+        gap1.setMaximumSize(gap1.getMinimumSize());
         
         layout.setHorizontalGroup(
                 layout.createSequentialGroup()
                     .addComponent(pnlModes)
-                    .addComponent(pnlChart)
+                    .addGroup(layout.createParallelGroup()
+                        .addComponent(gap1)
+                        .addComponent(pnlChart))
                     .addComponent(pnlSliders)
         );
         
         layout.setVerticalGroup(
                 layout.createParallelGroup()
                     .addComponent(pnlModes)
-                    .addComponent(pnlChart)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(gap1)
+                        .addComponent(pnlChart))
                     .addComponent(pnlSliders)
         );
         
-        layout.linkSize(SwingConstants.VERTICAL, pnlModes, pnlChart, pnlSliders);
+        layout.linkSize(SwingConstants.VERTICAL, pnlModes, pnlSliders);
         
         initModesPanel();
-        initChartPanel();
         initSlidersPanel();
         
         // force all components within this panel to have a white-on-black color
@@ -406,18 +438,113 @@ public class ElasticTreeManager extends PZLayoutManager {
         optAlgModeOrig.setEnabled(false);
     }
     
-    private void initChartPanel() {
+ // ----------- Chart Creation ----------- //
+    /** prepare a basic JFreeChart */
+    private JFreeChart prepareChart(String title, String xAxis, String yAxis, XYSeriesCollection coll, boolean useLegend) {
+        JFreeChart chart = ChartFactory.createXYLineChart(
+            title,
+            xAxis,
+            yAxis,
+            coll,
+            PlotOrientation.VERTICAL,
+            useLegend,
+            false, //tooltips
+            false  //URLs
+        );    
         
+        chart.setBorderVisible(false);
+        chart.setAntiAlias(true);
+        chart.setTextAntiAlias(true);
+        
+        XYPlot plot = (XYPlot)chart.getPlot();
+        plot.setBackgroundPaint(Constants.cmap(Color.WHITE));
+        plot.setDomainGridlinePaint(Constants.cmap(Color.LIGHT_GRAY));
+        plot.setRangeGridlinePaint(Constants.cmap(Color.LIGHT_GRAY));
+        plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+        plot.setDomainCrosshairVisible(false);
+        plot.setRangeCrosshairVisible(true);
+        
+        ValueAxis domain = plot.getDomainAxis();
+        domain.setLabelFont(FONT_BIG);
+        domain.setTickLabelsVisible(false);
+        domain.setTickMarksVisible(false);
+        domain.setAutoRange(true);
+        
+        LegendTitle lt = chart.getLegend();
+        if(lt != null)
+            lt.setPosition(RectangleEdge.TOP);
+        
+        return chart;
+    }
+    
+    // chart configuration parameters
+    private static final int MAX_VIS_DATA_POINTS = 100;
+    private static final int FONT_CHART_SIZE = 24;
+    private static final Font FONT_CHART = new Font("Tahoma", Font.BOLD, FONT_CHART_SIZE);
+    private static final boolean SHOW_AXIS_LABELS = true;
+    
+    private final XYSeries chartDataXput = new XYSeries("Throughput", false, false);
+    private final XYSeries chartDataPower = new XYSeries("Power", false, false);
+    private final XYSeries chartDataLatency = new XYSeries("Latency", false, false);
+    private final JFreeChart chart = createChart();
+    private int datapointOn = 0;
+    
+    /** create a JFreeChart for showing stats over time */
+    private JFreeChart createChart() {
+        XYSeriesCollection chartDatas[]  = new XYSeriesCollection[] {new XYSeriesCollection(), new XYSeriesCollection(), new XYSeriesCollection()};
+        JFreeChart chart = prepareChart("", "", "", chartDatas[0], false);   
+        chart.setBackgroundPaint(Color.BLACK);
+        XYPlot plot = (XYPlot)chart.getPlot();
+        
+        // use a fixed range
+        ValueAxis domain = plot.getDomainAxis();
+        domain.setAutoRange(false);
+        
+        // setup colors and axes for each line
+        final XYSeries[] STATS_SERIES = new XYSeries[]{chartDataPower, chartDataXput, chartDataLatency};
+        for(int i=0; i<NUM_SLIDERS; i++) {
+            // how to draw the data in this collection
+            XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+            renderer.setSeriesPaint(0, STATS_COLORS[i]);
+            renderer.setSeriesStroke(0, new BasicStroke((i==0) ? 8f : 3f, BasicStroke.CAP_BUTT,BasicStroke.JOIN_BEVEL));
+            renderer.setSeriesLinesVisible(0, true);
+            renderer.setSeriesShapesVisible(0, false);
+            renderer.setSeriesVisibleInLegend(0, true, false);
+            plot.setRenderer(i, renderer);
+            
+            // how the axis should look
+            NumberAxis n = new NumberAxis(SHOW_AXIS_LABELS ? STATS_NAMES[i] : "");
+            n.setAutoRange(true);
+            n.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+            plot.setRangeAxis(i, n);
+            plot.setRangeAxisLocation(i, i==0 ? AxisLocation.BOTTOM_OR_LEFT : AxisLocation.TOP_OR_RIGHT);
+            n.setAxisLinePaint(STATS_COLORS[i]);
+            n.setLabelPaint(STATS_COLORS[i]);
+            n.setTickLabelPaint(STATS_COLORS[i]);
+            n.setLabelFont(FONT_CHART);
+            n.setTickLabelFont(FONT_CHART);
+            
+            // add the data and associate it with its axis 
+            XYSeriesCollection dataset = chartDatas[i];
+            dataset.addSeries(STATS_SERIES[i]);
+            plot.setDataset(i, dataset);
+            plot.mapDatasetToRangeAxis(i, i);
+        }
+        
+        plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+        
+        return chart;
     }
     
     // tweak-able slider drawing parameters
-    private static final boolean SHOW_LATENCY_SLIDER = false;
-    private static final int NUM_SLIDERS = SHOW_LATENCY_SLIDER ? 3 : 2;
+    private static final boolean SHOW_LATENCY = false;
+    private static final int NUM_SLIDERS = SHOW_LATENCY ? 3 : 2;
     private static final int SLIDER_MARGIN = 50;
     private static final int SLIDER_WIDTH = 50;
     private static final int FONT_SLIDER_SIZE = 38;
     private static final int SLIDER_BORDER_WIDTH = 7;
-    private static final Color[] SLIDER_COLORS = new Color[]{new Color(28,61,255), new Color(123,44,255), new Color(104,255,191)};
+    private static final String[] STATS_NAMES = new String[]{"power (W)", "traffic (Gb/s)", "latency (ms)"};
+    private static final Color[] STATS_COLORS = new Color[]{new Color(192,61,28), new Color(123,44,255), new Color(104,255,191)};
     
     // computed slider drawing parameter constants
     private static final int SLIDER_HEIGHT = RESERVED_HEIGHT_BOTTOM - 2*SLIDER_MARGIN - 50;
@@ -444,7 +571,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         gfx.setFont(Constants.FONT_DEFAULT);
         gfx.setComposite(Constants.COMPOSITE_OPAQUE);
         
-        refreshAllSliders();
+        refreshStatsGraphics();
     }
     
     /**
@@ -461,7 +588,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         // set up the drawing context for this slider
         gfx.setStroke(SLIDER_STROKE);
-        gfx.setColor(SLIDER_COLORS[sliderNum]);
+        gfx.setColor(STATS_COLORS[sliderNum]);
         gfx.setFont(FONT_SLIDER);
         
         // draw the border
@@ -871,60 +998,90 @@ public class ElasticTreeManager extends PZLayoutManager {
     private int powerCurrent, powerTraditional, powerMax;
     private int xputExpected, xputAchieved;
     private int latencyEdge, latencyAgg, latencyCore;
+    private double latencyAvg;
     
     public void setPowerData(int cur, int traditional, int max) {
         powerCurrent = cur;
         powerTraditional = traditional;
         powerMax = max;
-        
-        refreshAllSliders();
     }
     
     private void refreshPowerSlider() {
         double p = powerCurrent / (double)powerTraditional;
-        drawSlider(1, p, "power", (int)(p*100) + "%");
+        drawSlider(0, p, "power", (int)(p*100) + "%");
     }
     
     public void setExpectedAggregateThroughput(double total_bps) {
         int expected_mbps = (int)(total_bps / (1000 * 1000));
         xputExpected = expected_mbps;
-        refreshAllSliders();
     }
 
     public void setAchievedAggregateThroughput(int bandwidth_achieved_mbps) {
         xputAchieved = bandwidth_achieved_mbps;
-        refreshAllSliders();
     }
     
     private void refreshXputSlider() {
-        double p = xputAchieved / (double)xputExpected;
-        drawSlider(0, p, "traffic", xputAchieved + "Mb/s");
+        // like other sliders, 0%=good, 100%=bad
+        //       0% = no traffic dropped
+        //     100% = all traffic is dropped
+        double p = 1.0 - xputAchieved / (double)xputExpected;
+        drawSlider(1, p, "traffic", xputAchieved/1000 + "Gb/s");
     }
 
     public void setLatencyData(int latency_ms_edge, int latency_ms_agg, int latency_ms_core) {
         latencyEdge = latency_ms_edge;
         latencyAgg = latency_ms_agg;
         latencyCore = latency_ms_core;
-        
-        refreshAllSliders();
     }
     
     private void refreshLatencySlider() {
-        double avgLatency = (latencyEdge + latencyAgg + latencyCore) / 3.0;
+        latencyAvg = (latencyEdge + latencyAgg + latencyCore) / 3.0;
         final int MAX_LATENCY_MS = 25;
-        double p = avgLatency / MAX_LATENCY_MS;
-        drawSlider(2, p, "latency", avgLatency + "ms");
+        double p = latencyAvg / MAX_LATENCY_MS;
+        drawSlider(2, p, "latency", latencyAvg + "ms");
     }
     
-    private void refreshAllSliders() {
+    /**
+     * Redraws the sliders and updates the chart to match the latest data.
+     */
+    private void refreshStatsGraphics() {
         synchronized(slidersImg) { // prevent tearing
             Graphics2D gfx = (Graphics2D)slidersImg.getGraphics();
             gfx.clearRect(0, 0, SLIDERS_WIDTH, RESERVED_HEIGHT_BOTTOM);
             
             refreshPowerSlider();
             refreshXputSlider();
-            refreshLatencySlider();
+            if(SHOW_LATENCY)
+                refreshLatencySlider();
         }
+        
+        double xput = xputAchieved / 1000.0;
+        final boolean TEMP_FAKE = true;
+        if(TEMP_FAKE) {
+            latencyAvg = Math.random()*10 + 10;
+            xput = xputExpected / 1000.0;
+        }
+            
+        
+        // update the chart
+        int x = datapointOn++;
+        chartDataXput.add(x, xput);
+        chartDataPower.add(x, powerCurrent);
+        if(SHOW_LATENCY)
+            chartDataLatency.add(x, latencyAvg);
+        
+        // remove old data
+        if(x >= MAX_VIS_DATA_POINTS) {
+            chartDataXput.remove(0);
+            chartDataPower.remove(0);
+            if(SHOW_LATENCY)
+                chartDataLatency.remove(0);
+        }
+        
+        // adjust the x-axis to view only the most recent data points
+        XYPlot plot = (XYPlot)chart.getPlot();
+        ValueAxis domain = plot.getDomainAxis();
+        domain.setRange(x-MAX_VIS_DATA_POINTS, x);
     }
 
     public void noteResult(int num_unplaced_flows) {
@@ -934,6 +1091,8 @@ public class ElasticTreeManager extends PZLayoutManager {
             lblResultInfo.setText("FAILED to place " + num_unplaced_flows + " flows!");
             lblResultInfo.setVisible(true);
         }
+        
+        refreshStatsGraphics();
     }
     
     

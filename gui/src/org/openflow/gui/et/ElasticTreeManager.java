@@ -7,7 +7,9 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
 import java.util.HashSet;
 import java.util.LinkedList;
 import javax.swing.*;
@@ -24,6 +26,7 @@ import org.openflow.util.string.StringOps;
 import org.pzgui.Constants;
 import org.pzgui.Drawable;
 import org.pzgui.PZWindow;
+import org.pzgui.StringDrawer;
 import org.pzgui.icon.GeometricIcon;
 import org.pzgui.icon.ShapeIcon;
 import org.pzgui.layout.Edge;
@@ -44,6 +47,9 @@ public class ElasticTreeManager extends PZLayoutManager {
     public static final int LBL_WIDTH_BIG = 400;
     public static final int GAP_X = 5;
     public static final int RESERVED_HEIGHT_BOTTOM = 400;
+    
+    private static final int FONT_BIG_SIZE = 38;
+    private static final Font FONT_BIG = new Font("Tahoma", Font.BOLD, FONT_BIG_SIZE);
     
     /** Creates a new Elastic Tree GUI for a k=6 fat tree */
     public ElasticTreeManager() {
@@ -146,7 +152,14 @@ public class ElasticTreeManager extends PZLayoutManager {
             d.drawObject(gfx);
     }
     
-    public void postRedraw() {}
+    public void postRedraw() {
+        Graphics cg = pnlSliders.getGraphics();
+        if(cg != null) {
+            synchronized(slidersImg) { // prevent tearing
+                cg.drawImage(slidersImg, 0, 0, null);
+            }
+        }
+    }
 
     private int[] baseX = new int[]{0,1,1,0};
     private int[] baseY = new int[]{0,0,1,1};
@@ -208,9 +221,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JRadioButton optNetModeSW = new JRadioButton("Example");
     
     private JPanel pnlChart = new JPanel();
-    
     private JPanel pnlSliders = new JPanel();
-    private JLabel lblSliders = new JLabel();
     
     // control panel components
     private JPanel pnlCustomDetached = new JPanel();
@@ -296,16 +307,14 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addComponent(pnlSliders)
         );
         
-        layout.linkSize(SwingConstants.HORIZONTAL, pnlChart, pnlSliders);
         layout.linkSize(SwingConstants.VERTICAL, pnlModes, pnlChart, pnlSliders);
         
         initModesPanel();
-        //initChartPanel();
-        //initSlidersPanel();
+        initChartPanel();
+        initSlidersPanel();
         
         // force all components within this panel to have a white-on-black color
         // scheme with a large font size
-        final Font FONT_BIG = new Font("Tahoma", Font.BOLD, 38);
         LinkedList<Container> containers = new LinkedList<Container>();
         containers.add(pnlCustomAttached);
         while(containers.size() > 0) {
@@ -389,6 +398,98 @@ public class ElasticTreeManager extends PZLayoutManager {
         // disable unavailable options
         optNetModeHW.setEnabled(false);
         optAlgModeOrig.setEnabled(false);
+    }
+    
+    private void initChartPanel() {
+        
+    }
+    
+    // tweak-able slider drawing parameters
+    private static final boolean SHOW_LATENCY_SLIDER = false;
+    private static final int NUM_SLIDERS = SHOW_LATENCY_SLIDER ? 3 : 2;
+    private static final int SLIDER_MARGIN = 50;
+    private static final int SLIDER_WIDTH = 50;
+    private static final int FONT_SLIDER_SIZE = 38;
+    private static final int SLIDER_BORDER_WIDTH = 7;
+    private static final Color[] SLIDER_COLORS = new Color[]{new Color(28,61,255), new Color(123,44,255), new Color(104,255,191)};
+    
+    // computed slider drawing parameter constants
+    private static final int SLIDER_HEIGHT = RESERVED_HEIGHT_BOTTOM - 2*SLIDER_MARGIN - 50;
+    private static final int SLIDERS_WIDTH = NUM_SLIDERS*(SLIDER_WIDTH+2*SLIDER_MARGIN);
+    private static final Font FONT_SLIDER = new Font("Tahoma", Font.BOLD, FONT_SLIDER_SIZE);
+    private static final BasicStroke SLIDER_STROKE = new BasicStroke(SLIDER_BORDER_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    
+    /** the image where sliders are drawn */
+    private final BufferedImage slidersImg = new BufferedImage(SLIDERS_WIDTH, RESERVED_HEIGHT_BOTTOM, BufferedImage.TYPE_INT_RGB);
+    
+    private void initSlidersPanel() {
+        Dimension sz = new Dimension(SLIDERS_WIDTH, RESERVED_HEIGHT_BOTTOM);
+        pnlSliders.setMinimumSize(sz);
+        pnlSliders.setSize(SLIDERS_WIDTH, RESERVED_HEIGHT_BOTTOM);
+        pnlSliders.setMaximumSize(sz);
+        pnlSliders.setDoubleBuffered(true);
+        
+        Graphics2D gfx = (Graphics2D)slidersImg.getGraphics();
+        gfx.setBackground(Color.WHITE);
+
+        // make sure the gfx renders in high quality
+        gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        gfx.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        gfx.setFont(Constants.FONT_DEFAULT);
+        gfx.setComposite(Constants.COMPOSITE_OPAQUE);
+        
+        refreshAllSliders();
+    }
+    
+    /**
+     * Draws a slider on the sliders panel.
+     * 
+     * @param sliderNum  which position to draw this slider in
+     * @param p          how "full" to draw the slider (0% to 100%, i.e., [0.0, 1.0])
+     * @param name       name of the slider
+     * @param value      value label for the slider
+     */
+    private void drawSlider(int sliderNum, double p, String name, String value) {
+        Graphics2D gfx = (Graphics2D)slidersImg.getGraphics();
+        int x = SLIDER_MARGIN + sliderNum*(SLIDER_WIDTH+2*SLIDER_MARGIN);
+        
+        // set up the drawing context for this slider
+        gfx.setStroke(SLIDER_STROKE);
+        gfx.setColor(SLIDER_COLORS[sliderNum]);
+        gfx.setFont(FONT_SLIDER);
+        
+        // draw the border
+        gfx.drawRect(x, SLIDER_MARGIN, SLIDER_WIDTH, SLIDER_HEIGHT);
+        
+        // draw the title label
+        int tx = x - FONT_SLIDER_SIZE / 2;
+        int ty = SLIDER_MARGIN + SLIDER_HEIGHT / 2;
+        AffineTransform t = gfx.getTransform();
+        gfx.setTransform(AffineTransform.getRotateInstance(-Math.PI/2, tx, ty));
+        StringDrawer.drawCenteredString(name, gfx, tx, ty);
+        gfx.setTransform(t);
+        
+        // draw the value label
+        StringDrawer.drawCenteredString(value, gfx, x+SLIDER_WIDTH/2, SLIDER_MARGIN + SLIDER_HEIGHT + FONT_SLIDER_SIZE);
+        
+        // draw the gradient
+        p = (p < 0) ? 0 : ((p > 1) ? 1.0 : p);
+        int gx1 = x + SLIDER_BORDER_WIDTH / 2 + 1;
+        int gy = SLIDER_MARGIN + SLIDER_HEIGHT - SLIDER_BORDER_WIDTH + 1;
+        int gx2 = gx1 + SLIDER_WIDTH - SLIDER_BORDER_WIDTH;
+        int sh = SLIDER_HEIGHT - 2 * SLIDER_BORDER_WIDTH + 1;
+        int usageColorsStep = Link.USAGE_COLORS.length / sh;
+        if(usageColorsStep < 1) usageColorsStep = 1;
+        double pPerOffset = 1.0 / sh;
+        for(int i=0, yOffset=0; i<Link.USAGE_COLORS.length && yOffset*pPerOffset<p && yOffset<SLIDER_HEIGHT; i+=usageColorsStep, yOffset+=1) {
+            gfx.setColor(Link.USAGE_COLORS[i]);
+            gfx.drawLine(gx1, gy - yOffset, gx2, gy - yOffset); 
+        }
+        
+        // restore the defaults
+        gfx.setStroke(Constants.STROKE_DEFAULT);
+        gfx.setPaint(Constants.PAINT_DEFAULT);
+        gfx.setFont(Constants.FONT_DEFAULT);
     }
     
     /** pointer to the network mode which was most recently selected */
@@ -760,17 +861,64 @@ public class ElasticTreeManager extends PZLayoutManager {
         lblTrafficMatrixNext.setText("Next Traffic: " + s);
     }
 
+    // power, throughput, and latency statistics
+    private int powerCurrent, powerTraditional, powerMax;
+    private int xputExpected, xputAchieved;
+    private int latencyEdge, latencyAgg, latencyCore;
+    
     public void setPowerData(int cur, int traditional, int max) {
+        powerCurrent = cur;
+        powerTraditional = traditional;
+        powerMax = max;
+        
+        refreshAllSliders();
+    }
+    
+    private void refreshPowerSlider() {
+        double p = powerCurrent / (double)powerTraditional;
+        drawSlider(1, p, "power", (int)(p*100) + "%");
     }
     
     public void setExpectedAggregateThroughput(double total_bps) {
-        int gbps = (int)(total_bps / (1000 * 1000 * 1000));
+        int expected_mbps = (int)(total_bps / (1000 * 1000));
+        xputExpected = expected_mbps;
+        refreshAllSliders();
     }
 
     public void setAchievedAggregateThroughput(int bandwidth_achieved_mbps) {
+        xputAchieved = bandwidth_achieved_mbps;
+        refreshAllSliders();
+    }
+    
+    private void refreshXputSlider() {
+        double p = xputAchieved / (double)xputExpected;
+        drawSlider(0, p, "traffic", xputAchieved + "Mb/s");
     }
 
     public void setLatencyData(int latency_ms_edge, int latency_ms_agg, int latency_ms_core) {
+        latencyEdge = latency_ms_edge;
+        latencyAgg = latency_ms_agg;
+        latencyCore = latency_ms_core;
+        
+        refreshAllSliders();
+    }
+    
+    private void refreshLatencySlider() {
+        double avgLatency = (latencyEdge + latencyAgg + latencyCore) / 3.0;
+        final int MAX_LATENCY_MS = 25;
+        double p = avgLatency / MAX_LATENCY_MS;
+        drawSlider(2, p, "latency", avgLatency + "ms");
+    }
+    
+    private void refreshAllSliders() {
+        synchronized(slidersImg) { // prevent tearing
+            Graphics2D gfx = (Graphics2D)slidersImg.getGraphics();
+            gfx.clearRect(0, 0, SLIDERS_WIDTH, RESERVED_HEIGHT_BOTTOM);
+            
+            refreshPowerSlider();
+            refreshXputSlider();
+            refreshLatencySlider();
+        }
     }
 
     public void noteResult(int num_unplaced_flows) {

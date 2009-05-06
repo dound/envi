@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import javax.swing.*;
@@ -148,8 +149,13 @@ public class ElasticTreeManager extends PZLayoutManager {
         if(gfx == null)
             return;
         
-        for(DrawableIcon d : liveIcons)
-            d.drawObject(gfx);
+        try {
+            for(DrawableIcon d : liveIcons)
+                d.drawObject(gfx);
+        }
+        catch(ConcurrentModificationException e) {
+            /* blip, just ignore it: it should draw fine next time around */
+        }
     }
     
     public void postRedraw() {

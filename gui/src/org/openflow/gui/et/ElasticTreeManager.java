@@ -403,9 +403,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         );
         
         // resize pnlDetached whenever its parent is resized
-        final int margin = 20;
         ComponentListener cl = new ComponentListener() {
             public void componentResized(ComponentEvent e) {
+                final int margin = 20;
                 int w = controlWindow.getWidth();
                 
                 // relayout the custom part of the GUI 
@@ -447,7 +447,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         controlWindow.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         
         controlWindow.setTitle("ElasticTree Control Panel");
-        controlWindow.setSize(1280, RESERVED_HEIGHT_BOTTOM - 2 * margin);
+        controlWindow.setSize(1280, 360);
         controlWindow.setVisible(true);
     }
 

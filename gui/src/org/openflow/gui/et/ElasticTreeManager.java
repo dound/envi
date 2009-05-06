@@ -410,7 +410,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         controlWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         
         controlWindow.setTitle("ElasticTree Control Panel");
-        controlWindow.setSize(1280, 360);
+        controlWindow.setSize(748, 328);
         controlWindow.setVisible(true);
     }
 

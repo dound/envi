@@ -3,6 +3,8 @@ package org.openflow.gui.et;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
@@ -68,7 +70,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         dialLatency = new MultiPointerDial("Layer Latency", "msec", 3, 100, 10);
         setPointersFor3PointerDial(dialLatency);
         
-        initSidebarPanel();
+        initAttachedPanel();
+        initDetachedPanel();
+        initControlWindow();
         animationManager.start();
     }
     
@@ -162,7 +166,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     public void attachWindow(final PZWindow w) {
         super.attachWindow(w);
         if(getWindowIndex(w) == 0) {
-            w.getContentPane().add(pnlCustom);
+            w.getContentPane().add(pnlCustomAttached);
             w.setReservedHeightBottom(RESERVED_HEIGHT_BOTTOM);
             w.setMySize(w.getWidth(), w.getHeight(), w.getZoom());
         }
@@ -178,26 +182,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         int margin = 20;
         
         // relayout the custom part of the GUI 
-        pnlCustom.setBounds(0, h + margin, w, RESERVED_HEIGHT_BOTTOM - 2 * margin);
-        
-        // choose a reasonable size for the dials based on the available width
-        boolean showLatency;
-        int sz;
-        if(w < 1280) {
-            showLatency = false;
-            sz = (w - (pnlAnim.getWidth() + pnlMode.getWidth() - margin * 2)) / 2 - 35;
-        }
-        else {
-            showLatency = true;
-            sz = (w - (pnlAnim.getWidth() + pnlMode.getWidth() - margin * 2)) / 3 - 25;
-        }
-        sz = Math.min(sz, RESERVED_HEIGHT_BOTTOM - 2 * margin);
-        
-        Dimension prefDialSize = new Dimension(sz, sz);
-        dialPower.setPreferredSize(prefDialSize);
-        dialBandwidth.setPreferredSize(prefDialSize);
-        dialLatency.setPreferredSize(prefDialSize);
-        dialLatency.setVisible(showLatency);
+        pnlCustomAttached.setBounds(0, h + margin, w, RESERVED_HEIGHT_BOTTOM - 2 * margin);
     }
     
     /**
@@ -264,7 +249,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         }
     }
     
-    private JPanel pnlCustom = new JPanel();
+    private JPanel pnlCustomAttached = new JPanel();
+    
+    private JPanel pnlCustomDetached = new JPanel();
     private final MultiPointerDial dialPower, dialBandwidth, dialLatency;
     private JLabel lblTrafficMatrixCurrent = new JLabel();
     private JLabel lblTrafficMatrixNext = new JLabel();
@@ -334,10 +321,17 @@ public class ElasticTreeManager extends PZLayoutManager {
         return initGroupLayout(pnl);
     }
     
-    /** layout and initialize the sidebar panel and its components */
-    private void initSidebarPanel() {
-        GroupLayout layout = initPanel(pnlCustom, "");
-        pnlCustom.setBorder(null);
+    /** layout and initialize the attached panel and its components */
+    private void initAttachedPanel() {
+        GroupLayout layout = initPanel(pnlCustomAttached, "");
+        pnlCustomAttached.setBorder(null);
+        pnlCustomAttached.setBackground(Color.BLACK);
+    }
+    
+    /** layout and initialize the separate, detatched control panel and its components */
+    private void initDetachedPanel() {
+        GroupLayout layout = initPanel(pnlCustomDetached, "");
+        pnlCustomDetached.setBorder(null);
         
         layout.setHorizontalGroup(
                 layout.createSequentialGroup()
@@ -389,6 +383,72 @@ public class ElasticTreeManager extends PZLayoutManager {
         initTrafficPanel();
         initAnimPanel();
         initModePanel();
+    }
+    
+    /** initialize and run the control panel window */
+    private void initControlWindow() {
+        // create a new frame to put the control panel in
+        final JFrame controlWindow = new JFrame();
+        
+        // add the pnlDetatched to the contol panel (it contains all the controls)
+        Container c = controlWindow.getContentPane();
+        GroupLayout layout = initGroupLayout(c);
+        layout.setHorizontalGroup(
+                layout.createSequentialGroup()
+                    .addComponent(pnlCustomDetached)
+        );
+        layout.setVerticalGroup(
+                layout.createParallelGroup()
+                    .addComponent(pnlCustomDetached)
+        );
+        
+        // resize pnlDetached whenever its parent is resized
+        final int margin = 20;
+        ComponentListener cl = new ComponentListener() {
+            public void componentResized(ComponentEvent e) {
+                int w = controlWindow.getWidth();
+                
+                // relayout the custom part of the GUI 
+                pnlCustomDetached.setBounds(0, 0, w, RESERVED_HEIGHT_BOTTOM - 2 * margin);
+                
+                // choose a reasonable size for the dials based on the available width
+                boolean showLatency;
+                int sz;
+                if(w < 1280) {
+                    showLatency = false;
+                    sz = (w - (pnlAnim.getWidth() + pnlMode.getWidth() - margin * 2)) / 2 - 35;
+                }
+                else {
+                    showLatency = true;
+                    sz = (w - (pnlAnim.getWidth() + pnlMode.getWidth() - margin * 2)) / 3 - 25;
+                }
+                sz = Math.min(sz, RESERVED_HEIGHT_BOTTOM - 2 * margin);
+                
+                Dimension prefDialSize = new Dimension(sz, sz);
+                dialPower.setPreferredSize(prefDialSize);
+                dialBandwidth.setPreferredSize(prefDialSize);
+                dialLatency.setPreferredSize(prefDialSize);
+                dialLatency.setVisible(showLatency);
+            }
+            
+            public void componentHidden(ComponentEvent e) {}
+            public void componentMoved(ComponentEvent e) {}
+            public void componentShown(ComponentEvent e) {}
+        };
+        controlWindow.addComponentListener(cl);
+        
+        // hide the JFrame's menubar (the inner panel will be given its own)
+        controlWindow.setUndecorated(true);
+        
+        // give the outermost panel a title bar without min/max buttons
+        controlWindow.getRootPane().setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
+        
+        // ignore the 'x' button
+        controlWindow.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        
+        controlWindow.setTitle("ElasticTree Control Panel");
+        controlWindow.setSize(1280, RESERVED_HEIGHT_BOTTOM - 2 * margin);
+        controlWindow.setVisible(true);
     }
 
     /** layout and initialize the traffic panel and its components */

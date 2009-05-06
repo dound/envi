@@ -60,16 +60,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         setCurrentTrafficMatrixText(null);
         setNextTrafficMatrixText(null);
         
-        dialPower = new MultiPointerDial("Power Consumption", "Watts", 2, 459, 50);
-        setPointersFor2PointerDial(dialPower);
-        
-        int max_gbps = 2 * fatTreeLayout.size_links(); /* 1Gbps in each direction per link */
-        dialBandwidth = new MultiPointerDial("Aggregate Throughput", "Gbps", 2,  max_gbps, max_gbps/10);
-        setPointersFor2PointerDial(dialBandwidth);
-        
-        dialLatency = new MultiPointerDial("Layer Latency", "msec", 3, 100, 10);
-        setPointersFor3PointerDial(dialLatency);
-        
         initAttachedPanel();
         initDetachedPanel();
         initControlWindow();
@@ -252,7 +242,6 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JPanel pnlCustomAttached = new JPanel();
     
     private JPanel pnlCustomDetached = new JPanel();
-    private final MultiPointerDial dialPower, dialBandwidth, dialLatency;
     private JLabel lblTrafficMatrixCurrent = new JLabel();
     private JLabel lblTrafficMatrixNext = new JLabel();
     private JLabel lblResultInfo = new JLabel();
@@ -335,9 +324,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         layout.setHorizontalGroup(
                 layout.createSequentialGroup()
-                    .addComponent(dialPower)
-                    .addComponent(dialBandwidth)
-                    .addComponent(dialLatency)
                     .addGroup(layout.createParallelGroup()
                         .addComponent(pnlTraffic)
                         .addComponent(lblLegend))
@@ -351,9 +337,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         layout.setVerticalGroup(
                 layout.createParallelGroup()
-                        .addComponent(dialPower)
-                        .addComponent(dialBandwidth)
-                        .addComponent(dialLatency)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(pnlTraffic)
                         .addComponent(lblLegend))
@@ -375,8 +358,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         lblLegend.setPreferredSize(new Dimension(Link.USAGE_LEGEND.getWidth(), Link.USAGE_LEGEND.getHeight()));
         lblLegend.setBorder(new javax.swing.border.LineBorder(Color.BLACK, 1));
         
-        layout.linkSize(SwingConstants.HORIZONTAL, dialPower, dialBandwidth, dialLatency);
-        layout.linkSize(SwingConstants.VERTICAL, dialPower, dialBandwidth, dialLatency);
         layout.linkSize(SwingConstants.VERTICAL, lblTrafficMatrixCurrent, lblTrafficMatrixNext, lblResultInfo);
         layout.linkSize(SwingConstants.HORIZONTAL, pnlAnim, pnlMode);
         
@@ -411,17 +392,6 @@ public class ElasticTreeManager extends PZLayoutManager {
                 
                 // relayout the custom part of the GUI 
                 pnlCustomDetached.setBounds(0, 0, w, h);
-                
-                // choose a reasonable size for the dials based on the available width
-                boolean showLatency;
-                showLatency = w >= 1280;
-                int sz = Math.min((w / 2) / (showLatency ? 3 : 2), h);
-                
-                Dimension prefDialSize = new Dimension(sz, sz);
-                dialPower.setPreferredSize(prefDialSize);
-                dialBandwidth.setPreferredSize(prefDialSize);
-                dialLatency.setPreferredSize(prefDialSize);
-                dialLatency.setVisible(showLatency);
             }
             
             public void componentHidden(ComponentEvent e) {}
@@ -781,25 +751,16 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
 
     public void setPowerData(int cur, int traditional, int max) {
-        dialPower.setValue(0, cur);
-        dialPower.setValue(1, traditional);
-        if(dialPower.setMax(max))
-            setPointersFor2PointerDial(dialPower);
     }
     
     public void setExpectedAggregateThroughput(double total_bps) {
         int gbps = (int)(total_bps / (1000 * 1000 * 1000));
-        dialBandwidth.setValue(1, gbps);
     }
 
     public void setAchievedAggregateThroughput(int bandwidth_achieved_mbps) {
-        dialBandwidth.setValue(0, bandwidth_achieved_mbps / 1000);
     }
 
     public void setLatencyData(int latency_ms_edge, int latency_ms_agg, int latency_ms_core) {
-        dialLatency.setValue(2, latency_ms_edge);
-        dialLatency.setValue(1, latency_ms_agg);
-        dialLatency.setValue(0, latency_ms_core);
     }
 
     public void noteResult(int num_unplaced_flows) {

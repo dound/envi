@@ -443,8 +443,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         // give the outermost panel a title bar without min/max buttons
         controlWindow.getRootPane().setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
         
-        // ignore the 'x' button
-        controlWindow.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        // close the whole program if the control panel is closed
+        controlWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         
         controlWindow.setTitle("ElasticTree Control Panel");
         controlWindow.setSize(1280, 360);

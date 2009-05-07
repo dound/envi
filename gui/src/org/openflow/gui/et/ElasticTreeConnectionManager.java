@@ -331,7 +331,7 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
 
     private void processComputationDone(ETComputationDone msg) {
         tmManager.completedLastTrafficMatrix();
-        manager.noteResult(msg.num_unplaced_flows);
+        manager.noteResult(tmManager.tmOutstanding.demand, msg.num_unplaced_flows);
     }
     
     private void processFailEvent(Drawable d) {

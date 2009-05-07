@@ -591,7 +591,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         gfx.setFont(Constants.FONT_DEFAULT);
         gfx.setComposite(Constants.COMPOSITE_OPAQUE);
         
-        refreshStatsGraphics();
+        refreshStatsGraphics(slDemand.getValue() / (1000 * 1000.0f));
     }
     
     /**
@@ -1096,7 +1096,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     /**
      * Redraws the sliders and updates the chart to match the latest data.
      */
-    private void refreshStatsGraphics() {
+    private void refreshStatsGraphics(float demand) {
         final boolean TEMP_FAKE = true;
         if(TEMP_FAKE)
             latencyAvg = 15;
@@ -1113,7 +1113,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         // update the chart
         int x = datapointOn++;
-        int xput = slDemand.getValue() / (1000*1000);
+        int xput = (int)(demand * 1000);
         chartDataXput.add(x, xput);
         chartDataPower.add(x, powerCurrent / (double)powerTraditional);
         chartDataLatency.add(x, latencyAvg);
@@ -1131,7 +1131,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         domain.setRange(x-MAX_VIS_DATA_POINTS, x);
     }
 
-    public void noteResult(int num_unplaced_flows) {
+    public void noteResult(float demand, int num_unplaced_flows) {
         if(num_unplaced_flows == 0)
             lblResultInfo.setVisible(false);
         else {
@@ -1139,7 +1139,7 @@ public class ElasticTreeManager extends PZLayoutManager {
             lblResultInfo.setVisible(true);
         }
         
-        refreshStatsGraphics();
+        refreshStatsGraphics(demand);
     }
     
     

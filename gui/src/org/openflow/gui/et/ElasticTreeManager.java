@@ -1036,7 +1036,6 @@ public class ElasticTreeManager extends PZLayoutManager {
 
     // power, throughput, and latency statistics
     private int powerCurrent, powerTraditional;
-    private int xputExpected, xputAchieved;
     private int latencyEdge, latencyAgg, latencyCore;
     private double latencyAvg;
     
@@ -1051,12 +1050,11 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
     
     public void setExpectedAggregateThroughput(double total_bps) {
-        int expected_mbps = (int)(total_bps / (1000 * 1000));
-        xputExpected = expected_mbps;
+        /* ignore for now */
     }
 
     public void setAchievedAggregateThroughput(int bandwidth_achieved_mbps) {
-        xputAchieved = bandwidth_achieved_mbps;
+        /* ignore for now */
     }
     
     private void refreshXputSlider() {

@@ -250,7 +250,6 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JLabel lblTrafficMatrixCurrent = new JLabel();
     private JLabel lblTrafficMatrixNext = new JLabel();
     private JLabel lblResultInfo = new JLabel();
-    private JLabel lblLegend = new JLabel();
     
     private JPanel pnlTraffic = new JPanel();
     private JPanel pnlDemand = new JPanel();
@@ -377,7 +376,6 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addComponent(optNetModeSW)
                     .addComponent(optAlgModeOrig)
                     .addComponent(optAlgModeOpt)
-                    .addComponent(lblLegend)
         );
         
         layout.setVerticalGroup(
@@ -388,14 +386,8 @@ public class ElasticTreeManager extends PZLayoutManager {
                         .addComponent(optNetModeSW)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 50, 50)
                         .addComponent(optAlgModeOrig)
-                        .addComponent(optAlgModeOpt)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 50, 50)
-                        .addComponent(lblLegend))
+                        .addComponent(optAlgModeOpt))
         );
-        
-        lblLegend.setIcon(new ImageIcon(Link.USAGE_LEGEND));
-        lblLegend.setPreferredSize(new Dimension(Link.USAGE_LEGEND.getWidth(), Link.USAGE_LEGEND.getHeight()));
-        lblLegend.setBorder(new javax.swing.border.LineBorder(Color.BLACK, 1));
         
         optgrpNetMode.add(optNetModeHW);
         optgrpNetMode.add(optNetModeSW);

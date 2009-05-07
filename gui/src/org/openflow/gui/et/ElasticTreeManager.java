@@ -532,7 +532,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final int FONT_SLIDER_SIZE = 44;
     private static final int SLIDER_BORDER_WIDTH = 0;
     private static final String[] STATS_NAMES = new String[]{"power (W)", "traffic (Gb/s)", "latency (ms)"};
-    private static final Color[] STATS_COLORS = new Color[]{new Color(192,61,28), new Color(123,44,255), new Color(104,255,191)};
+    private static final Color[] STATS_COLORS = new Color[]{new Color(255,0,255), new Color(0,0,255), new Color(0,255,255)};
     
     // computed slider drawing parameter constants
     private static final int SLIDER_HEIGHT = RESERVED_HEIGHT_BOTTOM - 2*SLIDER_MARGIN - 50;

@@ -172,20 +172,34 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
         /** 
          * Sets the next traffic matrix to use.  Overwrites any enqueued traffic
          * matrix.  The next matrix will be sent to the server as soon as the 
-         * previous run is complete.
+         * previous run is complete.  If we are connected and there are no
+         * outstanding requests then this traffic matrix is immediately sent.
          */
         public synchronized void setNextTrafficMatrix(ETTrafficMatrix tm) {
-            this.tmNext = new ETTrafficMatrix(tm.use_hw, tm.may_split_flows, tm.k, tm.demand, tm.edge, tm.agg, tm.plen);;
+            this.tmNext = new ETTrafficMatrix(tm.use_hw, tm.may_split_flows, tm.k, tm.demand, tm.edge, tm.agg, tm.plen);
+            if(getConnection().isConnected() && !waiting_for_response)
+                sendNextTrafficMatrix();
         }
         
         /** Sends the next traffic matrix to the server. */
         private synchronized boolean sendNextTrafficMatrix() {
-            if(tmOutstanding != null && tmOutstanding.k != tmNext.k) {
-                try {
+            if(tmOutstanding != null) {
+                // stop if the "next" matrix is no different than the one we 
+                // just got results for
+                if(tmOutstanding.equals(tmNext)) {
+                    manager.setNextTrafficMatrixText(null);
                     tmManager.responseWillNotCome();
-                    getConnection().sendMessage(new ETSwitchesRequest(tmNext.k));
+                    return false;
                 }
-                catch(IOException e) {}
+                
+                // trying to change the k value: start by getting the nodes in the new network
+                if(tmOutstanding.k != tmNext.k) {
+                    try {
+                        tmManager.responseWillNotCome();
+                        getConnection().sendMessage(new ETSwitchesRequest(tmNext.k));
+                    }
+                    catch(IOException e) {}
+                }
             }
             tmOutstanding = tmNext;
             manager.setNextTrafficMatrixText(tmOutstanding);

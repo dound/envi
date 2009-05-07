@@ -318,7 +318,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         pnlChart.setPreferredSize(new Dimension(2000, 200));
         
         // don't let the pnlChart get too tall
-        pnlChart.setMinimumSize(new Dimension(400, RESERVED_HEIGHT_BOTTOM - 98));
+        pnlChart.setMinimumSize(new Dimension(300, RESERVED_HEIGHT_BOTTOM - 98));
         pnlChart.setMaximumSize(new Dimension(2000, RESERVED_HEIGHT_BOTTOM - 98));
         
         // manual gap
@@ -828,6 +828,9 @@ public class ElasticTreeManager extends PZLayoutManager {
                 chart = createChart(DEFAULT_SHOW_AXES);
                 pnlChart.setChart(chart);
                 initSlidersPanel();
+                
+                // re-layout to accommodate the new/removed slider
+                pnlCustomAttached.validate();
             }
         });
     }

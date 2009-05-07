@@ -181,12 +181,21 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
                 sendNextTrafficMatrix();
         }
         
-        /** Sends the next traffic matrix to the server. */
+        /** Calls sendNextTrafficMatrix(false) */
         private synchronized boolean sendNextTrafficMatrix() {
+            return sendNextTrafficMatrix(false);
+        }
+        
+        /** 
+         * Sends the next traffic matrix to the server.
+         * 
+         * @param force  whether to send it even if the matrix has not changed
+         */
+        private synchronized boolean sendNextTrafficMatrix(boolean force) {
             if(tmOutstanding != null) {
                 // stop if the "next" matrix is no different than the one we 
                 // just got results for
-                if(manager.isSendOnChangeOnly() && tmOutstanding.equals(tmNext)) {
+                if(!force && manager.isSendOnChangeOnly() && tmOutstanding.equals(tmNext)) {
                     manager.setNextTrafficMatrixText(null);
                     tmManager.responseWillNotCome();
                     return false;
@@ -361,5 +370,8 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
                 System.err.println("failed to send link failure");
             }
         }
+        else
+            return;
+        tmManager.sendNextTrafficMatrix(true);
     }
 }

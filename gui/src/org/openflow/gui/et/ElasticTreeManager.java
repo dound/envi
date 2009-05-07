@@ -343,8 +343,6 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addComponent(pnlSliders)
         );
         
-        layout.linkSize(SwingConstants.VERTICAL, pnlModes, pnlSliders);
-        
         initModesPanel();
         initSlidersPanel();
         
@@ -529,15 +527,17 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final int NUM_SLIDERS = SHOW_LATENCY ? 3 : 2;
     private static final int SLIDER_MARGIN = 50;
     private static final int SLIDER_WIDTH = 50;
-    private static final int FONT_SLIDER_SIZE = 44;
+    private static final int FONT_SLIDER_LEFT_SIZE = 44;
+    private static final int FONT_SLIDER_BTM_SIZE = 32;
     private static final int SLIDER_BORDER_WIDTH = 0;
-    private static final String[] STATS_NAMES = new String[]{"power (W)", "traffic (Gb/s)", "latency (ms)"};
+    private static final String[] STATS_NAMES = new String[]{"power (W)", "traffic (Mb/s)", "latency (ms)"};
     private static final Color[] STATS_COLORS = new Color[]{new Color(255,0,255), new Color(0,0,255), new Color(0,255,255)};
     
     // computed slider drawing parameter constants
     private static final int SLIDER_HEIGHT = RESERVED_HEIGHT_BOTTOM - 2*SLIDER_MARGIN - 50;
     private static final int SLIDERS_WIDTH = NUM_SLIDERS*(SLIDER_WIDTH+2*SLIDER_MARGIN);
-    private static final Font FONT_SLIDER = new Font("Tahoma", Font.BOLD, FONT_SLIDER_SIZE);
+    private static final Font FONT_SLIDER_LEFT = new Font("Tahoma", Font.BOLD, FONT_SLIDER_LEFT_SIZE);
+    private static final Font FONT_SLIDER_BTM = new Font("Tahoma", Font.BOLD, FONT_SLIDER_BTM_SIZE);
     private static final BasicStroke SLIDER_STROKE = new BasicStroke(SLIDER_BORDER_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     
     /** the image where sliders are drawn */
@@ -577,14 +577,14 @@ public class ElasticTreeManager extends PZLayoutManager {
         // set up the drawing context for this slider
         gfx.setStroke(SLIDER_STROKE);
         gfx.setColor(STATS_COLORS[sliderNum]);
-        gfx.setFont(FONT_SLIDER);
         
         // draw the border
         if(SLIDER_BORDER_WIDTH > 0)
             gfx.drawRect(x, SLIDER_MARGIN, SLIDER_WIDTH, SLIDER_HEIGHT);
         
         // draw the title label
-        int tx = x - FONT_SLIDER_SIZE / 2;
+        gfx.setFont(FONT_SLIDER_LEFT);
+        int tx = x - FONT_SLIDER_LEFT_SIZE / 2;
         int ty = SLIDER_MARGIN + SLIDER_HEIGHT / 2;
         AffineTransform t = gfx.getTransform();
         gfx.setTransform(AffineTransform.getRotateInstance(-Math.PI/2, tx, ty));
@@ -592,7 +592,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         gfx.setTransform(t);
         
         // draw the value label
-        StringDrawer.drawCenteredString(value, gfx, x+SLIDER_WIDTH/2, SLIDER_MARGIN + SLIDER_HEIGHT + FONT_SLIDER_SIZE);
+        gfx.setFont(FONT_SLIDER_BTM);
+        StringDrawer.drawCenteredString(value, gfx, x+SLIDER_WIDTH/2, SLIDER_MARGIN + SLIDER_HEIGHT + FONT_SLIDER_BTM_SIZE);
         
         // draw the gradient
         p = (p < 0) ? 0 : ((p > 1) ? 1.0 : p);
@@ -1010,11 +1011,11 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
     
     private void refreshXputSlider() {
-        // like other sliders, 0%=good, 100%=bad
-        //       0% = no traffic dropped
-        //     100% = all traffic is dropped
-        double p = 1.0 - xputAchieved / (double)xputExpected;
-        drawSlider(1, p, "traffic", xputAchieved/1000 + "Gb/s");
+        int demand_bps = slDemand.getValue();
+        int demand_mbps = demand_bps / (1000*1000);
+        double p = demand_mbps / 1000.0;
+        String value = (demand_mbps!=1000) ? (demand_mbps + "Mb/s") : "1Gb/s";
+        drawSlider(1, p, "traffic", value);
     }
 
     public void setLatencyData(int latency_ms_edge, int latency_ms_agg, int latency_ms_core) {
@@ -1044,13 +1045,11 @@ public class ElasticTreeManager extends PZLayoutManager {
                 refreshLatencySlider();
         }
         
-        double xput = xputAchieved / 1000.0;
         final boolean TEMP_FAKE = true;
-        if(TEMP_FAKE) {
-            latencyAvg = Math.random()*10 + 10;
-            xput = xputExpected / 1000.0;
-        }
-            
+        if(TEMP_FAKE)
+            latencyAvg = Math.random()*10 + 3;
+        
+        int xput = slDemand.getValue() / (1000*1000);
         
         // update the chart
         int x = datapointOn++;

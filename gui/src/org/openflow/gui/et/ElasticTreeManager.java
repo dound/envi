@@ -399,8 +399,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         optgrpNetMode.add(optNetModeHW);
         optgrpNetMode.add(optNetModeSW);
-        optNetModeSW.setSelected(true);
-        netModeLastSelected = optNetModeSW;
+        optNetModeHW.setSelected(true);
+        netModeLastSelected = optNetModeHW;
+        optNetModeSW.setEnabled(false);
         
         layout.linkSize(SwingConstants.VERTICAL, optNetModeHW, optNetModeSW);
         
@@ -419,6 +420,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         optgrpAlgMode.add(optAlgModeOpt);
         optAlgModeOpt.setSelected(true);
         algModeLastSelected = optAlgModeOpt;
+        optAlgModeOrig.setEnabled(false);
         
         layout.linkSize(SwingConstants.VERTICAL, optAlgModeOrig, optAlgModeOpt);
         
@@ -432,10 +434,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         };
         optAlgModeOrig.addActionListener(algModeListener);
         optAlgModeOpt.addActionListener(algModeListener);
-        
-        // disable unavailable options
-        optNetModeHW.setEnabled(false);
-        optAlgModeOrig.setEnabled(false);
     }
     
  // ----------- Chart Creation ----------- //

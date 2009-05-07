@@ -257,6 +257,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JPanel pnlPLen = new JPanel();
     private JSlider slPLen    = new MyJSlider(SwingConstants.HORIZONTAL, 64, 1514, 1514);
     private JCheckBox chkSplit = new JCheckBox("May split flows", false);
+    private JCheckBox chkShowLatency = new JCheckBox("Show Latency", false);
     private static final int THUMB_EDGE = 0;
     private static final int THUMB_AGG = 1;
     
@@ -475,7 +476,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private final XYSeries chartDataXput = new XYSeries("Throughput", false, false);
     private final XYSeries chartDataPower = new XYSeries("Power", false, false);
     private final XYSeries chartDataLatency = new XYSeries("Latency", false, false);
-    private final JFreeChart chart = createChart(DEFAULT_SHOW_AXES);
+    private JFreeChart chart = createChart(DEFAULT_SHOW_AXES);
     private int datapointOn = 0;
     
     /** create a JFreeChart for showing stats over time */
@@ -560,7 +561,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final BasicStroke SLIDER_STROKE = new BasicStroke(SLIDER_BORDER_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     
     /** whether to show the latency slider or not */
-    private final boolean showLatency = false;
+    private boolean showLatency = false;
     
     /** number of sliders currently being shown */
     private int getNumSliders() {
@@ -573,9 +574,11 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
     
     /** the image where sliders are drawn */
-    private final BufferedImage slidersImg = new BufferedImage(getSlidersWidth(), RESERVED_HEIGHT_BOTTOM, BufferedImage.TYPE_INT_RGB);
+    private BufferedImage slidersImg;
     
     private void initSlidersPanel() {
+        slidersImg = new BufferedImage(getSlidersWidth(), RESERVED_HEIGHT_BOTTOM, BufferedImage.TYPE_INT_RGB);
+        
         Dimension sz = new Dimension(getSlidersWidth(), RESERVED_HEIGHT_BOTTOM);
         pnlSliders.setMinimumSize(sz);
         pnlSliders.setSize(getSlidersWidth(), RESERVED_HEIGHT_BOTTOM);
@@ -774,7 +777,9 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addComponent(pnlLocality)    
                     .addComponent(pnlDemand)
                     .addComponent(pnlPLen)
-                    .addComponent(chkSplit)
+                    .addGroup(layout.createSequentialGroup()
+                            .addComponent(chkSplit)
+                            .addComponent(chkShowLatency))
         );
         
         layout.setVerticalGroup(
@@ -784,13 +789,15 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addComponent(pnlDemand)
                     .addComponent(pnlPLen)
                     .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 0, 0)
-                    .addComponent(chkSplit)
+                    .addGroup(layout.createParallelGroup()
+                            .addComponent(chkSplit)
+                            .addComponent(chkShowLatency))
                     .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 5, 5)
 
         );
         
-        layout.linkSize(SwingConstants.HORIZONTAL, pnlDemand, pnlLocality, pnlPLen, chkSplit);
-        layout.linkSize(SwingConstants.VERTICAL, pnlDemand, pnlLocality, pnlPLen, chkSplit);
+        layout.linkSize(SwingConstants.HORIZONTAL, pnlDemand, pnlLocality, pnlPLen);
+        layout.linkSize(SwingConstants.VERTICAL, pnlDemand, pnlLocality, pnlPLen);
 
         slLocality.setValueAt(100, THUMB_EDGE);
         slLocality.setFillColorAt(Color.GREEN,  THUMB_EDGE);
@@ -812,6 +819,15 @@ public class ElasticTreeManager extends PZLayoutManager {
         chkSplit.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 notifyTrafficMatrixChangeListeners();
+            }
+        });
+
+        chkShowLatency.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                showLatency = chkShowLatency.isSelected();
+                chart = createChart(DEFAULT_SHOW_AXES);
+                pnlChart.setChart(chart);
+                initSlidersPanel();
             }
         });
     }
@@ -1086,15 +1102,13 @@ public class ElasticTreeManager extends PZLayoutManager {
         int xput = slDemand.getValue() / (1000*1000);
         chartDataXput.add(x, xput);
         chartDataPower.add(x, powerCurrent / (double)powerTraditional);
-        if(showLatency)
-            chartDataLatency.add(x, latencyAvg);
+        chartDataLatency.add(x, latencyAvg);
         
         // remove old data
         if(x >= MAX_VIS_DATA_POINTS) {
             chartDataXput.remove(0);
             chartDataPower.remove(0);
-            if(showLatency)
-                chartDataLatency.remove(0);
+            chartDataLatency.remove(0);
         }
         
         // adjust the x-axis to view only the most recent data points

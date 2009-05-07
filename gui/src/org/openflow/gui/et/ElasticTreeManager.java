@@ -272,6 +272,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JSlider slPLen    = new MyJSlider(SwingConstants.HORIZONTAL, 64, 1514, 1514);
     private JCheckBox chkSplit = new JCheckBox("May split flows", false);
     private JCheckBox chkShowLatency = new JCheckBox("Show Latency", false);
+    private JCheckBox chkSendOnChangeOnly = new JCheckBox("Send on Change Only", true);
     private static final int THUMB_EDGE = 0;
     private static final int THUMB_AGG = 1;
     
@@ -779,6 +780,7 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addGroup(layout.createSequentialGroup()
                             .addComponent(chkSplit)
                             .addComponent(chkShowLatency))
+                    .addComponent(chkSendOnChangeOnly)
         );
         
         layout.setVerticalGroup(
@@ -791,6 +793,7 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addGroup(layout.createParallelGroup()
                             .addComponent(chkSplit)
                             .addComponent(chkShowLatency))
+                    .addComponent(chkSendOnChangeOnly)
                     .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 5, 5)
 
         );
@@ -832,6 +835,18 @@ public class ElasticTreeManager extends PZLayoutManager {
                 pnlCustomAttached.validate();
             }
         });
+        
+        chkSendOnChangeOnly.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if(!chkSendOnChangeOnly.isSelected())
+                    notifyTrafficMatrixChangeListeners();
+            }
+        });
+    }
+    
+    /** whether the traffic matrix should only be sent when it changes */
+    public boolean isSendOnChangeOnly() {
+        return chkSendOnChangeOnly.isSelected();
     }
     
     /** 

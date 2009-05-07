@@ -186,7 +186,7 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
             if(tmOutstanding != null) {
                 // stop if the "next" matrix is no different than the one we 
                 // just got results for
-                if(tmOutstanding.equals(tmNext)) {
+                if(manager.isSendOnChangeOnly() && tmOutstanding.equals(tmNext)) {
                     manager.setNextTrafficMatrixText(null);
                     tmManager.responseWillNotCome();
                     return false;

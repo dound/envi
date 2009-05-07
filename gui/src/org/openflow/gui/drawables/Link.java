@@ -781,6 +781,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     /** array of precomputed usage colors */
     public static final Color[] USAGE_COLORS;
+    public static final Color[] USAGE_COLORS_DARK;
     
     /** image containing the legend of usage colors from low to high utilization */
     public static final  BufferedImage USAGE_LEGEND;
@@ -788,11 +789,13 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** precompute usage colors for performance reasons */
     static {
         USAGE_COLORS = new Color[NUM_USAGE_COLORS];
+        USAGE_COLORS_DARK = new Color[NUM_USAGE_COLORS];
         int legendHeight = 20;
         USAGE_LEGEND = new BufferedImage(NUM_USAGE_COLORS, legendHeight, BufferedImage.TYPE_INT_RGB);
         Graphics2D gfx = (Graphics2D)USAGE_LEGEND.getGraphics();
         for(int i=0; i<NUM_USAGE_COLORS; i++) {
             USAGE_COLORS[i] = computeUsageColor(i / (float)(NUM_USAGE_COLORS-1));
+            USAGE_COLORS_DARK[i] = USAGE_COLORS[i].darker().darker().darker().darker();
             gfx.setPaint(USAGE_COLORS[i]);
             gfx.drawLine(i, 0, i, legendHeight);
         }

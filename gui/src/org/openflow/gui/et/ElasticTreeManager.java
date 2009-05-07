@@ -604,6 +604,8 @@ public class ElasticTreeManager extends PZLayoutManager {
      */
     private void drawSlider(int sliderNum, double p, String name, String value) {
         Graphics2D gfx = (Graphics2D)slidersImg.getGraphics();
+        gfx.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        
         int x = SLIDER_MARGIN_X + sliderNum*(SLIDER_WIDTH+2*SLIDER_MARGIN_X);
         int yNudge = 10;
         

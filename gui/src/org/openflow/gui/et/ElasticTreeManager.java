@@ -248,11 +248,11 @@ public class ElasticTreeManager extends PZLayoutManager {
     
     private JPanel pnlModes = new JPanel();
     private ButtonGroup optgrpAlgMode = new ButtonGroup();
-    private JRadioButton optAlgModeOrig = new JRadioButton("Original");
-    private JRadioButton optAlgModeOpt = new JRadioButton("Optimized");
+    private JRadioButton optAlgModeOrig = new JRadioButton("original");
+    private JRadioButton optAlgModeOpt = new JRadioButton("optimized");
     private ButtonGroup optgrpNetMode = new ButtonGroup();
-    private JRadioButton optNetModeHW = new JRadioButton("Deployment");
-    private JRadioButton optNetModeSW = new JRadioButton("Example");
+    private JRadioButton optNetModeHW = new JRadioButton("deployment");
+    private JRadioButton optNetModeSW = new JRadioButton("example");
     
     private ChartPanel pnlChart;
     private JPanel pnlSliders = new JPanel();

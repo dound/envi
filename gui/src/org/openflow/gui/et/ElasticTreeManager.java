@@ -150,7 +150,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         relayout();
         
         // relayout the custom part of the GUI 
-        pnlCustomAttached.setBounds(0, h, w, RESERVED_HEIGHT_BOTTOM); 
+        pnlCustomAttached.setBounds(0, h, w, RESERVED_HEIGHT_BOTTOM);
+        pnlCustomAttached.validate();
     }
     
     /**

@@ -479,7 +479,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final int MAX_VIS_DATA_POINTS = 100;
     private static final int FONT_CHART_SIZE = 24;
     private static final Font FONT_CHART = new Font("Tahoma", Font.BOLD, FONT_CHART_SIZE);
-    private static final boolean SHOW_AXIS_LABELS = true;
+    private static final boolean SHOW_AXIS_LABELS = false;
     
     private final XYSeries chartDataXput = new XYSeries("Throughput", false, false);
     private final XYSeries chartDataPower = new XYSeries("Power", false, false);

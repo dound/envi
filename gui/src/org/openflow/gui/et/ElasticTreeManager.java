@@ -317,12 +317,12 @@ public class ElasticTreeManager extends PZLayoutManager {
         pnlChart.setPreferredSize(new Dimension(2000, 200));
         
         // don't let the pnlChart get too tall
-        pnlChart.setMinimumSize(new Dimension(400, RESERVED_HEIGHT_BOTTOM - 35));
-        pnlChart.setMaximumSize(new Dimension(2000, RESERVED_HEIGHT_BOTTOM - 35));
+        pnlChart.setMinimumSize(new Dimension(400, RESERVED_HEIGHT_BOTTOM - 98));
+        pnlChart.setMaximumSize(new Dimension(2000, RESERVED_HEIGHT_BOTTOM - 98));
         
         // manual gap
         JLabel gap1 = new JLabel("");
-        gap1.setMinimumSize(new Dimension(1, 7));
+        gap1.setMinimumSize(new Dimension(1, 25));
         gap1.setMaximumSize(gap1.getMinimumSize());
         
         layout.setHorizontalGroup(
@@ -424,7 +424,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         optAlgModeOpt.addActionListener(algModeListener);
     }
     
- // ----------- Chart Creation ----------- //
+    // ----------- Chart Creation ----------- //
     /** prepare a basic JFreeChart */
     private JFreeChart prepareChart(String title, String xAxis, String yAxis, XYSeriesCollection coll, boolean useLegend) {
         JFreeChart chart = ChartFactory.createXYLineChart(
@@ -444,11 +444,12 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         XYPlot plot = (XYPlot)chart.getPlot();
         plot.setBackgroundPaint(Constants.cmap(Color.WHITE));
-        plot.setDomainGridlinePaint(Constants.cmap(Color.LIGHT_GRAY));
-        plot.setRangeGridlinePaint(Constants.cmap(Color.LIGHT_GRAY));
+        Color gc = SHOW_CHART_GRIDLINES ? Constants.cmap(Color.LIGHT_GRAY) : Color.BLACK;
+        plot.setDomainGridlinePaint(gc);
+        plot.setRangeGridlinePaint(gc);
         plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
         plot.setDomainCrosshairVisible(false);
-        plot.setRangeCrosshairVisible(true);
+        plot.setRangeCrosshairVisible(false);
         
         ValueAxis domain = plot.getDomainAxis();
         domain.setLabelFont(FONT_BIG);
@@ -467,19 +468,22 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final int MAX_VIS_DATA_POINTS = 100;
     private static final int FONT_CHART_SIZE = 24;
     private static final Font FONT_CHART = new Font("Tahoma", Font.BOLD, FONT_CHART_SIZE);
-    private static final boolean SHOW_AXIS_LABELS = false;
+    private static final boolean DEFAULT_SHOW_AXES = false;
+    private static final boolean SHOW_CHART_GRIDLINES = false;
+    private static final int MAX_LATENCY_MS = 25;
     
     private final XYSeries chartDataXput = new XYSeries("Throughput", false, false);
     private final XYSeries chartDataPower = new XYSeries("Power", false, false);
     private final XYSeries chartDataLatency = new XYSeries("Latency", false, false);
-    private final JFreeChart chart = createChart();
+    private final JFreeChart chart = createChart(DEFAULT_SHOW_AXES);
     private int datapointOn = 0;
     
     /** create a JFreeChart for showing stats over time */
-    private JFreeChart createChart() {
+    private JFreeChart createChart(boolean showAxes) {
         XYSeriesCollection chartDatas[]  = new XYSeriesCollection[] {new XYSeriesCollection(), new XYSeriesCollection(), new XYSeriesCollection()};
         JFreeChart chart = prepareChart("", "", "", chartDatas[0], false);   
         chart.setBackgroundPaint(Color.BLACK);
+        chart.setBorderPaint(Color.WHITE);
         XYPlot plot = (XYPlot)chart.getPlot();
         
         // use a fixed range
@@ -488,27 +492,44 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         // setup colors and axes for each line
         final XYSeries[] STATS_SERIES = new XYSeries[]{chartDataPower, chartDataXput, chartDataLatency};
-        for(int i=0; i<NUM_SLIDERS; i++) {
+        for(int i=0; i<getNumSliders(); i++) {
             // how to draw the data in this collection
             XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
             renderer.setSeriesPaint(0, STATS_COLORS[i]);
-            renderer.setSeriesStroke(0, new BasicStroke((i==0) ? 8f : 3f, BasicStroke.CAP_BUTT,BasicStroke.JOIN_BEVEL));
+            float ssz = (i == 0) ? 3.7f : ((i == 1) ? 8.0f : 3.3f); // hack to make the lines appear the same size (silly jfreechart)
+            BasicStroke bs = new BasicStroke(ssz, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND);
+            renderer.setSeriesStroke(0, bs);
             renderer.setSeriesLinesVisible(0, true);
             renderer.setSeriesShapesVisible(0, false);
             renderer.setSeriesVisibleInLegend(0, true, false);
             plot.setRenderer(i, renderer);
             
             // how the axis should look
-            NumberAxis n = new NumberAxis(SHOW_AXIS_LABELS ? STATS_NAMES[i] : "");
-            n.setAutoRange(true);
-            n.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+            NumberAxis n = new NumberAxis(showAxes ? STATS_NAMES[i] : "");
+            switch(i) {
+            case 0: n.setRange(0.0, 1.0);          break; // %
+            case 1: n.setRange(0, 1000);           break; // 0 to 1000MB/s
+            case 2: n.setRange(0, MAX_LATENCY_MS); break; // latency
+            }
+            if(!showAxes) {
+                if(i <= 1) {
+                    n.setAxisLinePaint(Color.WHITE);
+                    n.setTickLabelsVisible(false);
+                    n.setTickMarksVisible(false);
+                }
+                else
+                    n.setVisible(false);
+            }
+            else {
+                n.setStandardTickUnits(i==0 ? NumberAxis.createStandardTickUnits() : NumberAxis.createIntegerTickUnits());
+                n.setAxisLinePaint(STATS_COLORS[i]);
+                n.setLabelPaint(STATS_COLORS[i]);
+                n.setTickLabelPaint(STATS_COLORS[i]);
+                n.setLabelFont(FONT_CHART);
+                n.setTickLabelFont(FONT_CHART);
+            }
             plot.setRangeAxis(i, n);
             plot.setRangeAxisLocation(i, i==0 ? AxisLocation.BOTTOM_OR_LEFT : AxisLocation.TOP_OR_RIGHT);
-            n.setAxisLinePaint(STATS_COLORS[i]);
-            n.setLabelPaint(STATS_COLORS[i]);
-            n.setTickLabelPaint(STATS_COLORS[i]);
-            n.setLabelFont(FONT_CHART);
-            n.setTickLabelFont(FONT_CHART);
             
             // add the data and associate it with its axis 
             XYSeriesCollection dataset = chartDatas[i];
@@ -523,31 +544,41 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
     
     // tweak-able slider drawing parameters
-    private static final boolean SHOW_LATENCY = false;
-    private static final int NUM_SLIDERS = SHOW_LATENCY ? 3 : 2;
     private static final int SLIDER_MARGIN_X = 60;
     private static final int SLIDER_MARGIN_Y = 30;
     private static final int SLIDER_WIDTH = 50;
     private static final int FONT_SLIDER_LEFT_SIZE = 44;
     private static final int FONT_SLIDER_BTM_SIZE = 32;
     private static final int SLIDER_BORDER_WIDTH = 0;
-    private static final String[] STATS_NAMES = new String[]{"power (W)", "traffic (Mb/s)", "latency (ms)"};
+    private static final String[] STATS_NAMES = new String[]{"power (% of traditional)", "traffic (Mb/s per host)", "latency (ms)"};
     private static final Color[] STATS_COLORS = new Color[]{new Color(255,0,255), new Color(0,0,255), new Color(0,255,255)};
     
     // computed slider drawing parameter constants
     private static final int SLIDER_HEIGHT = RESERVED_HEIGHT_BOTTOM - 2*SLIDER_MARGIN_Y - 50;
-    private static final int SLIDERS_WIDTH = NUM_SLIDERS*(SLIDER_WIDTH+2*SLIDER_MARGIN_X);
     private static final Font FONT_SLIDER_LEFT = new Font("Tahoma", Font.BOLD, FONT_SLIDER_LEFT_SIZE);
     private static final Font FONT_SLIDER_BTM = new Font("Tahoma", Font.BOLD, FONT_SLIDER_BTM_SIZE);
     private static final BasicStroke SLIDER_STROKE = new BasicStroke(SLIDER_BORDER_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     
+    /** whether to show the latency slider or not */
+    private final boolean showLatency = false;
+    
+    /** number of sliders currently being shown */
+    private int getNumSliders() {
+        return showLatency ? 3 : 2;
+    }
+    
+    /** total width of all sliders combined */
+    private int getSlidersWidth() {
+        return getNumSliders()*(SLIDER_WIDTH+2*SLIDER_MARGIN_X);
+    }
+    
     /** the image where sliders are drawn */
-    private final BufferedImage slidersImg = new BufferedImage(SLIDERS_WIDTH, RESERVED_HEIGHT_BOTTOM, BufferedImage.TYPE_INT_RGB);
+    private final BufferedImage slidersImg = new BufferedImage(getSlidersWidth(), RESERVED_HEIGHT_BOTTOM, BufferedImage.TYPE_INT_RGB);
     
     private void initSlidersPanel() {
-        Dimension sz = new Dimension(SLIDERS_WIDTH, RESERVED_HEIGHT_BOTTOM);
+        Dimension sz = new Dimension(getSlidersWidth(), RESERVED_HEIGHT_BOTTOM);
         pnlSliders.setMinimumSize(sz);
-        pnlSliders.setSize(SLIDERS_WIDTH, RESERVED_HEIGHT_BOTTOM);
+        pnlSliders.setSize(getSlidersWidth(), RESERVED_HEIGHT_BOTTOM);
         pnlSliders.setMaximumSize(sz);
         pnlSliders.setDoubleBuffered(true);
         
@@ -574,6 +605,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private void drawSlider(int sliderNum, double p, String name, String value) {
         Graphics2D gfx = (Graphics2D)slidersImg.getGraphics();
         int x = SLIDER_MARGIN_X + sliderNum*(SLIDER_WIDTH+2*SLIDER_MARGIN_X);
+        int yNudge = 10;
         
         // set up the drawing context for this slider
         gfx.setStroke(SLIDER_STROKE);
@@ -581,12 +613,12 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         // draw the border
         if(SLIDER_BORDER_WIDTH > 0)
-            gfx.drawRect(x, SLIDER_MARGIN_Y, SLIDER_WIDTH, SLIDER_HEIGHT);
+            gfx.drawRect(x, SLIDER_MARGIN_Y+yNudge, SLIDER_WIDTH, SLIDER_HEIGHT);
         
         // draw the title label
         gfx.setFont(FONT_SLIDER_LEFT);
         int tx = x - FONT_SLIDER_LEFT_SIZE / 2;
-        int ty = SLIDER_MARGIN_Y + SLIDER_HEIGHT / 2;
+        int ty = SLIDER_MARGIN_Y + SLIDER_HEIGHT / 2+yNudge;
         AffineTransform t = gfx.getTransform();
         gfx.setTransform(AffineTransform.getRotateInstance(-Math.PI/2, tx, ty));
         StringDrawer.drawCenteredString(name, gfx, tx, ty);
@@ -594,12 +626,12 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         // draw the value label
         gfx.setFont(FONT_SLIDER_BTM);
-        StringDrawer.drawCenteredString(value, gfx, x+SLIDER_WIDTH/2, SLIDER_MARGIN_Y + SLIDER_HEIGHT + FONT_SLIDER_BTM_SIZE);
+        StringDrawer.drawCenteredString(value, gfx, x+SLIDER_WIDTH/2, SLIDER_MARGIN_Y + SLIDER_HEIGHT + FONT_SLIDER_BTM_SIZE+yNudge);
         
         // draw the gradient
         p = (p < 0) ? 0 : ((p > 1) ? 1.0 : p);
         int gx1 = x + SLIDER_BORDER_WIDTH / 2 + 1;
-        int gy = SLIDER_MARGIN_Y + SLIDER_HEIGHT - SLIDER_BORDER_WIDTH + 1;
+        int gy = SLIDER_MARGIN_Y + SLIDER_HEIGHT - SLIDER_BORDER_WIDTH + 1+yNudge;
         int gx2 = gx1 + SLIDER_WIDTH - SLIDER_BORDER_WIDTH;
         int sh = SLIDER_HEIGHT - 2 * SLIDER_BORDER_WIDTH + 1;
         double usageColorsStep = Link.USAGE_COLORS.length / (double)sh;
@@ -987,7 +1019,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
 
     // power, throughput, and latency statistics
-    private int powerCurrent, powerTraditional, powerMax;
+    private int powerCurrent, powerTraditional;
     private int xputExpected, xputAchieved;
     private int latencyEdge, latencyAgg, latencyCore;
     private double latencyAvg;
@@ -995,7 +1027,6 @@ public class ElasticTreeManager extends PZLayoutManager {
     public void setPowerData(int cur, int traditional, int max) {
         powerCurrent = cur;
         powerTraditional = traditional;
-        powerMax = max;
     }
     
     private void refreshPowerSlider() {
@@ -1024,47 +1055,45 @@ public class ElasticTreeManager extends PZLayoutManager {
         latencyEdge = latency_ms_edge;
         latencyAgg = latency_ms_agg;
         latencyCore = latency_ms_core;
+        latencyAvg = (latencyEdge + latencyAgg + latencyCore) / 3.0;
     }
     
     private void refreshLatencySlider() {
-        latencyAvg = (latencyEdge + latencyAgg + latencyCore) / 3.0;
-        final int MAX_LATENCY_MS = 25;
         double p = latencyAvg / MAX_LATENCY_MS;
-        drawSlider(2, p, "latency", latencyAvg + "ms");
+        drawSlider(2, p, "latency", new org.openflow.util.string.PrintfFormat("%.0f").sprintf(latencyAvg) + "ms");
     }
     
     /**
      * Redraws the sliders and updates the chart to match the latest data.
      */
     private void refreshStatsGraphics() {
+        final boolean TEMP_FAKE = true;
+        if(TEMP_FAKE)
+            latencyAvg = 15;
+        
         synchronized(slidersImg) { // prevent tearing
             Graphics2D gfx = (Graphics2D)slidersImg.getGraphics();
-            gfx.clearRect(0, 0, SLIDERS_WIDTH, RESERVED_HEIGHT_BOTTOM);
+            gfx.clearRect(0, 0, getSlidersWidth(), RESERVED_HEIGHT_BOTTOM);
             
             refreshPowerSlider();
             refreshXputSlider();
-            if(SHOW_LATENCY)
+            if(showLatency)
                 refreshLatencySlider();
         }
         
-        final boolean TEMP_FAKE = true;
-        if(TEMP_FAKE)
-            latencyAvg = Math.random()*10 + 3;
-        
-        int xput = slDemand.getValue() / (1000*1000);
-        
         // update the chart
         int x = datapointOn++;
+        int xput = slDemand.getValue() / (1000*1000);
         chartDataXput.add(x, xput);
-        chartDataPower.add(x, powerCurrent);
-        if(SHOW_LATENCY)
+        chartDataPower.add(x, powerCurrent / (double)powerTraditional);
+        if(showLatency)
             chartDataLatency.add(x, latencyAvg);
         
         // remove old data
         if(x >= MAX_VIS_DATA_POINTS) {
             chartDataXput.remove(0);
             chartDataPower.remove(0);
-            if(SHOW_LATENCY)
+            if(showLatency)
                 chartDataLatency.remove(0);
         }
         

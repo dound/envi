@@ -163,7 +163,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         relayout();
         
         // relayout the custom part of the GUI 
-        pnlCustomAttached.setBounds(0, h, w, RESERVED_HEIGHT_BOTTOM);
+        pnlCustomAttached.setBounds(0, h+15, w, RESERVED_HEIGHT_BOTTOM);
+        double alpha = Math.max(0, w - 800) / (1920 - 800.0);
+        setChartGapSide((int)(alpha*100 + (1-alpha)*10));
         pnlCustomAttached.validate();
     }
     
@@ -255,6 +257,10 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JRadioButton optNetModeSW = new JRadioButton("example");
     
     private ChartPanel pnlChart;
+    private JLabel chartGapTop = new JLabel("");
+    private JLabel chartGapLeft = new JLabel("");
+    private JLabel chartGapRight = new JLabel("");
+    
     private JPanel pnlSliders = new JPanel();
     
     // control panel components
@@ -336,26 +342,29 @@ public class ElasticTreeManager extends PZLayoutManager {
         pnlChart.setMinimumSize(new Dimension(300, RESERVED_HEIGHT_BOTTOM - 98));
         pnlChart.setMaximumSize(new Dimension(2000, RESERVED_HEIGHT_BOTTOM - 98));
         
-        // manual gap
-        JLabel gap1 = new JLabel("");
-        gap1.setMinimumSize(new Dimension(1, 25));
-        gap1.setMaximumSize(gap1.getMinimumSize());
+        // manual gaps
+        chartGapTop.setMinimumSize(new Dimension(1, 25));
+        chartGapTop.setMaximumSize(chartGapTop.getMinimumSize());
         
         layout.setHorizontalGroup(
                 layout.createSequentialGroup()
                     .addComponent(pnlModes)
+                    .addComponent(chartGapLeft)
                     .addGroup(layout.createParallelGroup()
-                        .addComponent(gap1)
+                        .addComponent(chartGapTop)
                         .addComponent(pnlChart))
+                    .addComponent(chartGapRight)
                     .addComponent(pnlSliders)
         );
         
         layout.setVerticalGroup(
                 layout.createParallelGroup()
                     .addComponent(pnlModes)
+                    .addComponent(chartGapLeft)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(gap1)
+                        .addComponent(chartGapTop)
                         .addComponent(pnlChart))
+                    .addComponent(chartGapRight)
                     .addComponent(pnlSliders)
         );
         
@@ -377,6 +386,14 @@ public class ElasticTreeManager extends PZLayoutManager {
                 x.setFocusable(false);
             }
         }
+    }
+    
+    /** sets the size of the gap on either side of the chart */
+    private void setChartGapSide(int sideGapSize) {
+        chartGapLeft.setMinimumSize(new Dimension(sideGapSize,1));
+        chartGapLeft.setMaximumSize(chartGapLeft.getMinimumSize());
+        chartGapRight.setMinimumSize(new Dimension(sideGapSize, 1));
+        chartGapRight.setMaximumSize(chartGapRight.getMinimumSize());
     }
     
     private void initModesPanel() {
@@ -1103,7 +1120,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         synchronized(slidersImg) { // prevent tearing
             Graphics2D gfx = (Graphics2D)slidersImg.getGraphics();
-            gfx.clearRect(0, 0, getSlidersWidth(), RESERVED_HEIGHT_BOTTOM);
+            gfx.clearRect(0, SLIDER_MARGIN_Y, getSlidersWidth(), RESERVED_HEIGHT_BOTTOM);
             
             refreshPowerSlider();
             refreshXputSlider();

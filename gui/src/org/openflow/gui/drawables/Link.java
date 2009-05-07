@@ -207,7 +207,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     // ------------------- Drawing ------------------ //
     
     /** thickness of a link */
-    public static final int LINE_WIDTH = 2;
+    public static final int LINE_WIDTH = 3;
     
     /** how the draw a link */
     public static final BasicStroke LINE_DEFAULT_STROKE = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);

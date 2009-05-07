@@ -123,7 +123,7 @@ public class ElasticTreeManager extends PZLayoutManager {
                     // a bit of a hack: draw switches representing hosts a different color
                     if(d instanceof OpenFlowSwitch) {
                         OpenFlowSwitch o = ((OpenFlowSwitch)d);
-                        o.setIcon(new ShapeIcon(new Ellipse2D.Double(0,0,5,5), java.awt.Color.DARK_GRAY));
+                        o.setIcon(new ShapeIcon(new Ellipse2D.Double(0,0,8,8), java.awt.Color.DARK_GRAY));
                     }
                 }
                 relayout();

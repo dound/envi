@@ -505,8 +505,7 @@ public class ElasticTreeManager extends PZLayoutManager {
             // how to draw the data in this collection
             XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
             renderer.setSeriesPaint(0, STATS_COLORS[i]);
-            float ssz = (i == 0) ? 3.7f : ((i == 1) ? 8.0f : 3.3f); // hack to make the lines appear the same size (silly jfreechart)
-            BasicStroke bs = new BasicStroke(ssz, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND);
+            BasicStroke bs = new BasicStroke(4.0f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND);
             renderer.setSeriesStroke(0, bs);
             renderer.setSeriesLinesVisible(0, true);
             renderer.setSeriesShapesVisible(0, false);

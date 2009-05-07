@@ -65,7 +65,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     public static final int GAP_X = 5;
     public static final int RESERVED_HEIGHT_BOTTOM = 400;
     
-    private static final int FONT_BIG_SIZE = 38;
+    private static final int FONT_BIG_SIZE = 28;
     private static final Font FONT_BIG = new Font("Tahoma", Font.BOLD, FONT_BIG_SIZE);
     
     /** Creates a new Elastic Tree GUI for a k=6 fat tree */

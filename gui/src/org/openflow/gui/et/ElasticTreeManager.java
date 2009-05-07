@@ -56,15 +56,28 @@ import org.tame.MThumbSlider;
  */
 public class ElasticTreeManager extends PZLayoutManager {
     public static final int HW_FAT_TREE_K = 6;
-    public static final int SL_WIDTH = 50;
-    public static final int LBL_HEIGHT = 20;
-    public static final int LBL_WIDTH = 100;
-    public static final int LBL_WIDTH_BIG = 400;
-    public static final int GAP_X = 5;
     public static final int RESERVED_HEIGHT_BOTTOM = 400;
     
     private static final int FONT_BIG_SIZE = 28;
     private static final Font FONT_BIG = new Font("Tahoma", Font.BOLD, FONT_BIG_SIZE);
+    
+    // chart configuration parameters
+    private static final int MAX_VIS_DATA_POINTS = 100;
+    private static final int FONT_CHART_SIZE = 24;
+    private static final Font FONT_CHART = new Font("Tahoma", Font.BOLD, FONT_CHART_SIZE);
+    private static final boolean DEFAULT_SHOW_AXES = false;
+    private static final boolean SHOW_CHART_GRIDLINES = false;
+    private static final int MAX_LATENCY_MS = 25;
+    
+    // custom slider configuration parameters
+    private static final int SLIDER_MARGIN_X = 60;
+    private static final int SLIDER_MARGIN_Y = 30;
+    private static final int SLIDER_WIDTH = 50;
+    private static final int FONT_SLIDER_LEFT_SIZE = 44;
+    private static final int FONT_SLIDER_BTM_SIZE = 32;
+    private static final int SLIDER_BORDER_WIDTH = 0;
+    private static final String[] STATS_NAMES = new String[]{"power (% of traditional)", "traffic (Mb/s per host)", "latency (ms)"}; // for axes labels, if needed
+    private static final Color[] STATS_COLORS = new Color[]{new Color(255,0,255), new Color(0,0,255), new Color(0,255,255)};
     
     /** Creates a new Elastic Tree GUI for a k=6 fat tree */
     public ElasticTreeManager() {
@@ -466,14 +479,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         return chart;
     }
     
-    // chart configuration parameters
-    private static final int MAX_VIS_DATA_POINTS = 100;
-    private static final int FONT_CHART_SIZE = 24;
-    private static final Font FONT_CHART = new Font("Tahoma", Font.BOLD, FONT_CHART_SIZE);
-    private static final boolean DEFAULT_SHOW_AXES = false;
-    private static final boolean SHOW_CHART_GRIDLINES = false;
-    private static final int MAX_LATENCY_MS = 25;
-    
+    // chart variables
     private final XYSeries chartDataXput = new XYSeries("Throughput", false, false);
     private final XYSeries chartDataPower = new XYSeries("Power", false, false);
     private final XYSeries chartDataLatency = new XYSeries("Latency", false, false);
@@ -544,16 +550,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         return chart;
     }
-    
-    // tweak-able slider drawing parameters
-    private static final int SLIDER_MARGIN_X = 60;
-    private static final int SLIDER_MARGIN_Y = 30;
-    private static final int SLIDER_WIDTH = 50;
-    private static final int FONT_SLIDER_LEFT_SIZE = 44;
-    private static final int FONT_SLIDER_BTM_SIZE = 32;
-    private static final int SLIDER_BORDER_WIDTH = 0;
-    private static final String[] STATS_NAMES = new String[]{"power (% of traditional)", "traffic (Mb/s per host)", "latency (ms)"};
-    private static final Color[] STATS_COLORS = new Color[]{new Color(255,0,255), new Color(0,0,255), new Color(0,255,255)};
     
     // computed slider drawing parameter constants
     private static final int SLIDER_HEIGHT = RESERVED_HEIGHT_BOTTOM - 2*SLIDER_MARGIN_Y - 50;

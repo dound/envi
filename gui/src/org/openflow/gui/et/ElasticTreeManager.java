@@ -76,6 +76,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final int FONT_SLIDER_LEFT_SIZE = 44;
     private static final int FONT_SLIDER_BTM_SIZE = 32;
     private static final int SLIDER_BORDER_WIDTH = 0;
+    private static final int SLIDER_MARKER_HEIGHT = 11;
     private static final boolean SLIDER_DRAW_UPPER_HALF_DARKER = true; // true=>draw darker, false=>hide
     private static final String[] STATS_NAMES = new String[]{"power (% of traditional)", "traffic (Mb/s per host)", "latency (ms)"}; // for axes labels, if needed
     private static final Color[] STATS_COLORS = new Color[]{new Color(255,0,255), new Color(0,0,255), new Color(0,255,255)};
@@ -658,13 +659,26 @@ public class ElasticTreeManager extends PZLayoutManager {
         if(usageColorsStep <= 0) usageColorsStep = 1;
         double pPerOffset = 1.0 / sh;
         double i = 0;
+        boolean transitioned = false;
         for(int yOffset=0; i<Link.USAGE_COLORS.length && yOffset<SLIDER_HEIGHT; i+=usageColorsStep, yOffset+=1) {
-            if(yOffset*pPerOffset < p)
+            if(yOffset*pPerOffset < p && !(yOffset==SLIDER_HEIGHT-1 && p==1.0))
                 gfx.setColor(Link.USAGE_COLORS[(int)i]);
-            else if(SLIDER_DRAW_UPPER_HALF_DARKER)
-                gfx.setColor(Link.USAGE_COLORS_DARK[(int)i]);
-            else
-                break;
+            else {
+                if(!transitioned) {
+                    transitioned = true;
+                    gfx.setColor(STATS_COLORS[sliderNum]);
+                    for(int j=yOffset-SLIDER_MARKER_HEIGHT/2; j<=yOffset+SLIDER_MARKER_HEIGHT/2; j++) {
+                        gfx.drawLine(gx1, gy - j, gx2, gy - j);
+                    }
+                    yOffset += SLIDER_MARKER_HEIGHT / 2;
+                    continue;
+                }
+                    
+                if(SLIDER_DRAW_UPPER_HALF_DARKER)
+                    gfx.setColor(Link.USAGE_COLORS_DARK[(int)i]);
+                else
+                    break;
+            }
             gfx.drawLine(gx1, gy - yOffset, gx2, gy - yOffset); 
         }
         

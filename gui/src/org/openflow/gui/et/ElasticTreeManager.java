@@ -525,7 +525,8 @@ public class ElasticTreeManager extends PZLayoutManager {
     // tweak-able slider drawing parameters
     private static final boolean SHOW_LATENCY = false;
     private static final int NUM_SLIDERS = SHOW_LATENCY ? 3 : 2;
-    private static final int SLIDER_MARGIN = 50;
+    private static final int SLIDER_MARGIN_X = 60;
+    private static final int SLIDER_MARGIN_Y = 30;
     private static final int SLIDER_WIDTH = 50;
     private static final int FONT_SLIDER_LEFT_SIZE = 44;
     private static final int FONT_SLIDER_BTM_SIZE = 32;
@@ -534,8 +535,8 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final Color[] STATS_COLORS = new Color[]{new Color(255,0,255), new Color(0,0,255), new Color(0,255,255)};
     
     // computed slider drawing parameter constants
-    private static final int SLIDER_HEIGHT = RESERVED_HEIGHT_BOTTOM - 2*SLIDER_MARGIN - 50;
-    private static final int SLIDERS_WIDTH = NUM_SLIDERS*(SLIDER_WIDTH+2*SLIDER_MARGIN);
+    private static final int SLIDER_HEIGHT = RESERVED_HEIGHT_BOTTOM - 2*SLIDER_MARGIN_Y - 50;
+    private static final int SLIDERS_WIDTH = NUM_SLIDERS*(SLIDER_WIDTH+2*SLIDER_MARGIN_X);
     private static final Font FONT_SLIDER_LEFT = new Font("Tahoma", Font.BOLD, FONT_SLIDER_LEFT_SIZE);
     private static final Font FONT_SLIDER_BTM = new Font("Tahoma", Font.BOLD, FONT_SLIDER_BTM_SIZE);
     private static final BasicStroke SLIDER_STROKE = new BasicStroke(SLIDER_BORDER_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
@@ -572,7 +573,7 @@ public class ElasticTreeManager extends PZLayoutManager {
      */
     private void drawSlider(int sliderNum, double p, String name, String value) {
         Graphics2D gfx = (Graphics2D)slidersImg.getGraphics();
-        int x = SLIDER_MARGIN + sliderNum*(SLIDER_WIDTH+2*SLIDER_MARGIN);
+        int x = SLIDER_MARGIN_X + sliderNum*(SLIDER_WIDTH+2*SLIDER_MARGIN_X);
         
         // set up the drawing context for this slider
         gfx.setStroke(SLIDER_STROKE);
@@ -580,12 +581,12 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         // draw the border
         if(SLIDER_BORDER_WIDTH > 0)
-            gfx.drawRect(x, SLIDER_MARGIN, SLIDER_WIDTH, SLIDER_HEIGHT);
+            gfx.drawRect(x, SLIDER_MARGIN_Y, SLIDER_WIDTH, SLIDER_HEIGHT);
         
         // draw the title label
         gfx.setFont(FONT_SLIDER_LEFT);
         int tx = x - FONT_SLIDER_LEFT_SIZE / 2;
-        int ty = SLIDER_MARGIN + SLIDER_HEIGHT / 2;
+        int ty = SLIDER_MARGIN_Y + SLIDER_HEIGHT / 2;
         AffineTransform t = gfx.getTransform();
         gfx.setTransform(AffineTransform.getRotateInstance(-Math.PI/2, tx, ty));
         StringDrawer.drawCenteredString(name, gfx, tx, ty);
@@ -593,19 +594,20 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         // draw the value label
         gfx.setFont(FONT_SLIDER_BTM);
-        StringDrawer.drawCenteredString(value, gfx, x+SLIDER_WIDTH/2, SLIDER_MARGIN + SLIDER_HEIGHT + FONT_SLIDER_BTM_SIZE);
+        StringDrawer.drawCenteredString(value, gfx, x+SLIDER_WIDTH/2, SLIDER_MARGIN_Y + SLIDER_HEIGHT + FONT_SLIDER_BTM_SIZE);
         
         // draw the gradient
         p = (p < 0) ? 0 : ((p > 1) ? 1.0 : p);
         int gx1 = x + SLIDER_BORDER_WIDTH / 2 + 1;
-        int gy = SLIDER_MARGIN + SLIDER_HEIGHT - SLIDER_BORDER_WIDTH + 1;
+        int gy = SLIDER_MARGIN_Y + SLIDER_HEIGHT - SLIDER_BORDER_WIDTH + 1;
         int gx2 = gx1 + SLIDER_WIDTH - SLIDER_BORDER_WIDTH;
         int sh = SLIDER_HEIGHT - 2 * SLIDER_BORDER_WIDTH + 1;
-        int usageColorsStep = Link.USAGE_COLORS.length / sh;
-        if(usageColorsStep < 1) usageColorsStep = 1;
+        double usageColorsStep = Link.USAGE_COLORS.length / (double)sh;
+        if(usageColorsStep <= 0) usageColorsStep = 1;
         double pPerOffset = 1.0 / sh;
-        for(int i=0, yOffset=0; i<Link.USAGE_COLORS.length && yOffset*pPerOffset<p && yOffset<SLIDER_HEIGHT; i+=usageColorsStep, yOffset+=1) {
-            gfx.setColor(Link.USAGE_COLORS[i]);
+        double i = 0;
+        for(int yOffset=0; i<Link.USAGE_COLORS.length && yOffset*pPerOffset<p && yOffset<SLIDER_HEIGHT; i+=usageColorsStep, yOffset+=1) {
+            gfx.setColor(Link.USAGE_COLORS[(int)i]);
             gfx.drawLine(gx1, gy - yOffset, gx2, gy - yOffset); 
         }
         

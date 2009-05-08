@@ -145,7 +145,13 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     }
 
     public Graphics2D getDisplayGfx() {
-        return (Graphics2D)img.getGraphics();
+        Graphics2D gfx = (Graphics2D)img.getGraphics();
+        
+        // make sure the gfx renders in high quality
+        gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        gfx.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        
+        return gfx;
     }
 
     public void redraw() {
@@ -288,10 +294,6 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
             
             Graphics2D gfx = (Graphics2D)img.getGraphics();
             gfx.setBackground(Color.WHITE);
-
-            // make sure the gfx renders in high quality
-            gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            gfx.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             gfx.setFont(Constants.FONT_DEFAULT);
             gfx.setComposite(Constants.COMPOSITE_OPAQUE);
         }

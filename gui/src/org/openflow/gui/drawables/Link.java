@@ -65,11 +65,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /**
      * Constructs a new link between src and dst.
      * 
-     * @param lnkType  the type of this link
-     * @param src      the source node of data on this link
-     * @param srcPort  the source port of the link (on src)
-     * @param dst      the destination of this link
-     * @param stPort   the destination port of the link (on dst)
+     * @param linkType  the type of this link
+     * @param dst       the destination of this link
+     * @param dstPort   the destination port of the link (on dst)
+     * @param src       the source node of data on this link
+     * @param srcPort   the source port of the link (on src)
      * 
      * @throws LinkExistsException  thrown if the link already exists
      */

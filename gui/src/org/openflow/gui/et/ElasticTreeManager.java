@@ -1473,9 +1473,13 @@ public class ElasticTreeManager extends PZLayoutManager {
      * Updates the slider labels and notify those listening for traffic matrix changes.
      */
     public void notifyTrafficMatrixChangeListeners() {
-        int edge = (int)(100 * getLocalityEdge());
-        int agg = (int)(100 * getLocalityAgg());
-        int core = (int)(100 * getLocalityCore());
+        int edge = Math.round(100 * getLocalityEdge());
+        int agg = Math.round(100 * getLocalityAgg());
+        int core = Math.round(100 * getLocalityCore());
+        
+        // make sure they add up to 100 exactly
+        if(edge+agg+core != 100)
+            core = 100 - edge - agg;
         
         setPanelTitle(pnlDemand, "Demand: " + StringOps.formatBitsPerSec(slDemand.getValue()), TITLE_BORDER_FONT_SMALL);
         setPanelTitle(pnlLocality, "Locality: edge=" + edge + "% agg=" + agg + "% core=" + core + "%", TITLE_BORDER_FONT_SMALL);

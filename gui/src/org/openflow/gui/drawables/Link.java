@@ -65,11 +65,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /**
      * Constructs a new link between src and dst.
      * 
-     * @param lnkType  the type of this link
-     * @param src      the source node of data on this link
-     * @param srcPort  the source port of the link (on src)
-     * @param dst      the destination of this link
-     * @param stPort   the destination port of the link (on dst)
+     * @param linkType  the type of this link
+     * @param dst       the destination of this link
+     * @param dstPort   the destination port of the link (on dst)
+     * @param src       the source node of data on this link
+     * @param srcPort   the source port of the link (on src)
      * 
      * @throws LinkExistsException  thrown if the link already exists
      */
@@ -361,6 +361,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     public void drawWiredLink(Graphics2D gfx) {
         drawLinkPreparation(gfx);
         drawWiredLinkNoPrep(gfx);
+        gfx.setPaint(Constants.COLOR_DEFAULT);
     }
     
     private void drawWiredLinkNoPrep(Graphics2D gfx) {
@@ -754,7 +755,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      * Computes the color associated with a particular usage value.
      */
     private static Color computeUsageColor(float usage) {
-        if(usage == 0.0f)
+        if(usage < 0.0f)
             return new Color(0.3f, 0.3f, 0.3f, 0.5f); // faded gray
         else {
             float mid = 1.5f / 3.0f;

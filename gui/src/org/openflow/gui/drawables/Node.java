@@ -71,7 +71,7 @@ public abstract class Node extends AbstractLayoutable implements Vertex<Link> {
         Composite c = null;
         if(isOff() && !isFailed()) {
             c = gfx.getComposite();
-            gfx.setComposite(Constants.COMPOSITE_QUARTER);
+            gfx.setComposite(Constants.COMPOSITE_HALF);
         }
         
         // outline the object if it is selected or being hovered over

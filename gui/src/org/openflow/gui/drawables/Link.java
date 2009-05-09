@@ -361,6 +361,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     public void drawWiredLink(Graphics2D gfx) {
         drawLinkPreparation(gfx);
         drawWiredLinkNoPrep(gfx);
+        gfx.setPaint(Constants.COLOR_DEFAULT);
     }
     
     private void drawWiredLinkNoPrep(Graphics2D gfx) {

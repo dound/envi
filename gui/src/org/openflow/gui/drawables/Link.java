@@ -755,7 +755,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      * Computes the color associated with a particular usage value.
      */
     private static Color computeUsageColor(float usage) {
-        if(usage == 0.0f)
+        if(usage < 0.0f)
             return new Color(0.3f, 0.3f, 0.3f, 0.5f); // faded gray
         else {
             float mid = 1.5f / 3.0f;

@@ -79,6 +79,6 @@ public class ETTrafficMatrix extends OFGMessage {
     }
 
     public String toStringShort() {
-        return StringOps.formatBitsPerSec(demand,1000*1000*1000) + " edge=" + 100*edge + "% agg=" + 100*agg + "% plen=" + plen + "B";
+        return StringOps.formatBitsPerSec(demand,1000*1000*1000) + " edge=" + Math.round(100*edge) + "% agg=" + Math.round(100*agg) + "% plen=" + plen + "B";
     }
 }

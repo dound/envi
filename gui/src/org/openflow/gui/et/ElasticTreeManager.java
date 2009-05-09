@@ -58,6 +58,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     public static final int HW_FAT_TREE_K = 6;
     public static final int RESERVED_HEIGHT_BOTTOM = 400;
     
+    private static final Color SERVER_COLOR = new Color(128, 128, 128);
     private static final int FONT_BIG_SIZE = 28;
     private static final Font FONT_BIG = new Font("Tahoma", Font.BOLD, FONT_BIG_SIZE);
     
@@ -125,7 +126,7 @@ public class ElasticTreeManager extends PZLayoutManager {
                     // a bit of a hack: draw switches representing hosts a different color
                     if(d instanceof OpenFlowSwitch) {
                         OpenFlowSwitch o = ((OpenFlowSwitch)d);
-                        o.setIcon(new ShapeIcon(new Ellipse2D.Double(0,0,8,8), java.awt.Color.DARK_GRAY));
+                        o.setIcon(new ShapeIcon(new Ellipse2D.Double(0,0,8,8), SERVER_COLOR));
                     }
                 }
                 relayout();

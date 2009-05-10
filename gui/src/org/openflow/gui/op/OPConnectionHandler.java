@@ -140,6 +140,10 @@ public class OPConnectionHandler extends ConnectionHandler
     private void handleModulePlaced(OPModule m, MouseEvent e) {
         Drawable d = manager.selectFrom(e.getX(), e.getY(), filterIgnoreModules);
         if(d instanceof OPNodeWithNameAndPorts) {
+            // ignore the request if m is already installed on d
+            if(m.getNodeInstalledOn() == d)
+                return;
+            
             // dragged m to a new place: install request
             OPNodeWithNameAndPorts n = (OPNodeWithNameAndPorts)d;
             if(m.isCompatibleWith(n) && (ALLOW_MULTIPLE_MODULES_PER_NODE || config.get(key(n)).b.size()==0)) {

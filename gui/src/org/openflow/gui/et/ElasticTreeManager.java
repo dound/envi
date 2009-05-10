@@ -1488,10 +1488,15 @@ public class ElasticTreeManager extends PZLayoutManager {
         ignoreChangesToSliders = b;
     }
     
+    /** the previous traffic matrix which was sent to traffic change listeners */
+    private ETTrafficMatrix prevTrafficMatrix = null;
+    
     /**
-     * Updates the slider labels and notify those listening for traffic matrix changes.
+     * Updates the slider labels and notify those listening for traffic matrix 
+     * changes.  Returns true if the notification was sent, or false if it was 
+     * not sent (it is not sent if it has not changed).
      */
-    public void notifyTrafficMatrixChangeListeners() {
+    public boolean notifyTrafficMatrixChangeListeners() {
         int edge = Math.round(100 * getLocalityEdge());
         int agg = Math.round(100 * getLocalityAgg());
         int core = Math.round(100 * getLocalityCore());
@@ -1505,7 +1510,13 @@ public class ElasticTreeManager extends PZLayoutManager {
         setPanelTitle(pnlPLen,   "Packet Length: " + slPLen.getValue() + "B", TITLE_BORDER_FONT_SMALL);
         
         ETTrafficMatrix tm = getCurrentTrafficMatrix();
+        if(tm.equals(prevTrafficMatrix))
+            return false;
+        
         for(TrafficMatrixChangeListener c : trafficMatrixChangeListeneres)
             c.trafficMatrixChanged(tm);
+        
+        prevTrafficMatrix = tm;
+        return true;
     }
 }

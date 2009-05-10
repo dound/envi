@@ -62,6 +62,9 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final int FONT_BIG_SIZE = 28;
     private static final Font FONT_BIG = new Font("Tahoma", Font.BOLD, FONT_BIG_SIZE);
     
+    /** the color for links which are turned off */
+    private static final Color LINK_OFF_COLOR = new Color(0.3f, 0.3f, 0.3f, 0.5f); // dark gray
+    
     // chart configuration parameters
     private static final int MAX_VIS_DATA_POINTS = 100;
     private static final int FONT_CHART_SIZE = 24;
@@ -445,6 +448,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         optgrpAlgMode.add(optAlgModeOpt);
         optAlgModeOpt.setSelected(true);
         algModeLastSelected = optAlgModeOpt;
+        Link.USAGE_COLOR_0 = LINK_OFF_COLOR;
         
         layout.linkSize(SwingConstants.VERTICAL, optAlgModeOrig, optAlgModeOpt);
         
@@ -711,6 +715,10 @@ public class ElasticTreeManager extends PZLayoutManager {
     /** called when the algorithm mode is being changed */
     private void handleAlgModeTypeChange() {
         notifyTrafficMatrixChangeListeners();
+        if(optAlgModeOrig.isSelected())
+            Link.USAGE_COLOR_0 = Color.WHITE;
+        else
+            Link.USAGE_COLOR_0 = LINK_OFF_COLOR;
     }
     
     /** layout and initialize the separate, detatched control panel and its components */

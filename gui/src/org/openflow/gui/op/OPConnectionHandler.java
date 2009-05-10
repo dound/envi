@@ -351,8 +351,6 @@ public class OPConnectionHandler extends ConnectionHandler
     public static final int[] INOUT_YS = new int[] {0,  5, 10, 5, 0};
     public static final int[] NETFPGA_XS = new int[]{0, 20, 20, 10, 10,  2, 2, 0, 0};
     public static final int[] NETFPGA_YS = new int[]{0,  0,  8,  8, 10, 10, 8, 8, 0};
-    public static final int[] LAPTOP_XS = new int[]{3, 18, 18, 21,  0,  3, 3};
-    public static final int[] LAPTOP_YS = new int[]{0,  0, 15, 21, 21, 15, 0};
     public static final Color DARK_GREEN = Color.GREEN.darker();
     public static final Color DARK_BLUE = Color.BLUE.darker();
     public static final Color LIGHT_YELLOW = Color.YELLOW.brighter();
@@ -370,12 +368,6 @@ public class OPConnectionHandler extends ConnectionHandler
         for(int i=0; i<NETFPGA_XS.length; i++) {
             NETFPGA_XS[i] *= NETFPGA_SCALE;
             NETFPGA_YS[i] *= NETFPGA_SCALE;
-        }
-        
-        int LAPTOP_SCALE = 5;
-        for(int i=0; i<LAPTOP_XS.length; i++) {
-            LAPTOP_XS[i] *= LAPTOP_SCALE;
-            LAPTOP_YS[i] *= LAPTOP_SCALE;
         }
     }
     
@@ -412,9 +404,7 @@ public class OPConnectionHandler extends ConnectionHandler
             break;
             
         case TYPE_LAPTOP:
-            gicon = new GeometricIcon(LAPTOP_XS, LAPTOP_YS, Color.BLUE, Color.BLACK, Constants.STROKE_DEFAULT);
-            gicon.setCenter(true);
-            icon = gicon;
+            icon = new org.pzgui.icon.ImageIcon("images/laptop-blue.png");
             break;
             
         case TYPE_MODULE_HW:

@@ -444,7 +444,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         optgrpAlgMode.add(optAlgModeOpt);
         optAlgModeOpt.setSelected(true);
         algModeLastSelected = optAlgModeOpt;
-        optAlgModeOrig.setEnabled(false);
         
         layout.linkSize(SwingConstants.VERTICAL, optAlgModeOrig, optAlgModeOpt);
         
@@ -1454,7 +1453,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         float demand = slDemand.getValue() / (float)slDemand.getMaximum();
         float edge = getLocalityEdge();
         float agg = getLocalityAgg();
-        return new ETTrafficMatrix(optNetModeHW.isSelected(), chkSplit.isSelected(), fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
+        return new ETTrafficMatrix(
+                optNetModeHW.isSelected(), optAlgModeOrig.isSelected(), chkSplit.isSelected(), 
+                fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
     }
     
     /** Gets whether slider changes are being ignored. */

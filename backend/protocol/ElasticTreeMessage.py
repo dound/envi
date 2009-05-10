@@ -14,9 +14,10 @@ class ETTrafficMatrix(OFGMessage):
     def get_type():
         return 0xF0
 
-    def __init__(self, use_hw, may_split_flows, k, demand, edge, agg, plen, xid=0):
+    def __init__(self, use_hw, use_orig_alg, may_split_flows, k, demand, edge, agg, plen, xid=0):
         OFGMessage.__init__(self, xid)
         self.use_hw = bool(use_hw)
+        self.use_orig_alg = bool(use_orig_alg)
         self.may_split_flows = bool(may_split_flows)
         self.k      = int(k)
         self.demand = float(demand)
@@ -32,21 +33,24 @@ class ETTrafficMatrix(OFGMessage):
                 self.agg = 1.0 - self.edge
 
     def length(self):
-        return OFGMessage.SIZE + 22
+        return OFGMessage.SIZE + 23
 
     def pack(self):
-        return OFGMessage.pack(self) + struct.pack('> 2B I 3f I', self.use_hw, self.may_split_flows, self.k, self.demand, self.edge, self.agg, self.plen)
+        return OFGMessage.pack(self) + struct.pack('> 3B I 3f I',
+                                                   self.use_hw, self.use_orig_alg, self.may_split_flows,
+                                                   self.k, self.demand, self.edge, self.agg, self.plen)
 
     @staticmethod
     def unpack(body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        t = struct.unpack('> 2B I 3f I', body[:22])
-        return ETTrafficMatrix(t[0], t[1], t[2], t[3], t[4], t[5], t[6], xid)
+        t = struct.unpack('> 3B I 3f I', body[:23])
+        return ETTrafficMatrix(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], xid)
 
     def __str__(self):
-        fmt = 'ET_TRAFFIC_MATRIX: ' + OFGMessage.__str__(self) + " hw=%u split=%u k=%u demand=%u edge=%u agg=%u plen=%u"
-        return fmt % (self.use_hw, self.may_split_flows, self.k, self.demand, self.edge, self.agg, self.plen)
+        fmt = 'ET_TRAFFIC_MATRIX: ' + OFGMessage.__str__(self) + " hw=%u alg=%u split=%u k=%u demand=%u edge=%u agg=%u plen=%u"
+        return fmt % (self.use_hw, self.use_orig_alg, self.may_split_flows,
+                      self.k, self.demand, self.edge, self.agg, self.plen)
 ET_MESSAGES.append(ETTrafficMatrix)
 
 class ETLinkUtil(Link):

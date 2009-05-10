@@ -77,7 +77,8 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final int FONT_SLIDER_LEFT_SIZE = 44;
     private static final int FONT_SLIDER_BTM_SIZE = 32;
     private static final int SLIDER_BORDER_WIDTH = 0;
-    private static final int SLIDER_MARKER_HEIGHT = 11;
+    private static final int SLIDER_MARKER_SIZE = (SLIDER_WIDTH / 3) * 2;
+    private static final BasicStroke SLIDER_MARKER_STROKE = new BasicStroke(2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     private static final boolean SLIDER_DRAW_UPPER_HALF_DARKER = true; // true=>draw darker, false=>hide
     private static final String[] STATS_NAMES = new String[]{"power (% of traditional)", "traffic (Mb/s per host)", "latency (ms)"}; // for axes labels, if needed
     private static final Color[] STATS_COLORS = new Color[]{new Color(255,0,255), new Color(0,0,255), new Color(0,255,255)};
@@ -575,6 +576,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final Font FONT_SLIDER_LEFT = new Font("Tahoma", Font.BOLD, FONT_SLIDER_LEFT_SIZE);
     private static final Font FONT_SLIDER_BTM = new Font("Tahoma", Font.BOLD, FONT_SLIDER_BTM_SIZE);
     private static final BasicStroke SLIDER_STROKE = new BasicStroke(SLIDER_BORDER_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    private static final Ellipse2D.Double SLIDER_CIRCLE = new Ellipse2D.Double(0, 0, SLIDER_MARKER_SIZE, SLIDER_MARKER_SIZE);
     
     /** whether to show the latency slider or not */
     private boolean showLatency = false;
@@ -623,6 +625,7 @@ public class ElasticTreeManager extends PZLayoutManager {
      */
     private void drawSlider(int sliderNum, double p, String name, String value) {
         Graphics2D gfx = (Graphics2D)slidersImg.getGraphics();
+        gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         gfx.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         
         int x = SLIDER_MARGIN_X + sliderNum*(SLIDER_WIDTH+2*SLIDER_MARGIN_X);
@@ -650,6 +653,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         StringDrawer.drawCenteredString(value, gfx, x+SLIDER_WIDTH/2, SLIDER_MARGIN_Y + SLIDER_HEIGHT + FONT_SLIDER_BTM_SIZE+yNudge);
         
         // draw the gradient
+        gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         p = (p < 0) ? 0 : ((p > 1) ? 1.0 : p);
         int gx1 = x + SLIDER_BORDER_WIDTH / 2 + 1;
         int gy = SLIDER_MARGIN_Y + SLIDER_HEIGHT - SLIDER_BORDER_WIDTH + 1+yNudge;
@@ -666,14 +670,9 @@ public class ElasticTreeManager extends PZLayoutManager {
             else {
                 if(!transitioned) {
                     transitioned = true;
-                    gfx.setColor(STATS_COLORS[sliderNum]);
-                    for(int j=yOffset-SLIDER_MARKER_HEIGHT/2; j<=yOffset+SLIDER_MARKER_HEIGHT/2; j++) {
-                        gfx.drawLine(gx1, gy - j, gx2, gy - j);
-                    }
-                    yOffset += SLIDER_MARKER_HEIGHT / 2;
-                    continue;
+                    SLIDER_CIRCLE.y = gy - yOffset - SLIDER_MARKER_SIZE / 2;
                 }
-                    
+                
                 if(SLIDER_DRAW_UPPER_HALF_DARKER)
                     gfx.setColor(Link.USAGE_COLORS_DARK[(int)i]);
                 else
@@ -681,6 +680,14 @@ public class ElasticTreeManager extends PZLayoutManager {
             }
             gfx.drawLine(gx1, gy - yOffset, gx2, gy - yOffset); 
         }
+        gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        SLIDER_CIRCLE.x = (gx1 + gx2) / 2.0 - SLIDER_MARKER_SIZE / 2.0;
+        gfx.setColor(STATS_COLORS[sliderNum]);
+        gfx.fill(SLIDER_CIRCLE);
+        gfx.setStroke(SLIDER_MARKER_STROKE);
+        gfx.setColor(Color.WHITE);
+        gfx.draw(SLIDER_CIRCLE);
         
         // restore the defaults
         gfx.setStroke(Constants.STROKE_DEFAULT);

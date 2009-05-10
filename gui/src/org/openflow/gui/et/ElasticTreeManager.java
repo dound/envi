@@ -65,6 +65,9 @@ public class ElasticTreeManager extends PZLayoutManager {
     /** the color for links which are turned off */
     private static final Color LINK_OFF_COLOR = new Color(0.3f, 0.3f, 0.3f, 0.5f); // dark gray
     
+    /** the color for links which have 0 utilization in original mode*/
+    private static final Color LINK_O_COLOR = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+    
     // chart configuration parameters
     private static final int MAX_VIS_DATA_POINTS = 100;
     private static final int FONT_CHART_SIZE = 24;
@@ -716,7 +719,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private void handleAlgModeTypeChange() {
         notifyTrafficMatrixChangeListeners();
         if(optAlgModeOrig.isSelected())
-            Link.USAGE_COLOR_0 = Color.WHITE;
+            Link.USAGE_COLOR_0 = LINK_O_COLOR;
         else
             Link.USAGE_COLOR_0 = LINK_OFF_COLOR;
     }

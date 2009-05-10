@@ -1195,6 +1195,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         }
         
         refreshStatsGraphics(demand);
+        animationManager.notePreviousStepCompleted();
     }
     
     
@@ -1215,6 +1216,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         /** time between animation steps */
         private int period_msec = 250;
+        
+        /** whether the previous animation step has been completed */
+        private boolean previous_step_completed = false;
         
         /** current traffic pattern */
         private float edge = 0.0f;
@@ -1305,6 +1309,15 @@ public class ElasticTreeManager extends PZLayoutManager {
             }
         }
         
+        /** 
+         * Frees the AnimationManager to advance to the next step once the 
+         * normal step duration has passed.
+         */
+        public synchronized void notePreviousStepCompleted() {
+            previous_step_completed = true;
+            animationManager.notifyAll();
+        }
+        
         /** main loop: animate while live */
         public void run() {
             while(true) {
@@ -1325,7 +1338,12 @@ public class ElasticTreeManager extends PZLayoutManager {
                     else {
                         setLocality(edge, agg);
                     }
-                    notifyTrafficMatrixChangeListeners();
+                    
+                    // if there was no change then go straight to the next step
+                    if(!notifyTrafficMatrixChangeListeners())
+                        continue;
+                    else
+                        previous_step_completed = false;
                 }
                 
                 // wait in between intervals
@@ -1333,6 +1351,17 @@ public class ElasticTreeManager extends PZLayoutManager {
                     Thread.sleep(period_msec);
                 }
                 catch(InterruptedException e) {}
+                
+                // delay the next step until the previous one has been completed
+                // by the backend
+                synchronized(animationManager) {
+                    while(!previous_step_completed && live) {
+                        try {
+                            animationManager.wait(); 
+                        } 
+                        catch(InterruptedException e) {}
+                    }
+                }
             }
         }
         

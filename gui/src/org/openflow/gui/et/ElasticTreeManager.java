@@ -1312,7 +1312,6 @@ public class ElasticTreeManager extends PZLayoutManager {
                     // wait until it is time to animate
                     while(!live) {
                         try {
-                            Thread.sleep(1000);
                             animationManager.wait(); 
                         } 
                         catch(InterruptedException e) {}

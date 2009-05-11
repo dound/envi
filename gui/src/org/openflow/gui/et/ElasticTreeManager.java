@@ -260,11 +260,14 @@ public class ElasticTreeManager extends PZLayoutManager {
     
     private JPanel pnlModes = new JPanel();
     private ButtonGroup optgrpAlgMode = new ButtonGroup();
-    private JRadioButton optAlgModeOrig = new JRadioButton("original");
-    private JRadioButton optAlgModeOpt = new JRadioButton("optimized");
+    private JRadioButton optAlgModeSpread = new JRadioButton("spread");
+    private JRadioButton optAlgModeSquish = new JRadioButton("squish");
+    private JRadioButton optAlgModeHash = new JRadioButton("hash");
+    private JRadioButton optAlgModeModelGAMS = new JRadioButton("model GAMS");
+    private JRadioButton optAlgModeModelGLPK = new JRadioButton("model GLPK");
     private ButtonGroup optgrpNetMode = new ButtonGroup();
-    private JRadioButton optNetModeHW = new JRadioButton("deployment");
-    private JRadioButton optNetModeSW = new JRadioButton("example");
+    private JRadioButton optNetModeHW = new JRadioButton("large");
+    private JRadioButton optNetModeSW = new JRadioButton("small");
     
     private ChartPanel pnlChart;
     private JLabel chartGapTop = new JLabel("");
@@ -413,8 +416,11 @@ public class ElasticTreeManager extends PZLayoutManager {
                 layout.createParallelGroup()
                     .addComponent(optNetModeHW)
                     .addComponent(optNetModeSW)
-                    .addComponent(optAlgModeOrig)
-                    .addComponent(optAlgModeOpt)
+                    .addComponent(optAlgModeSpread)
+                    .addComponent(optAlgModeSquish)
+                    .addComponent(optAlgModeHash)
+                    .addComponent(optAlgModeModelGLPK)
+                    .addComponent(optAlgModeModelGAMS)
         );
         
         layout.setVerticalGroup(
@@ -423,9 +429,12 @@ public class ElasticTreeManager extends PZLayoutManager {
                         .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 40, 40)
                         .addComponent(optNetModeHW)
                         .addComponent(optNetModeSW)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 50, 50)
-                        .addComponent(optAlgModeOrig)
-                        .addComponent(optAlgModeOpt))
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 30, 30)
+                        .addComponent(optAlgModeSpread)
+                        .addComponent(optAlgModeSquish)
+                        .addComponent(optAlgModeHash)
+                        .addComponent(optAlgModeModelGLPK)
+                        .addComponent(optAlgModeModelGAMS))
         );
         
         optgrpNetMode.add(optNetModeHW);
@@ -447,13 +456,17 @@ public class ElasticTreeManager extends PZLayoutManager {
         optNetModeHW.addActionListener(netModeListener);
         optNetModeSW.addActionListener(netModeListener);
         
-        optgrpAlgMode.add(optAlgModeOrig);
-        optgrpAlgMode.add(optAlgModeOpt);
-        optAlgModeOpt.setSelected(true);
-        algModeLastSelected = optAlgModeOpt;
+        optgrpAlgMode.add(optAlgModeSpread);
+        optgrpAlgMode.add(optAlgModeSquish);
+        optgrpAlgMode.add(optAlgModeHash);
+        optgrpAlgMode.add(optAlgModeModelGLPK);
+        optgrpAlgMode.add(optAlgModeModelGAMS);
+        optAlgModeSquish.setSelected(true);
+        algModeLastSelected = optAlgModeSquish;
         Link.USAGE_COLOR_0 = LINK_OFF_COLOR;
         
-        layout.linkSize(SwingConstants.VERTICAL, optAlgModeOrig, optAlgModeOpt);
+        layout.linkSize(SwingConstants.VERTICAL, optAlgModeSpread, optAlgModeSquish, 
+                    optAlgModeHash, optAlgModeModelGLPK, optAlgModeModelGAMS);
         
         ActionListener algModeListener = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -463,8 +476,15 @@ public class ElasticTreeManager extends PZLayoutManager {
                 }
             }
         };
-        optAlgModeOrig.addActionListener(algModeListener);
-        optAlgModeOpt.addActionListener(algModeListener);
+        optAlgModeSpread.addActionListener(algModeListener);
+        optAlgModeSquish.addActionListener(algModeListener);
+        optAlgModeHash.addActionListener(algModeListener);
+        optAlgModeModelGLPK.addActionListener(algModeListener);
+        optAlgModeModelGAMS.addActionListener(algModeListener);
+        
+        optAlgModeHash.setEnabled(false);
+        optAlgModeModelGLPK.setEnabled(false);
+        optAlgModeModelGAMS.setEnabled(false);
     }
     
     // ----------- Chart Creation ----------- //
@@ -718,7 +738,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     /** called when the algorithm mode is being changed */
     private void handleAlgModeTypeChange() {
         notifyTrafficMatrixChangeListeners();
-        if(optAlgModeOrig.isSelected())
+        if(optAlgModeSpread.isSelected())
             Link.USAGE_COLOR_0 = LINK_O_COLOR;
         else
             Link.USAGE_COLOR_0 = LINK_OFF_COLOR;
@@ -1500,7 +1520,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         float edge = getLocalityEdge();
         float agg = getLocalityAgg();
         return new ETTrafficMatrix(
-                optNetModeHW.isSelected(), optAlgModeOrig.isSelected(), chkSplit.isSelected(), 
+                optNetModeHW.isSelected(), optAlgModeSpread.isSelected(), chkSplit.isSelected(), 
                 fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
     }
     

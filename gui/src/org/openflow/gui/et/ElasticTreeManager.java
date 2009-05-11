@@ -834,9 +834,9 @@ public class ElasticTreeManager extends PZLayoutManager {
     private void initTrafficPanel() {
         GroupLayout layout = initPanel(pnlTraffic, "Traffic Control");
         
-        setPanelTitle(pnlDemand, "Demand",            TITLE_BORDER_FONT_SMALL);
+        setPanelTitle(pnlDemand, "Demand: 1000Mbps",                      TITLE_BORDER_FONT_SMALL);
         setPanelTitle(pnlLocality, "Locality: edge=100% agg=0% core=0%",  TITLE_BORDER_FONT_SMALL);
-        setPanelTitle(pnlPLen,   "Packet Length",     TITLE_BORDER_FONT_SMALL);
+        setPanelTitle(pnlPLen,   "Packet Length: 1514B",                  TITLE_BORDER_FONT_SMALL);
         
         pnlDemand.add(slDemand);
         pnlLocality.add(slLocality);

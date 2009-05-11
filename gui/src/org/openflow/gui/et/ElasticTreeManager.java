@@ -266,8 +266,8 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JRadioButton optAlgModeModelGAMS = new JRadioButton("model GAMS");
     private JRadioButton optAlgModeModelGLPK = new JRadioButton("model GLPK");
     private ButtonGroup optgrpNetMode = new ButtonGroup();
-    private JRadioButton optNetModeHW = new JRadioButton("large");
-    private JRadioButton optNetModeSW = new JRadioButton("small");
+    private JRadioButton optShowLarge = new JRadioButton("large");
+    private JRadioButton optShowSmall = new JRadioButton("small");
     
     private ChartPanel pnlChart;
     private JLabel chartGapTop = new JLabel("");
@@ -292,6 +292,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private JCheckBox chkSplit = new JCheckBox("May split flows", false);
     private JCheckBox chkShowLatency = new JCheckBox("Show Latency", false);
     private JCheckBox chkSendOnChangeOnly = new JCheckBox("Send on Change Only", true);
+    private JCheckBox chkHWMode = new JCheckBox("HW Mode", false);
     private static final int THUMB_EDGE = 0;
     private static final int THUMB_AGG = 1;
     
@@ -414,8 +415,8 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         layout.setHorizontalGroup(
                 layout.createParallelGroup()
-                    .addComponent(optNetModeHW)
-                    .addComponent(optNetModeSW)
+                    .addComponent(optShowLarge)
+                    .addComponent(optShowSmall)
                     .addComponent(optAlgModeSpread)
                     .addComponent(optAlgModeSquish)
                     .addComponent(optAlgModeHash)
@@ -427,8 +428,8 @@ public class ElasticTreeManager extends PZLayoutManager {
                 layout.createParallelGroup()
                     .addGroup(layout.createSequentialGroup()
                         .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 40, 40)
-                        .addComponent(optNetModeHW)
-                        .addComponent(optNetModeSW)
+                        .addComponent(optShowLarge)
+                        .addComponent(optShowSmall)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, 30, 30)
                         .addComponent(optAlgModeSpread)
                         .addComponent(optAlgModeSquish)
@@ -437,24 +438,24 @@ public class ElasticTreeManager extends PZLayoutManager {
                         .addComponent(optAlgModeModelGAMS))
         );
         
-        optgrpNetMode.add(optNetModeHW);
-        optgrpNetMode.add(optNetModeSW);
-        optNetModeHW.setSelected(true);
-        netModeLastSelected = optNetModeHW;
-        optNetModeSW.setEnabled(false);
+        optgrpNetMode.add(optShowLarge);
+        optgrpNetMode.add(optShowSmall);
+        optShowLarge.setSelected(true);
+        showTypeLastSelected = optShowLarge;
+        optShowSmall.setEnabled(false);
         
-        layout.linkSize(SwingConstants.VERTICAL, optNetModeHW, optNetModeSW);
+        layout.linkSize(SwingConstants.VERTICAL, optShowLarge, optShowSmall);
         
         ActionListener netModeListener = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if(netModeLastSelected != e.getSource()) {
-                    netModeLastSelected = e.getSource();
-                    handleNetModeTypeChange();
+                if(showTypeLastSelected != e.getSource()) {
+                    showTypeLastSelected = e.getSource();
+                    handleShowTypeChange();
                 }
             }
         };
-        optNetModeHW.addActionListener(netModeListener);
-        optNetModeSW.addActionListener(netModeListener);
+        optShowLarge.addActionListener(netModeListener);
+        optShowSmall.addActionListener(netModeListener);
         
         optgrpAlgMode.add(optAlgModeSpread);
         optgrpAlgMode.add(optAlgModeSquish);
@@ -723,14 +724,19 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
     
     /** pointer to the network mode which was most recently selected */
-    private Object netModeLastSelected = null;
+    private Object showTypeLastSelected = null;
     
     /** pointer to the algorithm mode which was most recently selected */
     private Object algModeLastSelected = null;
     
-    /** called when the network mode is being changed */
-    private void handleNetModeTypeChange() {
-        if(optNetModeHW.isSelected() && fatTreeLayout.getK() != HW_FAT_TREE_K)
+    /** called when the network show type is being changed */
+    private void handleShowTypeChange() {
+        // TODO: zoom in/out
+    }
+    
+    /** called when the hardware mode changes */
+    private void handleHWModeChange() {
+        if(chkHWMode.isSelected() && fatTreeLayout.getK() != HW_FAT_TREE_K)
             fatTreeLayout.setK(HW_FAT_TREE_K);
         notifyTrafficMatrixChangeListeners();
     }
@@ -854,7 +860,9 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addGroup(layout.createSequentialGroup()
                             .addComponent(chkSplit)
                             .addComponent(chkShowLatency))
-                    .addComponent(chkSendOnChangeOnly)
+                    .addGroup(layout.createSequentialGroup()
+                            .addComponent(chkSendOnChangeOnly)
+                            .addComponent(chkHWMode))
         );
         
         layout.setVerticalGroup(
@@ -867,7 +875,9 @@ public class ElasticTreeManager extends PZLayoutManager {
                     .addGroup(layout.createParallelGroup()
                             .addComponent(chkSplit)
                             .addComponent(chkShowLatency))
-                    .addComponent(chkSendOnChangeOnly)
+                    .addGroup(layout.createParallelGroup()
+                            .addComponent(chkSendOnChangeOnly)
+                            .addComponent(chkHWMode))
                     .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 5, 5)
 
         );
@@ -914,6 +924,12 @@ public class ElasticTreeManager extends PZLayoutManager {
             public void actionPerformed(ActionEvent e) {
                 if(!chkSendOnChangeOnly.isSelected())
                     notifyTrafficMatrixChangeListeners();
+            }
+        });
+        
+        chkHWMode.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                handleHWModeChange();
             }
         });
     }
@@ -1520,7 +1536,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         float edge = getLocalityEdge();
         float agg = getLocalityAgg();
         return new ETTrafficMatrix(
-                optNetModeHW.isSelected(), optAlgModeSpread.isSelected(), chkSplit.isSelected(), 
+                chkHWMode.isSelected(), optAlgModeSpread.isSelected(), chkSplit.isSelected(), 
                 fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
     }
     

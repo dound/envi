@@ -55,6 +55,30 @@ class Disconnect(OFGMessage):
         return 'DISCONNECT: ' + OFGMessage.__str__(self)
 OFG_MESSAGES.append(Disconnect)
 
+class EchoRequest(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0x0C
+
+    def __init__(self, xid=0):
+        OFGMessage.__init__(self, xid)
+
+    def __str__(self):
+        return 'ECHO_REQUEST: ' + OFGMessage.__str__(self)
+OFG_MESSAGES.append(EchoRequest)
+
+class EchoReply(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0x0D
+
+    def __init__(self, xid=0):
+        OFGMessage.__init__(self, xid)
+
+    def __str__(self):
+        return 'ECHO_REPLY: ' + OFGMessage.__str__(self)
+OFG_MESSAGES.append(EchoReply)
+
 class PollStart(OFGMessage):
     @staticmethod
     def get_type():

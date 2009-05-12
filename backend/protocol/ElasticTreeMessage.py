@@ -14,10 +14,16 @@ class ETTrafficMatrix(OFGMessage):
     def get_type():
         return 0xF0
 
-    def __init__(self, use_hw, use_orig_alg, may_split_flows, k, demand, edge, agg, plen, xid=0):
+    SOLVER_SPREAD = 1
+    SOLVER_SQUISH = 2
+    SOLVER_MODEL_GLPK = 3
+    SOLVER_MODEL_GAMS = 4
+    SOLVER_HASH = 5
+
+    def __init__(self, use_hw, solver, may_split_flows, k, demand, edge, agg, plen, xid=0):
         OFGMessage.__init__(self, xid)
         self.use_hw = bool(use_hw)
-        self.use_orig_alg = bool(use_orig_alg)
+        self.solver = int(solver)
         self.may_split_flows = bool(may_split_flows)
         self.k      = int(k)
         self.demand = float(demand)
@@ -37,7 +43,7 @@ class ETTrafficMatrix(OFGMessage):
 
     def pack(self):
         return OFGMessage.pack(self) + struct.pack('> 3B I 3f I',
-                                                   self.use_hw, self.use_orig_alg, self.may_split_flows,
+                                                   self.use_hw, self.solver, self.may_split_flows,
                                                    self.k, self.demand, self.edge, self.agg, self.plen)
 
     @staticmethod
@@ -49,7 +55,7 @@ class ETTrafficMatrix(OFGMessage):
 
     def __str__(self):
         fmt = 'ET_TRAFFIC_MATRIX: ' + OFGMessage.__str__(self) + " hw=%u alg=%u split=%u k=%u demand=%u edge=%u agg=%u plen=%u"
-        return fmt % (self.use_hw, self.use_orig_alg, self.may_split_flows,
+        return fmt % (self.use_hw, self.solver, self.may_split_flows,
                       self.k, self.demand, self.edge, self.agg, self.plen)
 ET_MESSAGES.append(ETTrafficMatrix)
 

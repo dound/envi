@@ -176,7 +176,7 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
          * outstanding requests then this traffic matrix is immediately sent.
          */
         public synchronized void setNextTrafficMatrix(ETTrafficMatrix tm) {
-            this.tmNext = new ETTrafficMatrix(tm.use_hw, tm.use_original_alg, tm.may_split_flows, tm.k, tm.demand, tm.edge, tm.agg, tm.plen);
+            this.tmNext = new ETTrafficMatrix(tm.use_hw, tm.solver, tm.may_split_flows, tm.k, tm.demand, tm.edge, tm.agg, tm.plen);
             if(getConnection().isConnected() && !waiting_for_response)
                 sendNextTrafficMatrix();
         }

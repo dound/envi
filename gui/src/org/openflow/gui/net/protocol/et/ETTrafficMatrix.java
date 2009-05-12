@@ -15,7 +15,7 @@ import org.openflow.util.string.StringOps;
  */
 public class ETTrafficMatrix extends OFGMessage {
     public final boolean use_hw;
-    public final boolean use_original_alg; // false => use heuristic
+    public final SolverType solver;
     public final boolean may_split_flows;
     public final int k;
     public final float demand;
@@ -23,7 +23,7 @@ public class ETTrafficMatrix extends OFGMessage {
     public final float agg;
     public final int plen;
     
-    public ETTrafficMatrix(boolean use_hw, boolean use_original_alg, boolean may_split_flows, int k, float demand, float edge, float agg, int plen) {
+    public ETTrafficMatrix(boolean use_hw, SolverType solver, boolean may_split_flows, int k, float demand, float edge, float agg, int plen) {
         super(OFGMessageType.ET_TRAFFIX_MATRIX, 0);
         if(demand<0 || demand>1)
             throw new IllegalArgumentException("demand must be between 0.0 and 1.0 inclusive");
@@ -34,7 +34,7 @@ public class ETTrafficMatrix extends OFGMessage {
         if(edge + agg > 1.0)
             throw new IllegalArgumentException("edge + agg must be less than 1.0 when summed");
         this.use_hw = use_hw;
-        this.use_original_alg = use_original_alg;
+        this.solver = solver;
         this.may_split_flows = may_split_flows;
         this.k = k;
         this.demand = demand;
@@ -52,7 +52,7 @@ public class ETTrafficMatrix extends OFGMessage {
     public void write(DataOutput out) throws IOException {
         super.write(out);
         out.writeBoolean(use_hw);
-        out.writeBoolean(use_original_alg);
+        out.writeByte(solver.getTypeID());
         out.writeBoolean(may_split_flows);
         out.writeInt(k);
         out.writeFloat(demand);
@@ -65,7 +65,7 @@ public class ETTrafficMatrix extends OFGMessage {
         if(o == null) return false;
         if(!(o instanceof ETTrafficMatrix)) return false;
         ETTrafficMatrix em = (ETTrafficMatrix)o;
-        return(use_original_alg==em.use_original_alg && k==em.k && demand==em.demand && edge==em.edge && agg==em.agg && plen==em.plen);
+        return(solver.getTypeID()==em.solver.getTypeID() && k==em.k && demand==em.demand && edge==em.edge && agg==em.agg && plen==em.plen);
     }
     
     public int hashCode() {
@@ -74,12 +74,11 @@ public class ETTrafficMatrix extends OFGMessage {
         hash = hash * 32 + Float.floatToIntBits(demand);
         hash = hash * 32 + Float.floatToIntBits(edge);
         hash = hash * 32 + Float.floatToIntBits(agg);
-        return hash * 32 + plen + (use_hw ? 1 : 0) + (use_original_alg ? 7 : 0);
+        return hash * 32 + plen + (use_hw ? 1 : 0) + 7*solver.getTypeID();
     }
     
     public String toString() {
-        String alg = use_original_alg ? "original" : "heuristic";
-        return super.toString() + TSSEP + toStringShort() + " hw=" + use_hw + " alg=" + alg + " split=" + may_split_flows + " k=" + k;
+        return super.toString() + TSSEP + toStringShort() + " hw=" + use_hw + " alg=" + solver + " split=" + may_split_flows + " k=" + k;
     }
 
     public String toStringShort() {

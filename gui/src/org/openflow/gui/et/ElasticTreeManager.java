@@ -34,6 +34,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
 import org.openflow.gui.net.protocol.et.ETTrafficMatrix;
+import org.openflow.gui.net.protocol.et.SolverType;
 import org.openflow.gui.drawables.DrawableIcon;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.OpenFlowSwitch;
@@ -67,6 +68,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     
     /** the color for links which have 0 utilization in original mode*/
     private static final Color LINK_O_COLOR = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+    static { Link.USAGE_COLOR_0 = LINK_O_COLOR; }
     
     // chart configuration parameters
     private static final int MAX_VIS_DATA_POINTS = 100;
@@ -463,7 +465,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         optgrpAlgMode.add(optAlgModeModelGLPK);
         optgrpAlgMode.add(optAlgModeModelGAMS);
         optAlgModeSquish.setSelected(true);
-        algModeLastSelected = optAlgModeSquish;
+        solverType = SolverType.SQUISH;
         Link.USAGE_COLOR_0 = LINK_OFF_COLOR;
         
         layout.linkSize(SwingConstants.VERTICAL, optAlgModeSpread, optAlgModeSquish, 
@@ -484,7 +486,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         optAlgModeModelGAMS.addActionListener(algModeListener);
         
         optAlgModeHash.setEnabled(false);
-        optAlgModeModelGLPK.setEnabled(false);
         optAlgModeModelGAMS.setEnabled(false);
     }
     
@@ -743,14 +744,22 @@ public class ElasticTreeManager extends PZLayoutManager {
 
     /** called when the algorithm mode is being changed */
     private void handleAlgModeTypeChange() {
-        notifyTrafficMatrixChangeListeners();
-        if(optAlgModeSpread.isSelected())
-            Link.USAGE_COLOR_0 = LINK_O_COLOR;
+        if(optAlgModeSquish.isSelected())
+            solverType = SolverType.SQUISH;
+        else if(optAlgModeSpread.isSelected())
+            solverType = SolverType.SPREAD;
+        else if(optAlgModeModelGLPK.isSelected())
+            solverType = SolverType.MODEL_GLPK;
+        else if(optAlgModeModelGAMS.isSelected())
+            solverType = SolverType.MODEL_GAMS;
+        else if(optAlgModeHash.isSelected())
+            solverType = SolverType.HASH;
         else
-            Link.USAGE_COLOR_0 = LINK_OFF_COLOR;
+            throw new Error("unknown algorithm option selected");
+        notifyTrafficMatrixChangeListeners();
     }
     
-    /** layout and initialize the separate, detatched control panel and its components */
+    /** layout and initialize the separate, detached control panel and its components */
     private void initDetachedPanel() {
         GroupLayout layout = initPanel(pnlCustomDetached, "");
         pnlCustomDetached.setBorder(null);
@@ -1536,7 +1545,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         float edge = getLocalityEdge();
         float agg = getLocalityAgg();
         return new ETTrafficMatrix(
-                chkHWMode.isSelected(), optAlgModeSpread.isSelected(), chkSplit.isSelected(), 
+                chkHWMode.isSelected(), solverType, chkSplit.isSelected(), 
                 fatTreeLayout.getK(), demand, edge, agg, slPLen.getValue());
     }
     

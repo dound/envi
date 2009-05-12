@@ -39,6 +39,7 @@ public class CompositeIcon extends Icon {
     public void draw( Graphics2D gfx, int x, int y ) {
         layout.setBounds(x, y, layout.getWidth(), layout.getHeight());
         layout.paint(gfx);
+        draw(gfx, x, y, layout.getWidth(), layout.getHeight());
     }
     
     public void draw( Graphics2D gfx, int x, int y, int w, int h ) {

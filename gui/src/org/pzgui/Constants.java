@@ -33,5 +33,6 @@ public abstract class Constants {
     public static final Color       FONT_TI_FILL      = cmap(Color.GRAY);
     public static final Color       FONT_TI_OUTLINE   = cmap(Color.BLACK);
     public static final Composite   COMPOSITE_OPAQUE  = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f);
+    public static final Composite   COMPOSITE_HALF    = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
     public static final Composite   COMPOSITE_QUARTER = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25f);
 }

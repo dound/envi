@@ -152,6 +152,7 @@ public class FatTreeLayout<V extends Vertex, E> extends AbstractLayout<V, E> imp
                 int hostNumInPod = host_id - pod * hostsPerPod;
                 int parentEdge = pod*edgesPerPod + hostNumInPod / hostsPerEdge;
                 int x = getVertexX(edge_x_sep, parentEdge) + (hostNumInPod % hostsPerEdge - 1) * host_x_offset;
+                if(k == 4) x += host_x_offset / 2; 
                 v.setPos(x, host_y);
             }
         }

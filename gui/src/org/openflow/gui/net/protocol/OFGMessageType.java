@@ -25,10 +25,10 @@ public enum OFGMessageType {
     AUTH_STATUS((byte)0x03),
     
     /** request for an echo reply (keep-alive) */
-    ECHO_REQUEST((byte)0x0C),
+    ECHO_REQUEST((byte)0x08),
     
-    /** reply to an echo requst (keep-alive) */
-    ECHO_REPLY((byte)0x0D),
+    /** reply to an echo request (keep-alive) */
+    ECHO_REPLY((byte)0x09),
     
     /** Tell the backend to start polling a message */
     POLL_START((byte)0x0E),

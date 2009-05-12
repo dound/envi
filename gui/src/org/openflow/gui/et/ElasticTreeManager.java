@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -46,6 +47,7 @@ import org.pzgui.StringDrawer;
 import org.pzgui.icon.GeometricIcon;
 import org.pzgui.icon.ShapeIcon;
 import org.pzgui.layout.Edge;
+import org.pzgui.layout.Layoutable;
 import org.pzgui.layout.PZLayoutManager;
 import org.pzgui.layout.Vertex;
 import org.tame.MThumbSlider;
@@ -127,6 +129,15 @@ public class ElasticTreeManager extends PZLayoutManager {
         return fatTreeLayout;
     }
     
+    // track specific switches which are used as anchors in the small world view
+    private final ArrayList<Layoutable> smallAreaCorners4 = new ArrayList<Layoutable>();
+    private final ArrayList<Layoutable> smallAreaCorners6 = new ArrayList<Layoutable>();
+    private final void checkForSmallAreaCornerPiece(Layoutable l) {
+        long id = l.getID();
+        if(id==167772929 || id==167772162 || id==167772676)
+            smallAreaCorners6.add(l);
+    }
+    
     /** Adds the drawable as usual and then invokes the fat tree layout engine */
     public void addDrawable(Drawable d) {
         super.addDrawable(d);
@@ -140,6 +151,10 @@ public class ElasticTreeManager extends PZLayoutManager {
                     }
                 }
                 relayout();
+                
+                // track specific switches which are used as anchors in the small world view
+                if(d instanceof Layoutable)
+                    checkForSmallAreaCornerPiece((Layoutable)d);
             }
         }
     }

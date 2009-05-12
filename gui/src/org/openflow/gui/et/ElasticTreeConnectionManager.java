@@ -58,9 +58,6 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
     /** the manager for our single topology */
     private final ElasticTreeManager manager;
     
-    /** whether we have been connected before */
-    private boolean firstConnection = true;
-    
     /**
      * Construct the front-end for ElasticTreeConnectionManager.
      * 
@@ -91,12 +88,9 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
     public void connectionStateChange() {
         super.connectionStateChange();
         
-        if(firstConnection && getConnection().isConnected()) {
-            try {
-                getConnection().sendMessage(new ETSwitchesRequest(manager.getK()));
-                firstConnection = false;
-            }
-            catch(IOException e) {}
+        if(getConnection().isConnected()) {
+            refreshTopology(manager.getK());
+            tmManager.sendNextTrafficMatrix(true);
         }
         
         // if the manager was waiting for a response, it won't be coming if we got d/c
@@ -263,17 +257,20 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
      * purges the old topology and requests the new one.
      */
     public void trafficMatrixChanged(ETTrafficMatrix tm) {
-        if(manager.getLastK() != tm.k) {
-            getTopology().removeAllNodes(getConnection());
-            try {
-                getConnection().sendMessage(new ETSwitchesRequest(tm.k));
-            } catch (IOException e) {
-                System.err.println("Failed to send request for new switches: " + e.getMessage());
-            }
-        }
+        if(manager.getLastK() != tm.k)
+            refreshTopology(tm.k);
         
         if(tmManager != null)
             tmManager.setNextTrafficMatrix(tm);
+    }
+    
+    private void refreshTopology(int k) {
+        getTopology().removeAllNodes(getConnection());
+        try {
+            getConnection().sendMessage(new ETSwitchesRequest(k));
+        } catch (IOException e) {
+            System.err.println("Failed to send request for new switches: " + e.getMessage());
+        }
     }
     
     

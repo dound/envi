@@ -235,8 +235,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         int w = fatTreeLayout.pod_sz;
         int h = fatTreeLayout.getSize().height - y;
         int i;
-        for(i=1; i<fatTreeLayout.getK(); i++)
-            addRectangle(w*i, y, 0, h, POD_OUTLINE_COLOR, POD_OUTLINE_COLOR, POD_SEP_STROKE);
+        if(optShowLarge.isSelected())
+            for(i=1; i<fatTreeLayout.getK(); i++)
+                addRectangle(w*i, y, 0, h, POD_OUTLINE_COLOR, POD_OUTLINE_COLOR, POD_SEP_STROKE);
     }
 
     

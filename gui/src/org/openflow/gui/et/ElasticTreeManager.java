@@ -729,6 +729,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     
     /** pointer to the algorithm mode which was most recently selected */
     private Object algModeLastSelected = null;
+    private SolverType solverType;
     
     /** called when the network show type is being changed */
     private void handleShowTypeChange() {

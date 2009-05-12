@@ -23,8 +23,9 @@ import org.openflow.gui.net.protocol.StatsHeader;
 import org.openflow.gui.net.protocol.SwitchDescriptionRequest;
 import org.openflow.gui.net.protocol.NodesAdd;
 import org.openflow.gui.net.protocol.NodesDel;
-import org.openflow.gui.net.protocol.auth.AuthHeader;
-import org.openflow.gui.net.protocol.auth.AuthPlainText;
+import org.openflow.gui.net.protocol.auth.AuthReply;
+import org.openflow.gui.net.protocol.auth.AuthRequest;
+import org.openflow.gui.net.protocol.auth.AuthStatus;
 import org.openflow.protocol.AggregateStatsReply;
 import org.openflow.protocol.AggregateStatsRequest;
 import org.openflow.protocol.Match;
@@ -123,9 +124,13 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         
         switch(msg.type) {
         case AUTH_REQUEST:
-            processAuthRequest((AuthHeader)msg);
+            processAuthRequest((AuthRequest)msg);
             break;
-        
+            
+        case AUTH_STATUS:
+            processAuthStatus((AuthStatus)msg);
+            break;
+            
         case ECHO_REQUEST:
             processEchoRequest(msg.xid);
             
@@ -163,31 +168,41 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         }
     }
 
-    private void processAuthRequest(AuthHeader msg) {
-        switch(msg.authType) {
-        case PLAIN_TEXT:
-            handleAuthRequestPlainText();
-            break;
-        
-        default:
-            System.err.println("Unhandled authentication type received: " + msg.authType.toString());
+    /** 
+     * Query the user for login credentials and send them to the backend.  If
+     * msg does not supply a salt of at least 20B then a message is instead
+     * printed to stderr and the request is ignored.
+     */
+    protected void processAuthRequest(AuthRequest req) {
+        if(req.salt.length < 20) {
+            System.err.println("Ignoring an authentication request with an insufficiently long salt (salt length: " + req.salt.length + "B)");
+            return;
         }
-    }
-
-    /** query the user for login credentials and send them to the backend */
-    private void handleAuthRequestPlainText() {
+        
         String username = DialogHelper.getInput("What is your username?");
         if(username == null) username = "";
         String pw = DialogHelper.getInput("What is your password, " + username + "?");
         if(pw == null) pw = "";
         
         try {
-            getConnection().sendMessage(new AuthPlainText(username, pw));
+            getConnection().sendMessage(new AuthReply(req.xid, username, pw, req.salt));
         }
         catch(IOException e) {
-            System.err.println("Failed to send plain-text authentication reply");
-            getConnection().reconnect();
+            System.err.println("Failed to send an authentication reply: " + e.getMessage());
         }
+    }
+    
+    /**
+     * Let the user know about the authentication status contained in msg.  A 
+     * message is printed to stdout if authentication succeeded.  Otherwise,
+     * a dialog box pops up to notify the user of the authentication failure.
+     */
+    protected void processAuthStatus(AuthStatus status) {
+        String m = (status.length() > 0) ? ": " + status.msg : "";
+        if(status.authenticated)
+            System.out.println("The server has accepted your session"+m);
+        else
+            DialogHelper.displayError("The server has refused to authenticate your session" + m);
     }
     
     /** 

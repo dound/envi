@@ -7,8 +7,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.util.Collection;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
+
+import org.pzgui.layout.Layoutable;
 import org.pzgui.math.Vector2i;
 
 /**
@@ -163,6 +167,8 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
             else
                 setTitle(getTitle());
         }
+        
+        stepPanZoomAnimation();
 
         synchronized(imgLock) {
             // redraw the scene
@@ -431,7 +437,140 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
         drawOffset.set(0, 0);
         setZoom(1.0f);
     }
+    
+    
+    // -- Pan and Zoom Animation -- //
+    // **************************** //
+    
+    /** time at which the current zoom/pan animation finishes */
+    private long zoomPanAnimationEndTime = 0, zoomPanAnimationStartTime = 0;
+    
+    /** where the zoom is coming from and going to */
+    private float zoomFrom, zoomTo;
+    
+    /** where the pan is coming from and going to */
+    private Vector2i panFrom, panTo;
+    
+    /** see the description of startPanZoomAnimation() */
+    private float zoomPanAnimationInterpolationPower = 1.0f;
+    
+    /** 
+     * Starts a pan-zoom animation with zoomPanAnimationInterpolationPower ==
+     * 1.0f (a linear interpolation between the endpoints).
+     */
+    public void startPanZoomAnimation(int toX, int toY, float zoomTo, long duration_msec) {
+        startPanZoomAnimation(toX, toY, zoomTo, duration_msec, 1.0f);
+    }
+    
+    /**
+     * Starts a pan-zoom animation.
+     * 
+     * @param toX            what x coordinate to zoom to
+     * @param toY            what y coordinate to zoom to
+     * @param zoomTo         the new zoom factor
+     * @param duration_msec  how long to animate
+     * @param zoomPanAnimationInterpolationPower  1 means a linear 
+     *                       interpolation will be done between the two 
+     *                       animation endpoints.  2 would be quadratic, etc.  
+     *                       A higher the number causes a faster beginning and
+     *                       a slower and smoother the ending.
+     */
+    public void startPanZoomAnimation(int toX, int toY, float zoomTo, long duration_msec, float zoomPanAnimationInterpolationPower) {
+        this.zoomTo = zoomTo;
+        this.panTo = new Vector2i(toX, toY);
+        this.panFrom = drawOffset.clone();
+        this.zoomFrom = zoom;
+        this.zoomPanAnimationStartTime = System.currentTimeMillis();
+        this.zoomPanAnimationEndTime = System.currentTimeMillis() + duration_msec;
+        this.zoomPanAnimationInterpolationPower = zoomPanAnimationInterpolationPower;
+    }
+    
+    /**
+     * Starts a pan-zoom animation to focus on a set of layoutables.
+     * 
+     * @param layoutablesToInclude  the layoutables to zoom in on
+     * @param duration_msec         how long to animate
+     * @param zoomPanAnimationInterpolationPower  see startPanZoomAnimation()
+     */
+    public void startPanZoomAnimationToLayoutables(
+            Collection<Layoutable> layoutablesToInclude, 
+            long duration_msec,
+            float zoomPanAnimationInterpolationPower) {
+        int left = Integer.MAX_VALUE;
+        int right = Integer.MIN_VALUE;
+        int top = Integer.MAX_VALUE;
+        int bottom = Integer.MIN_VALUE;
+        
+        for(Layoutable l : layoutablesToInclude) {
+            left = Math.min(left, l.getX());
+            right = Math.max(right, l.getX());
+            top = Math.min(top, l.getY());
+            bottom = Math.max(bottom, l.getY());
+        }
 
+        startPanZoomAnimationToArea(left, right, top, bottom, duration_msec, zoomPanAnimationInterpolationPower);
+    }
+    
+    /**
+     * Starts a pan-zoom animation to focus on the specified area.
+     * 
+     * @param left           the leftmost coordinate to include
+     * @param right          the rightmost coordinate to include
+     * @param top            the uppermost coordinate to include
+     * @param bottom         the bottom-most coordinate to include
+     * @param duration_msec  how long to animate
+     * @param zoomPanAnimationInterpolationPower  see startPanZoomAnimation()
+     */
+    public void startPanZoomAnimationToArea(
+            int left, int right, int top, int bottom,
+            long duration_msec, 
+            float zoomPanAnimationInterpolationPower) {
+        int h = bottom - top;
+        int w = right - left;
+        int window_extra_height = 50; // for the titlebar and padding
+        int ww = getWidth() - getReservedWidthRight();
+        int wh = getHeight() - getReservedHeightBottom() - window_extra_height;
+        float wz = getZoom();
+        
+        float zoomX = ww / (float)w;
+        float zoomY = wh / (float)h;
+        float zoom = Math.min(zoomX, zoomY);
+        
+        float zoomFactor = zoom / wz;
+        
+        int px = (int)(left * zoomFactor);
+        int py = (int)(-top * zoomFactor) + window_extra_height/2;
+        
+        startPanZoomAnimation(px, py, zoom, duration_msec, zoomPanAnimationInterpolationPower);
+    }
+
+    /** stops any ongoing pan-zoom animation in its tracks */
+    public void stopPanZoomAnimation() {
+        zoomPanAnimationEndTime = 0;
+    }
+    
+    /** applies the next step in the pan-zoom animation, if any */
+    private void stepPanZoomAnimation() {
+        if(zoomPanAnimationEndTime == 0)
+            return;
+        
+        long now = System.currentTimeMillis();
+        if(now >= zoomPanAnimationEndTime) {
+            zoom = zoomTo;
+            drawOffset.x = panTo.x;
+            drawOffset.y = panTo.y;
+            stopPanZoomAnimation();
+        }
+        else {
+            long duration = zoomPanAnimationEndTime - zoomPanAnimationStartTime;
+            long diff = zoomPanAnimationEndTime - now;
+            float alpha = (float)Math.pow(diff / (float)duration, zoomPanAnimationInterpolationPower);
+            float beta = 1.0f - alpha; 
+            zoom = (zoomFrom * alpha) + (zoomTo * beta);
+            drawOffset.x = (int)((panFrom.x * alpha) + (panTo.x * beta));
+            drawOffset.y = (int)((panFrom.y * alpha) + (panTo.y * beta));
+        }
+    }
 
     /** print out a string representation of the window's settings */
     public String toString() {

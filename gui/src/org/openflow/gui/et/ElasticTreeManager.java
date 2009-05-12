@@ -132,6 +132,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         
         fatTreeLayout = new FatTreeLayout<Vertex, Edge>(getGraph(), k);
         this.setLayout(fatTreeLayout);
+        smallAreaCorners4.clear();
+        smallAreaCorners6.clear();
+        
         notifyTrafficMatrixChangeListeners();
     }
     
@@ -163,6 +166,9 @@ public class ElasticTreeManager extends PZLayoutManager {
         long id = l.getID();
         if(id==167772929 || id==167772162 || id==167772676)
             smallAreaCorners6.add(l);
+        
+        if(id==167772162 || id==167772419 || id==167772673)
+            smallAreaCorners4.add(l);
     }
     
     /** Adds the drawable as usual and then invokes the fat tree layout engine */

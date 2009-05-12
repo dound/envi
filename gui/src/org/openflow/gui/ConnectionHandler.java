@@ -125,6 +125,12 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         case AUTH_REQUEST:
             processAuthRequest((AuthHeader)msg);
             break;
+        
+        case ECHO_REQUEST:
+            processEchoRequest(msg.xid);
+            
+        case ECHO_REPLY:
+            processEchoReply(msg.xid);
             
         case NODES_ADD:
             processNodesAdd((NodesAdd)msg);
@@ -182,6 +188,24 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             System.err.println("Failed to send plain-text authentication reply");
             getConnection().reconnect();
         }
+    }
+    
+    /** 
+     * Handles the echo request by replying.
+     */
+    protected void processEchoRequest(int xid) {
+        try {
+            getConnection().sendMessage(new OFGMessage(OFGMessageType.ECHO_REPLY, xid));
+        } catch (IOException e) {
+            System.err.println("Failed to send echo reply: " + e.getMessage());
+        }
+    }
+    
+    /** 
+     * Handles the echo reply by simply printing a message to stdout.
+     */
+    protected void processEchoReply(int xid) {
+        System.out.println("received echo reply (xid=" + xid + ")");
     }
     
     /**

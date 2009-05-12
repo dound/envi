@@ -24,6 +24,12 @@ public enum OFGMessageType {
     /** Authentication reply */
     AUTH_REPLY((byte)0x03),
     
+    /** request for an echo reply (keep-alive) */
+    ECHO_REQUEST((byte)0x0C),
+    
+    /** reply to an echo requst (keep-alive) */
+    ECHO_REPLY((byte)0x0D),
+    
     /** Tell the backend to start polling a message */
     POLL_START((byte)0x0E),
     
@@ -138,6 +144,10 @@ public enum OFGMessageType {
             case STAT_REPLY:
                 return StatsType.decode(len, t, xid, in);
 
+            case ECHO_REQUEST:
+            case ECHO_REPLY:
+                return new OFGMessage(t, xid);
+                
             case DISCONNECT:
             case AUTH_REPLY:
             case POLL_START:

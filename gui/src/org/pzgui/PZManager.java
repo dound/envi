@@ -827,7 +827,7 @@ public class PZManager extends Thread {
      *
      * @param x       x position the Drawable must contain
      * @param y       y position the Drawable must contain
-     * @param fitler  a Drawable filter; only nodes for which 
+     * @param filter  a Drawable filter; only nodes for which 
      *                filter.consider() returns true will be considered for 
      *                selection.  If this filter is null, then all nodes will be
      *                considered.

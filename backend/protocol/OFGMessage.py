@@ -1,7 +1,9 @@
 """Defines the OpenFlow GUI protocol and some associated helper functions."""
 
 import array
+import hashlib
 import struct
+from os import urandom
 
 from twisted.internet import reactor
 
@@ -54,6 +56,109 @@ class Disconnect(OFGMessage):
     def __str__(self):
         return 'DISCONNECT: ' + OFGMessage.__str__(self)
 OFG_MESSAGES.append(Disconnect)
+
+class AuthRequest(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0x01
+
+    def __init__(self, salt, xid):
+        OFGMessage.__init__(self, xid)
+        self.salt = salt
+
+    def length(self):
+        return OFGMessage.SIZE + len(self.salt)
+
+    def pack(self):
+        return OFGMessage.pack(self) + self.salt
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        salt = body[4:]
+        return AuthRequest(salt, xid)
+
+    def __str__(self):
+        return 'AUTH_REQUEST: ' + OFGMessage.__str__(self) + ' salt length=%uB' % len(self.salt)
+OFG_MESSAGES.append(AuthRequest)
+
+class AuthReply(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0x02
+
+    def __init__(self, username, salted_sha1_of_pw, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.username = username
+        self.ssp = salted_sha1_of_pw
+
+    def length(self):
+        return OFGMessage.SIZE + len(self.username) + len(self.ssp)
+
+    def pack(self):
+        return OFGMessage.pack(self) + struct.pack('> I', len(self.username)) + self.username + self.ssp
+
+    @staticmethod
+    def unpack(body):
+        xid, username_len = struct.unpack('> 2I', body[:8])
+        body = body[8:]
+        username = body[:username_len]
+        ssp = body[username_len:]
+        return AuthReply(username, ssp, xid)
+
+    def __str__(self):
+        return 'AUTH_REPLY: ' + OFGMessage.__str__(self) + ' username=' + self.username
+OFG_MESSAGES.append(AuthReply)
+
+class AuthStatus(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0x03
+
+    def __init__(self, auth_ok, msg, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.auth_ok = bool(auth_ok)
+        self.msg = msg
+
+    def length(self):
+        return OFGMessage.SIZE + 1 + len(self.msg)
+
+    def pack(self):
+        return OFGMessage.pack(self) + struct.pack('> B', self.auth_ok) + self.msg
+
+    @staticmethod
+    def unpack(body):
+        xid, auth_ok = struct.unpack('> IB', body[:5])
+        msg = body[5:]
+        return AuthStatus(auth_ok, msg, xid)
+
+    def __str__(self):
+        return 'AUTH_STATUS: ' + OFGMessage.__str__(self) + ' auth_ok=%s msg=%s' % (str(self.auth_ok), self.msg)
+OFG_MESSAGES.append(AuthStatus)
+
+class EchoRequest(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0x0C
+
+    def __init__(self, xid=0):
+        OFGMessage.__init__(self, xid)
+
+    def __str__(self):
+        return 'ECHO_REQUEST: ' + OFGMessage.__str__(self)
+OFG_MESSAGES.append(EchoRequest)
+
+class EchoReply(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0x0D
+
+    def __init__(self, xid=0):
+        OFGMessage.__init__(self, xid)
+
+    def __str__(self):
+        return 'ECHO_REPLY: ' + OFGMessage.__str__(self)
+OFG_MESSAGES.append(EchoReply)
 
 class PollStart(OFGMessage):
     @staticmethod
@@ -340,54 +445,59 @@ class LinksDel(LinksList):
 OFG_MESSAGES.append(LinksDel)
 
 class FlowHop:
-    SIZE = 10
+    SIZE = Node.SIZE + 2
 
-    def __init__(self, dpid, port):
-        self.dpid = long(dpid)
+    def __init__(self, node, port):
+        self.node = node
         self.port = port
 
     def pack(self):
-        return struct.pack('> QH', self.dpid, self.port)
+        return self.node.pack() + struct.pack('> H', self.port)
 
     @staticmethod
     def unpack(buf):
-        t = struct.unpack('> QH', buf[:FlowHop.SIZE])
-        return FlowHop(t[0], t[1])
+        node = Node.unpack(buf[:Node.SIZE])
+        buf = buf[Node.SIZE:]
+        port = struct.unpack('> H', buf[:2])[0]
+        return FlowHop(node, port)
 
     def __str__(self):
-        return '%s/%u' % (dpidstr(self.dpid), self.port)
+        return '%s:%u' % (str(self.node), self.port)
 
 class Flow:
     TYPE_UNKNOWN = 0
 
-    def __init__(self, path):
+    def __init__(self, flow_type, flow_id, path):
+        self.flow_type = int(flow_type)
+        self.flow_id = int(flow_id)
         self.path = path
 
     def pack(self):
-        header = struct.pack('> I', len(self.path))
-        body = ''.join(struct.pack('QH', hop.dpid, hop.port) for hop in self.path)
+        header = struct.pack('> H 2I', self.flow_type, self.flow_id, len(self.path))
+        body = ''.join(hop.pack() for hop in self.path)
         return header + body
 
     @staticmethod
     def unpack(buf):
-        num_hops = struct.unpack('> I', buf[:4])[0]
-        buf = buf[4:]
+        flow_type, flow_id, num_hops = struct.unpack('> H 2I', buf[:10])
+        buf = buf[10:]
         path = []
         for _ in range(num_hops):
             path.append(FlowHop.unpack(buf[:FlowHop.SIZE]))
             buf = buf[FlowHop.SIZE:]
 
-        return Flow(path)
+        return Flow(flow_type, flow_id, path)
 
     def length(self):
-        return FlowHop.SIZE * len(self.path)
+        return 10 + FlowHop.SIZE * len(self.path)
 
     @staticmethod
     def type_to_str(flow_type):
         return 'unknown'
 
     def __str__(self):
-        return 'Path{%s}' % ''.join('%s:%u' % (dpidstr(hop.dpid), hop.port) for hop in self.path)
+        return 'Flow:%s:%u{%s}' % (Flow.type_to_str(self.flow_type), self.flow_id,
+                                   ''.join(str(hop) for hop in self.path))
 
 class FlowsList(OFGMessage):
     def __init__(self, flows, xid=0):
@@ -585,17 +695,70 @@ def run_ofg_server(port, recv_callback):
     create_ofg_server(port, recv_callback)
     reactor.run()
 
-def test():
+def sha1(s):
+    """Return the SHA1 digest of the string s"""
+    d = hashlib.sha1()
+    d.update(s)
+    return d.digest()
+
+class _Test():
+    """A simple test server for the OFG protocol"""
+    def __init__(self, num_nodes, test_auth):
+        self.num_nodes = num_nodes
+        self.test_auth = test_auth
+        self.server = None
+
+        # create some simple data structures for basic authentication support
+        self.salt_id_on = 1
+        self.salt_db = {}
+        self.user_db = {}
+
+    def add_user(self, username, pw):
+        """Adds a user to the database"""
+        self.user_db[username] = sha1(pw)
+
     # test: simply print out all received messages
-    def print_ltm(_, ltm):
+    def print_ltm(self, _, ltm):
         if ltm is not None:
             print 'recv: %s' % str(ltm)
             if ltm.get_type() == NodesRequest.get_type():
-                nodes = [Node(Node.TYPE_OPENFLOW_SWITCH, i+1) for i in range(20)]
-                server.send(NodesAdd(nodes))
-                server.send(LinksAdd([Link(i % 2 + 1, nodes[i], 0, nodes[i+1], 1) for i in range(19)]))
+                nodes = [Node(Node.TYPE_OPENFLOW_SWITCH, i+1) for i in range(self.num_nodes)]
+                self.server.send(NodesAdd(nodes))
+                self.server.send(LinksAdd([Link(i % 2 + 1, nodes[i], 0, nodes[i+1], 1) for i in range(self.num_nodes-1)]))
+            elif ltm.get_type() == AuthReply.get_type():
+                # get the salt associated with this transaction
+                if not self.salt_db.has_key(ltm.xid):
+                    print 'unknown xid in auth reply: %u' % ltm.xid
+                    return
+                salt = self.salt_db[ltm.xid]
 
-    server = create_ofg_server(OFG_DEFAULT_PORT, print_ltm)
+                # check the username's validity
+                if not self.user_db.has_key(ltm.username):
+                    self.server.send(AuthStatus(False, 'Unknown username', ltm.xid))
+                    return
+
+                # check the password
+                sha1pw = self.user_db[ltm.username]
+                shouldbe = sha1(sha1pw + salt)
+                if shouldbe != ltm.ssp:
+                    self.server.send(AuthStatus(False, 'Invalid password', ltm.xid))
+                else:
+                    self.server.send(AuthStatus(True, 'login as %s successful' % ltm.username, ltm.xid))
+
+    # when the gui connects, ask it to authenticate
+    def new_conn_callback(self, conn):
+        if self.test_auth:
+            ar = AuthRequest(urandom(20), self.salt_id_on)
+            self.salt_db[self.salt_id_on] = ar.salt
+            self.salt_id_on += 1
+            self.server.send_msg_to_client(conn, ar)
+
+def test():
+    t = _Test(num_nodes=20, test_auth=False)
+    t.add_user('dgu', 'envi')
+    server = create_ofg_server(OFG_DEFAULT_PORT, lambda a,b : t.print_ltm(a,b))
+    server.new_conn_callback = lambda a : t.new_conn_callback(a)
+    t.server = server
     reactor.run()
 
 if __name__ == "__main__":

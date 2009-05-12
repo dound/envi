@@ -5,7 +5,6 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.LinkedList;
 
-import org.openflow.util.IDPortPair;
 
 /**
  * A list of flows.
@@ -34,17 +33,19 @@ public abstract class FlowsList extends OFGMessage {
             if(left < 4)
                 throw new IOException("Body of flows has a bad length (not enough for a flow length)");
             
+            short type = in.readShort();
+            int id = in.readInt();
             int pathLen = in.readInt();
             if(pathLen == 0)
                 throw new IOException("Body of flows has a zero-length path");
             else if(left < pathLen * 12)
                 throw new IOException("Body of flows has a bad length (not enough for a flow)");
             
-            IDPortPair[] path = new IDPortPair[pathLen];
+            NodePortPair[] path = new NodePortPair[pathLen];
             for(int i=0; i<pathLen; i++)
-                path[i] = new IDPortPair(in.readLong(), in.readShort());
+                path[i] = new NodePortPair(new Node(in), in.readShort());
             
-            Flow f = new Flow(path);
+            Flow f = new Flow(FlowType.typeValToMessageType(type), id, path);
             flowList.add(f);
             left -= f.length();
         }

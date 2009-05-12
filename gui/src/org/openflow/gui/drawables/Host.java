@@ -5,6 +5,7 @@ import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 
+import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.util.string.IPUtil;
 import org.pzgui.icon.ShapeIcon;
 
@@ -19,7 +20,7 @@ public class Host extends NodeWithPorts {
     }
     
     public Host(String name, int x, int y, long ip) {
-        super(name, x, y, new ShapeIcon(DEFAULT_SHAPE, DEFAULT_FILL));
+        super(NodeType.HOST, name, x, y, new ShapeIcon(DEFAULT_SHAPE, DEFAULT_FILL));
         this.ip = ip;
     }
     

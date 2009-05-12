@@ -16,13 +16,9 @@ public class SimpleNodeWithPorts extends NodeWithPorts {
     }
     
     public SimpleNodeWithPorts(NodeType type, String name, int x, int y, long id, Icon icon) {
-        super(name, x, y, icon);
+        super(type, name, x, y, icon);
         this.id = id;
-        this.type = type;
     }
-    
-    /** type of this node */
-    private NodeType type;
     
     /** ID of this node */
     private long id;
@@ -37,13 +33,8 @@ public class SimpleNodeWithPorts extends NodeWithPorts {
         return id;
     }
     
-    /** gets the type of this node */
-    public NodeType getType() {
-        return type;
-    }
-    
     public int hashCode() {
-        return super.hashCode() + 9 * type.hashCode();
+        return super.hashCode();
     }
     
     public boolean equals(Object o) {
@@ -54,7 +45,7 @@ public class SimpleNodeWithPorts extends NodeWithPorts {
     }
     
     public String toString() {
-        String body = type.toString() + "-" + DPIDUtil.toString(getID());
+        String body = getType().toString() + "-" + DPIDUtil.toString(getID());
         
         String name = getName();
         if(name == null || name.length()==0)

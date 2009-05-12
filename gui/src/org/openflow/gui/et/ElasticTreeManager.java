@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
@@ -103,6 +104,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     public ElasticTreeManager(int k) {
         PZWindow.BASE_TITLE = "Stanford University - Elastic Tree";
         
+        lastK = k;
         fatTreeLayout = new FatTreeLayout<Vertex, Edge>(getGraph(), k);
         this.setLayout(fatTreeLayout);
         setCurrentTrafficMatrixText(null);
@@ -119,10 +121,35 @@ public class ElasticTreeManager extends PZLayoutManager {
         return fatTreeLayout.getK();
     }
     
+    /** change the type of fat tree we are viewing */
+    private void setK(int k) {
+        k = (k==4) ? 4 : 6;  // force the values to be either 4 or 6
+        
+        if(k == fatTreeLayout.getK())
+            return;
+   
+        lastK = fatTreeLayout.getK();
+        
+        fatTreeLayout = new FatTreeLayout<Vertex, Edge>(getGraph(), k);
+        this.setLayout(fatTreeLayout);
+        notifyTrafficMatrixChangeListeners();
+    }
+    
+    /** the previous k-value */
+    private int lastK;
+    
+    /** gets the previous k-value and then resets it to the current k value */
+    public int getLastK() {
+        int ret = lastK;
+        lastK = fatTreeLayout.getK();
+        return ret;
+    }
+    
+    
     // -------- Layout and Redrawing -------- //
     // ************************************** //
     
-    private final FatTreeLayout<Vertex, Edge> fatTreeLayout;
+    private FatTreeLayout<Vertex, Edge> fatTreeLayout;
     
     /** Gets the FatTreeLayout associated with this GUI */
     public FatTreeLayout getFatTreeLayout() {
@@ -180,6 +207,16 @@ public class ElasticTreeManager extends PZLayoutManager {
             w.setReservedHeightBottom(RESERVED_HEIGHT_BOTTOM);
             w.setMySize(w.getWidth(), w.getHeight(), w.getZoom());
         }
+        
+        // add a keyboard shortcut to change the fat tree k value
+        w.addEventListener(new org.pzgui.PZWindowEventListener() {
+            public void keyPressed(KeyEvent e) {
+                if(e.getKeyCode() == KeyEvent.VK_4)
+                    setK(4);
+                else if(e.getKeyCode() == KeyEvent.VK_6)
+                    setK(6);
+            }
+        });
     }
 
     /**

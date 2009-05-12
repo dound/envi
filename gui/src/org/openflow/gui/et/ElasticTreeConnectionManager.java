@@ -257,7 +257,21 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
     }
     private TrafficMatrixManager tmManager;
 
+    /**
+     * Delegates getting results for the new traffic matrix to the 
+     * TrafficMatrixManager.  If the fat tree k value has changed, then it 
+     * purges the old topology and requests the new one.
+     */
     public void trafficMatrixChanged(ETTrafficMatrix tm) {
+        if(manager.getLastK() != tm.k) {
+            getTopology().removeAllNodes(getConnection());
+            try {
+                getConnection().sendMessage(new ETSwitchesRequest(tm.k));
+            } catch (IOException e) {
+                System.err.println("Failed to send request for new switches: " + e.getMessage());
+            }
+        }
+        
         if(tmManager != null)
             tmManager.setNextTrafficMatrix(tm);
     }

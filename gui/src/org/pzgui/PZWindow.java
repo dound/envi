@@ -447,14 +447,38 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     /** where the pan is coming from and going to */
     private Vector2i panFrom, panTo;
     
-    /** starts a pan-zoom animation */
+    /** see the description of startPanZoomAnimation() */
+    private float zoomPanAnimationInterpolationPower = 1.0f;
+    
+    /** 
+     * Starts a pan-zoom animation with zoomPanAnimationInterpolationPower ==
+     * 1.0f (a linear interpolation between the endpoints).
+     */
     public void startPanZoomAnimation(int toX, int toY, float zoomTo, long duration_msec) {
+        startPanZoomAnimation(toX, toY, zoomTo, duration_msec, 1.0f);
+    }
+    
+    /**
+     * Starts a pan-zoom animation.
+     * 
+     * @param toX            what x coordinate to zoom to
+     * @param toY            what y coordinate to zoom to
+     * @param zoomTo         the new zoom factor
+     * @param duration_msec  how long to animate
+     * @param zoomPanAnimationInterpolationPower  1 means a linear 
+     *                       interpolation will be done between the two 
+     *                       animation endpoints.  2 would be quadratic, etc.  
+     *                       A higher the number causes a faster beginning and
+     *                       a slower and smoother the ending.
+     */
+    public void startPanZoomAnimation(int toX, int toY, float zoomTo, long duration_msec, float zoomPanAnimationInterpolationPower) {
         this.zoomTo = zoomTo;
         this.panTo = new Vector2i(toX, toY);
         this.panFrom = drawOffset.clone();
         this.zoomFrom = zoom;
         this.zoomPanAnimationStartTime = System.currentTimeMillis();
         this.zoomPanAnimationEndTime = System.currentTimeMillis() + duration_msec;
+        this.zoomPanAnimationInterpolationPower = zoomPanAnimationInterpolationPower;
     }
 
     /** stops any ongoing pan-zoom animation in its tracks */
@@ -477,7 +501,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
         else {
             long duration = zoomPanAnimationEndTime - zoomPanAnimationStartTime;
             long diff = zoomPanAnimationEndTime - now;
-            float alpha = diff / (float)duration;
+            float alpha = (float)Math.pow(diff / (float)duration, zoomPanAnimationInterpolationPower);
             float beta = 1.0f - alpha; 
             zoom = (zoomFrom * alpha) + (zoomTo * beta);
             drawOffset.x = (int)((panFrom.x * alpha) + (panTo.x * beta));

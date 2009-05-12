@@ -34,6 +34,8 @@ public abstract class FlowsList extends OFGMessage {
             if(left < 4)
                 throw new IOException("Body of flows has a bad length (not enough for a flow length)");
             
+            short type = in.readShort();
+            int id = in.readInt();
             int pathLen = in.readInt();
             if(pathLen == 0)
                 throw new IOException("Body of flows has a zero-length path");
@@ -44,7 +46,7 @@ public abstract class FlowsList extends OFGMessage {
             for(int i=0; i<pathLen; i++)
                 path[i] = new IDPortPair(in.readLong(), in.readShort());
             
-            Flow f = new Flow(path);
+            Flow f = new Flow(FlowType.typeValToMessageType(type), id, path);
             flowList.add(f);
             left -= f.length();
         }

@@ -14,20 +14,32 @@ import org.openflow.util.string.DPIDUtil;
  * @author David Underhill
  */
 public class Flow {
+    /** type of flow */
+    public final FlowType type;
+    
+    /** flow identifier */
+    public final int id;
+    
     /** the flow's path from source to destination (inclusive) */
     public final IDPortPair[] path;
     
-    public Flow(final IDPortPair... path) {
+    public Flow(final FlowType type, final int id, final IDPortPair... path) {
+        this.type = type;
+        this.id = id;
         this.path = path;
     }
     
-    public Flow(final NodePortPair... path) {
+    public Flow(final FlowType type, final int id, final NodePortPair... path) {
+        this.type = type;
+        this.id = id;
         this.path = new IDPortPair[path.length];
         for(int i=0; i<path.length; i++)
             this.path[i] = new IDPortPair(path[i].node.getID(), path[i].port);
     }
     
-    public Flow(final Collection<NodePortPair> path) {
+    public Flow(final FlowType type, final int id, final Collection<NodePortPair> path) {
+        this.type = type;
+        this.id = id;
         this.path = new IDPortPair[path.size()];
         int i = 0;
         for(NodePortPair elt : path) {
@@ -35,13 +47,15 @@ public class Flow {
             i += 1;
         }
     }
-
+    
     /** This returns the length of Flow */
     public int length() {
-        return 4 + path.length * (8 + 2);
+        return 10 + path.length * (8 + 2);
     }
     
     public void write(DataOutput out) throws IOException {
+        out.writeShort(type.getTypeID());
+        out.writeInt(id);
         out.writeInt(path.length);
         for(IDPortPair e : path) {
             out.writeLong(e.id);
@@ -50,7 +64,7 @@ public class Flow {
     }
     
     public String toString() {
-        String ret = "Flow{";
+        String ret = "Flow:" + type.toString() + ":" + id + "{";
         for(IDPortPair e : path)
             ret += DPIDUtil.toString(e.id) + "/" + e.port + ", ";
         

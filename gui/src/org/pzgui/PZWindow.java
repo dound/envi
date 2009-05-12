@@ -163,6 +163,8 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
             else
                 setTitle(getTitle());
         }
+        
+        stepPanZoomAnimation();
 
         synchronized(imgLock) {
             // redraw the scene
@@ -431,7 +433,57 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
         drawOffset.set(0, 0);
         setZoom(1.0f);
     }
+    
+    
+    // -- Pan and Zoom Animation -- //
+    // **************************** //
+    
+    /** time at which the current zoom/pan animation finishes */
+    private long zoomPanAnimationEndTime = 0, zoomPanAnimationStartTime = 0;
+    
+    /** where the zoom is coming from and going to */
+    private float zoomFrom, zoomTo;
+    
+    /** where the pan is coming from and going to */
+    private Vector2i panFrom, panTo;
+    
+    /** starts a pan-zoom animation */
+    public void startPanZoomAnimation(int toX, int toY, float zoomTo, long duration_msec) {
+        this.zoomTo = zoomTo;
+        this.panTo = new Vector2i(toX, toY);
+        this.panFrom = drawOffset.clone();
+        this.zoomFrom = zoom;
+        this.zoomPanAnimationStartTime = System.currentTimeMillis();
+        this.zoomPanAnimationEndTime = System.currentTimeMillis() + duration_msec;
+    }
 
+    /** stops any ongoing pan-zoom animation in its tracks */
+    public void stopPanZoomAnimation() {
+        zoomPanAnimationEndTime = 0;
+    }
+    
+    /** applies the next step in the pan-zoom animation, if any */
+    private void stepPanZoomAnimation() {
+        if(zoomPanAnimationEndTime == 0)
+            return;
+        
+        long now = System.currentTimeMillis();
+        if(now >= zoomPanAnimationEndTime) {
+            zoom = zoomTo;
+            drawOffset.x = panTo.x;
+            drawOffset.y = panTo.y;
+            stopPanZoomAnimation();
+        }
+        else {
+            long duration = zoomPanAnimationEndTime - zoomPanAnimationStartTime;
+            long diff = zoomPanAnimationEndTime - now;
+            float alpha = diff / (float)duration;
+            float beta = 1.0f - alpha; 
+            zoom = (zoomFrom * alpha) + (zoomTo * beta);
+            drawOffset.x = (int)((panFrom.x * alpha) + (panTo.x * beta));
+            drawOffset.y = (int)((panFrom.y * alpha) + (panTo.y * beta));
+        }
+    }
 
     /** print out a string representation of the window's settings */
     public String toString() {

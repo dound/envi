@@ -2,8 +2,8 @@ package org.openflow.gui.net.protocol;
 
 import java.io.DataInput;
 import java.io.IOException;
-import org.openflow.gui.net.protocol.auth.AuthType;
 import org.openflow.gui.net.protocol.et.*;
+import org.openflow.gui.net.protocol.auth.*;
 import org.openflow.protocol.StatsType;
 
 /**
@@ -18,11 +18,17 @@ public enum OFGMessageType {
     /** Authentication request */
     AUTH_REQUEST((byte)0x01),
 
-    /** Authentication challenge */
-    AUTH_CHALLENGE((byte)0x02),
-
     /** Authentication reply */
-    AUTH_REPLY((byte)0x03),
+    AUTH_REPLY((byte)0x02),
+    
+    /** Information about whether a user has been authenticated */
+    AUTH_STATUS((byte)0x03),
+    
+    /** request for an echo reply (keep-alive) */
+    ECHO_REQUEST((byte)0x0C),
+    
+    /** reply to an echo requst (keep-alive) */
+    ECHO_REPLY((byte)0x0D),
     
     /** Tell the backend to start polling a message */
     POLL_START((byte)0x0E),
@@ -173,8 +179,11 @@ public enum OFGMessageType {
         // parse the rest of the message
         switch(t) {
             case AUTH_REQUEST:
-                return AuthType.decode(len, t, xid, in);
-                
+                return new AuthRequest(len, xid, in);
+            
+            case AUTH_STATUS:
+                return new AuthStatus(len, xid, in);
+            
             case NODES_ADD:
                 return new NodesAdd(len, xid, in);
                 
@@ -207,6 +216,10 @@ public enum OFGMessageType {
             
             case ET_COMPUTATION_DONE:
                 return new ETComputationDone(len, xid, in);
+
+            case ECHO_REQUEST:
+            case ECHO_REPLY:
+                return new OFGMessage(t, xid);
                 
             case DISCONNECT:
             case AUTH_REPLY:

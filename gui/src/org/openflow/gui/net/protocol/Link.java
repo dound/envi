@@ -54,4 +54,21 @@ public class Link {
                          " -- " + linkType.toString() + " --> " + 
                          dstNode + "/" + dstPort + "}";
     }
+
+    public int hashCode() {
+        int ret = 7*srcNode.hashCode() + 15*srcPort;
+        ret += 31*dstNode.hashCode() + 31*dstPort;
+        return ret + 15*linkType.getTypeID();
+    }
+    
+    public boolean equals(Object o) {
+        if(o == null) return false;
+        if(!(o instanceof Node)) return false;
+        Link l = (Link)o;
+        return linkType.getTypeID()==l.linkType.getTypeID() && 
+               srcPort==l.srcPort &&
+               dstPort==l.dstPort &&
+               srcNode.equals(l.srcNode) &&
+               dstNode.equals(l.dstNode);
+    }
 }

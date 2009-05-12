@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.openflow.gui.Options;
+import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.util.LongPair;
 import org.pzgui.icon.Icon;
 
@@ -22,8 +23,9 @@ public abstract class NodeWithPorts extends Node {
      */
     private final CopyOnWriteArrayList<Link> links = new CopyOnWriteArrayList<Link>();
     
-    public NodeWithPorts(String name, int x, int y, Icon icon) {
+    public NodeWithPorts(NodeType type, String name, int x, int y, Icon icon) {
         super(name, x, y, icon);
+        this.type = type;
     }
     
     public void unsetDrawn() {
@@ -148,14 +150,22 @@ public abstract class NodeWithPorts extends Node {
         return null;
     }
     
+    /** type of this node */
+    private NodeType type;
+    
+    /** gets the type of this node */
+    public NodeType getType() {
+        return type;
+    }
+    
     public int hashCode() {
-        return (int)(getID() ^ (getID() >>> 32));
+        return (int)(getID() ^ (getID() >>> 32)) + 15 * type.getTypeID();
     }
     
     public boolean equals(Object o) {
         if(this == o) return true;
         if((o == null) || (o.getClass() != this.getClass())) return false;
         NodeWithPorts n = (NodeWithPorts)o;
-        return n.getID() == getID();
+        return n.getID() == getID() && n.getType() == getType();
     }
 }

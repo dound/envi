@@ -6,6 +6,7 @@ import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 
+import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.protocol.SwitchDescriptionStats;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.icon.ShapeIcon;
@@ -21,7 +22,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
     }
     
     public OpenFlowSwitch(String name, int x, int y, long dpid) {
-        super(name, x, y, new ShapeIcon(DEFAULT_SHAPE, DEFAULT_FILL));
+        super(NodeType.OPENFLOW_SWITCH, name, x, y, new ShapeIcon(DEFAULT_SHAPE, DEFAULT_FILL));
         this.datapathID = dpid;
     }
     

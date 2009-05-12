@@ -320,22 +320,24 @@ class LinksDel(LinksList):
 OFG_MESSAGES.append(LinksDel)
 
 class FlowHop:
-    SIZE = 10
+    SIZE = Node.SIZE + 2
 
-    def __init__(self, dpid, port):
-        self.dpid = long(dpid)
+    def __init__(self, node, port):
+        self.node = node
         self.port = port
 
     def pack(self):
-        return struct.pack('> QH', self.dpid, self.port)
+        return self.node.pack() + struct.pack('> H', self.port)
 
     @staticmethod
     def unpack(buf):
-        t = struct.unpack('> QH', buf[:FlowHop.SIZE])
-        return FlowHop(t[0], t[1])
+        node = Node.unpack(buf[:Node.SIZE])
+        buf = buf[Node.SIZE:]
+        port = struct.unpack('> H', buf[:2])[0]
+        return FlowHop(node, port)
 
     def __str__(self):
-        return '%s/%u' % (dpidstr(self.dpid), self.port)
+        return '%s:%u' % (str(self.node), self.port)
 
 class Flow:
     TYPE_UNKNOWN = 0
@@ -347,7 +349,7 @@ class Flow:
 
     def pack(self):
         header = struct.pack('> H 2I', self.flow_type, self.flow_id, len(self.path))
-        body = ''.join(struct.pack('QH', hop.dpid, hop.port) for hop in self.path)
+        body = ''.join(hop.pack() for hop in self.path)
         return header + body
 
     @staticmethod
@@ -370,7 +372,7 @@ class Flow:
 
     def __str__(self):
         return 'Flow:%s:%u{%s}' % (Flow.type_to_str(self.flow_type), self.flow_id,
-                                   ''.join('%s:%u' % (dpidstr(hop.dpid), hop.port) for hop in self.path))
+                                   ''.join(str(hop) for hop in self.path))
 
 class FlowsList(OFGMessage):
     def __init__(self, flows, xid=0):

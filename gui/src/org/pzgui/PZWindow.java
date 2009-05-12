@@ -7,8 +7,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.util.Collection;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
+
+import org.pzgui.layout.Layoutable;
 import org.pzgui.math.Vector2i;
 
 /**
@@ -479,6 +483,65 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
         this.zoomPanAnimationStartTime = System.currentTimeMillis();
         this.zoomPanAnimationEndTime = System.currentTimeMillis() + duration_msec;
         this.zoomPanAnimationInterpolationPower = zoomPanAnimationInterpolationPower;
+    }
+    
+    /**
+     * Starts a pan-zoom animation to focus on a set of layoutables.
+     * 
+     * @param layoutablesToInclude  the layoutables to zoom in on
+     * @param duration_msec         how long to animate
+     * @param zoomPanAnimationInterpolationPower  see startPanZoomAnimation()
+     */
+    public void startPanZoomAnimationToLayoutables(
+            Collection<Layoutable> layoutablesToInclude, 
+            long duration_msec,
+            float zoomPanAnimationInterpolationPower) {
+        int left = Integer.MAX_VALUE;
+        int right = Integer.MIN_VALUE;
+        int top = Integer.MAX_VALUE;
+        int bottom = Integer.MIN_VALUE;
+        
+        for(Layoutable l : layoutablesToInclude) {
+            left = Math.min(left, l.getX());
+            right = Math.max(right, l.getX());
+            top = Math.min(top, l.getY());
+            bottom = Math.max(bottom, l.getY());
+        }
+
+        startPanZoomAnimationToArea(left, right, top, bottom, duration_msec, zoomPanAnimationInterpolationPower);
+    }
+    
+    /**
+     * Starts a pan-zoom animation to focus on the specified area.
+     * 
+     * @param left           the leftmost coordinate to include
+     * @param right          the rightmost coordinate to include
+     * @param top            the uppermost coordinate to include
+     * @param bottom         the bottom-most coordinate to include
+     * @param duration_msec  how long to animate
+     * @param zoomPanAnimationInterpolationPower  see startPanZoomAnimation()
+     */
+    public void startPanZoomAnimationToArea(
+            int left, int right, int top, int bottom,
+            long duration_msec, 
+            float zoomPanAnimationInterpolationPower) {
+        int h = bottom - top;
+        int w = right - left;
+        int window_extra_height = 50; // for the titlebar and padding
+        int ww = getWidth() - getReservedWidthRight();
+        int wh = getHeight() - getReservedHeightBottom() - window_extra_height;
+        float wz = getZoom();
+        
+        float zoomX = ww / (float)w;
+        float zoomY = wh / (float)h;
+        float zoom = Math.min(zoomX, zoomY);
+        
+        float zoomFactor = zoom / wz;
+        
+        int px = (int)(left * zoomFactor);
+        int py = (int)(-top * zoomFactor) + window_extra_height/2;
+        
+        startPanZoomAnimation(px, py, zoom, duration_msec, zoomPanAnimationInterpolationPower);
     }
 
     /** stops any ongoing pan-zoom animation in its tracks */

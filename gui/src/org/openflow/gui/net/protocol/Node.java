@@ -37,4 +37,15 @@ public class Node {
     public String toString() {
         return nodeType + "{" + DPIDUtil.toString(id) + "}";
     }
+
+    public int hashCode() {
+        return 7*(int)(id ^ (id >>> 32)) + 15*nodeType.getTypeID();
+    }
+    
+    public boolean equals(Object o) {
+        if(o == null) return false;
+        if(!(o instanceof Node)) return false;
+        Node n = (Node)o;
+        return nodeType.getTypeID()==n.nodeType.getTypeID() && id==n.id;
+    }
 }

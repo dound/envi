@@ -461,11 +461,10 @@ public class ElasticTreeManager extends PZLayoutManager {
         optgrpNetMode.add(optShowSmall);
         optShowLarge.setSelected(true);
         showTypeLastSelected = optShowLarge;
-        optShowSmall.setEnabled(false);
         
         layout.linkSize(SwingConstants.VERTICAL, optShowLarge, optShowSmall);
         
-        ActionListener netModeListener = new ActionListener() {
+        ActionListener showTypeListener = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if(showTypeLastSelected != e.getSource()) {
                     showTypeLastSelected = e.getSource();
@@ -473,8 +472,8 @@ public class ElasticTreeManager extends PZLayoutManager {
                 }
             }
         };
-        optShowLarge.addActionListener(netModeListener);
-        optShowSmall.addActionListener(netModeListener);
+        optShowLarge.addActionListener(showTypeListener);
+        optShowSmall.addActionListener(showTypeListener);
         
         optgrpAlgMode.add(optAlgModeSpread);
         optgrpAlgMode.add(optAlgModeSquish);
@@ -747,9 +746,28 @@ public class ElasticTreeManager extends PZLayoutManager {
     private Object algModeLastSelected = null;
     private SolverType solverType;
     
+    /** how long an animation between the small/large topologies will take */
+    private static final int SHOW_ANIMATION_LENGTH_MSEC = 2000;
+    
+    /** how to interpolate between beginning and end (1=linear, higher=smooth at end) */
+    private static final float SHOW_ANIMATION_INTERP = 10.0f;
+    
     /** called when the network show type is being changed */
     private void handleShowTypeChange() {
-        // TODO: zoom in/out
+        relayout();
+        PZWindow win = this.windows.get(0);
+        if(win == null)
+            return;
+        
+        if(showTypeLastSelected == optShowLarge)
+            win.startPanZoomAnimation(0, 0, 1.0f, SHOW_ANIMATION_LENGTH_MSEC, SHOW_ANIMATION_INTERP);
+        else {
+            ArrayList<Layoutable> what = getK()==6 ? smallAreaCorners6 : smallAreaCorners4;
+            win.startPanZoomAnimationToLayoutables(
+                    what, 
+                    SHOW_ANIMATION_LENGTH_MSEC, 
+                    SHOW_ANIMATION_INTERP);
+        }
     }
     
     /** called when the hardware mode changes */

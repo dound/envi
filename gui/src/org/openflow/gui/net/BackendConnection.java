@@ -300,7 +300,9 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
         if(out == null)
             throw new IOException("connection is down");
         
-        m.xid = nextXID++;
+        if(m.xid == 0)
+            m.xid = nextXID++;
+        
         if(m.isStatefulRequest())
             outstandingStatefulRequests.put(m.xid, m);
         else if(m.type == OFGMessageType.POLL_START) {

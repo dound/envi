@@ -62,13 +62,14 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final Color SERVER_COLOR = new Color(128, 128, 128);
     private static final int FONT_BIG_SIZE = 28;
     private static final Font FONT_BIG = new Font("Tahoma", Font.BOLD, FONT_BIG_SIZE);
-    
-    /** the color for links which are turned off */
-    private static final Color LINK_OFF_COLOR = new Color(0.3f, 0.3f, 0.3f, 0.5f); // dark gray
-    
-    /** the color for links which have 0 utilization in original mode*/
-    private static final Color LINK_O_COLOR = new Color(1.0f, 1.0f, 1.0f, 0.5f);
-    static { Link.USAGE_COLOR_0 = LINK_O_COLOR; }
+     
+    static {
+        // the color for links which have 0 utilization but are turned on
+        Link.USAGE_COLOR_0 = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+        
+        // the color for links which are turned off
+        Link.USAGE_COLOR_NEG = new Color(0.3f, 0.3f, 0.3f, 0.5f); // dark gray
+    }
     
     // chart configuration parameters
     private static final int MAX_VIS_DATA_POINTS = 100;
@@ -466,7 +467,6 @@ public class ElasticTreeManager extends PZLayoutManager {
         optgrpAlgMode.add(optAlgModeModelGAMS);
         optAlgModeSquish.setSelected(true);
         solverType = SolverType.SQUISH;
-        Link.USAGE_COLOR_0 = LINK_OFF_COLOR;
         
         layout.linkSize(SwingConstants.VERTICAL, optAlgModeSpread, optAlgModeSquish, 
                     optAlgModeHash, optAlgModeModelGLPK, optAlgModeModelGAMS);

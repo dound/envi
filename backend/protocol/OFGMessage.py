@@ -139,7 +139,7 @@ OFG_MESSAGES.append(AuthStatus)
 class EchoRequest(OFGMessage):
     @staticmethod
     def get_type():
-        return 0x0C
+        return 0x08
 
     def __init__(self, xid=0):
         OFGMessage.__init__(self, xid)
@@ -151,7 +151,7 @@ OFG_MESSAGES.append(EchoRequest)
 class EchoReply(OFGMessage):
     @staticmethod
     def get_type():
-        return 0x0D
+        return 0x09
 
     def __init__(self, xid=0):
         OFGMessage.__init__(self, xid)

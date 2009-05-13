@@ -3,6 +3,7 @@ package org.openflow.gui;
 import java.io.DataInput;
 import java.io.IOException;
 
+import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.Host;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.Node;
@@ -32,6 +33,7 @@ import org.openflow.protocol.AggregateStatsReply;
 import org.openflow.protocol.AggregateStatsRequest;
 import org.openflow.protocol.Match;
 import org.openflow.protocol.SwitchDescriptionStats;
+import org.openflow.util.FlowHop;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
 
@@ -350,11 +352,41 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     }
     
     private void processFlowsAdd(FlowsAdd msg) {
-        System.err.println("not yet implemented -- FlowsAdd");
+        for(org.openflow.gui.net.protocol.Flow x : msg.flows) {
+            NodeWithPorts src = topology.getNode(x.srcNode.id);
+            if(src == null) {
+                logNodeMissing("FlowAdd", "src", x.srcNode.id);
+                continue;
+            }
+            
+            NodeWithPorts dst = topology.getNode(x.dstNode.id);
+            if(dst == null) {
+                logNodeMissing("FlowAdd", "dst", x.dstNode.id);
+                continue;
+            }
+            
+            FlowHop[] hops = new FlowHop[x.path.length + 2];
+            hops[0] = new FlowHop((short)-1, src, x.srcPort);
+            hops[hops.length-1] = new FlowHop(x.dstPort, dst, (short)-1);
+            
+            int i = 1;
+            for(org.openflow.gui.net.protocol.FlowHop fh : x.path) {
+                NodeWithPorts hop = topology.getNode(fh.node.id);
+                if(hop == null) {
+                    logNodeMissing("FlowAdd", "hop" + i, fh.node.id);
+                    continue;
+                }
+                hops[i++] = new FlowHop(fh.inport, hop, fh.outport);
+            }
+            
+            Flow flow = new Flow(x.type, x.id, hops);
+            topology.addFlow(flow);
+        }
     }
     
     private void processFlowsDel(FlowsDel msg) {
-        System.err.println("not yet implemented -- FlowsDel");
+        for(org.openflow.gui.net.protocol.Flow x : msg.flows)
+            topology.removeFlowByID(x.id);
     }
     
     private void processStatReply(StatsHeader msg) {

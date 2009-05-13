@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.Link.LinkExistsException;
@@ -307,5 +308,13 @@ public class Topology {
             removeNodeFromManager(r.obj);
         
         return virtualNodes.remove(dpid) != null;
+    }
+
+    public void addFlow(Flow flow) {
+        manager.addDrawable(flow);
+    }
+
+    public void removeFlowByID(int id) {
+        manager.removeFlowDrawable(id);
     }
 }

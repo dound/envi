@@ -1232,6 +1232,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private int powerCurrent, powerTraditional;
     private int latencyEdge, latencyAgg, latencyCore;
     private double latencyAvg;
+    private float throughput_ratio;
     
     public void setPowerData(int cur, int traditional, int max) {
         powerCurrent = cur;
@@ -1248,11 +1249,11 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
 
     public void setAchievedAggregateThroughput(int bandwidth_achieved_mbps) {
-        /* ignore for now */
+        throughput_ratio = bandwidth_achieved_mbps / (float)(getK()==4 ? 4000 : 54000);
     }
     
     private void refreshXputSlider() {
-        int demand_bps = slDemand.getValue();
+        int demand_bps = (int)(throughput_ratio * 1000 * 1000 * 1000);
         int demand_mbps = demand_bps / (1000*1000);
         double p = demand_mbps / 1000.0;
         String value = (demand_mbps!=1000) ? (demand_mbps + "Mb/s") : "1Gb/s";
@@ -1317,7 +1318,7 @@ public class ElasticTreeManager extends PZLayoutManager {
             lblResultInfo.setVisible(true);
         }
         
-        refreshStatsGraphics(demand);
+        refreshStatsGraphics(throughput_ratio);
         animationManager.notePreviousStepCompleted();
     }
     

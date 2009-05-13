@@ -17,6 +17,9 @@ import org.pzgui.math.Vector2f;
  * @author David Underhill
  */
 public class Flow extends AbstractDrawable {
+    /** whether flows may be selected or highlighted */
+    public static boolean ALLOW_FLOW_SELECTION = false;
+    
     private FlowType type;
     private int flowID;
     
@@ -369,6 +372,9 @@ public class Flow extends AbstractDrawable {
      * @return  true if x,y is in the area covered by the flow
      */
     public boolean isWithin(int x, int y, boolean select) {
+        if(!ALLOW_FLOW_SELECTION)
+            return false; 
+        
         // test to see if a rectangle around x, y intersects the bounding lines
         // at the center of the flow graphic
         for( int i=0; i<boundingBoxes.size() && i<path.length-1; i++ ) {

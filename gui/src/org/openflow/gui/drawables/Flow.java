@@ -3,10 +3,12 @@ package org.openflow.gui.drawables;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.util.LinkedList;
 import java.util.Vector;
 
 import org.openflow.gui.net.protocol.FlowType;
 import org.openflow.util.FlowHop;
+import org.openflow.util.Pair;
 import org.pzgui.AbstractDrawable;
 import org.pzgui.Constants;
 import org.pzgui.math.Vector2f;
@@ -25,6 +27,12 @@ public class Flow extends AbstractDrawable {
     
     /** the nodes from the flow's source to its destination */
     private FlowHop[] path;
+    
+    /** 
+     * Segments of the flow which should not be drawn (a segment is defined as 
+     * the link between two adjacent hops.
+     */
+    private LinkedList<Pair<FlowHop, FlowHop>> segmentsToIgnore = new LinkedList<Pair<FlowHop, FlowHop>>();
     
     /** 
      * Creates a flow between two endpoints.
@@ -50,6 +58,39 @@ public class Flow extends AbstractDrawable {
     /** Gets the path of this flow */
     public FlowHop[] getPath() {
         return path;
+    }
+    
+    /** whether a flow contains a particular segment */
+    
+    /** whether to draw a given segment */
+    private boolean shouldDrawSegment(FlowHop from, FlowHop to) {
+        for(Pair<FlowHop, FlowHop> p : segmentsToIgnore)
+            if(p.a.equals(from) && p.b.equals(to))
+                return false;
+        
+        return true;
+    }
+    
+    /** whether this flow contains a particular segment */
+    public boolean hasSegment(Pair<FlowHop, FlowHop> s) {
+        for(int i=0; i<path.length-1; i++) {
+            FlowHop a = path[i];
+            FlowHop b = path[i];
+            if(s.a.equals(a) && s.b.equals(b))
+                return true;
+        }
+        
+        return false;
+    }
+    
+    /** add a segment to ignore */
+    public void ignoreSegment(Pair<FlowHop, FlowHop> s) {
+        segmentsToIgnore.add(s);
+    }
+
+    /** stop ignoring a particular segment */
+    public void unignoreSegment(Pair<FlowHop, FlowHop> s) {
+        segmentsToIgnore.remove(s);
     }
     
     
@@ -112,6 +153,12 @@ public class Flow extends AbstractDrawable {
             
             // only need to draw legs of non-zero distance
             if(prev.node == next.node) {
+                boundingBoxesNew.add(null); // placeholder bounding box
+                continue;
+            }
+            
+            // skip segments we aren't supposed to draw
+            if(!shouldDrawSegment(prev, next)) {
                 boundingBoxesNew.add(null); // placeholder bounding box
                 continue;
             }

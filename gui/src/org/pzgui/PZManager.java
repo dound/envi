@@ -19,7 +19,6 @@ import org.ho.yaml.wrapper.DelayedCreationBeanWrapper;
 import org.ho.yaml.wrapper.ObjectWrapper;
 import org.ho.yaml.wrapper.WrapperFactory;
 
-import org.openflow.gui.drawables.Flow;
 import org.openflow.util.string.DPIDUtil;
 
 import org.pzgui.icon.Icon;
@@ -894,17 +893,5 @@ public class PZManager extends Thread {
     public void fireDrawableEvent(Drawable d, AWTEvent e, String event) {
         for(DrawableEventListener del : drawableEventListeners)
             del.drawableEvent(d, e, event);
-    }
-
-    /** remove flows which match the specified ID */
-    public void removeFlowDrawable(int id) {
-        LinkedList<Drawable> flowsToRemove = new LinkedList<Drawable>();
-        for(Drawable d : drawables)
-            if(d instanceof Flow)
-                if(((Flow)d).getID() == id)
-                    flowsToRemove.add(d);
-        
-        for(Drawable d : flowsToRemove)
-            drawables.remove(d);
     }
 }

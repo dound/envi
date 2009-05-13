@@ -11,6 +11,8 @@ import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.openflow.gui.drawables.Link.LinkExistsException;
 import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.MessageProcessor;
+import org.openflow.gui.net.protocol.FlowsAdd;
+import org.openflow.gui.net.protocol.FlowsDel;
 import org.openflow.gui.net.protocol.LinksAdd;
 import org.openflow.gui.net.protocol.LinksDel;
 import org.openflow.gui.net.protocol.NodeType;
@@ -87,8 +89,10 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     
     /** Called when the backend has been disconnected or reconnected */
     public void connectionStateChange() {
-        if(!connection.isConnected())
+        if(!connection.isConnected()) {
             topology.removeAllNodes(connection);
+            System.exit(1);
+        }
         else {
             // ask the backend for a list of switches and links
             try {
@@ -151,6 +155,14 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             
         case LINKS_DELETE:
             processLinksDel((LinksDel)msg);
+            break;
+            
+        case FLOWS_ADD:
+            processFlowsAdd((FlowsAdd)msg);
+            break;
+            
+        case FLOWS_DELETE:
+            processFlowsDel((FlowsDel)msg);
             break;
             
         case STAT_REPLY:
@@ -335,6 +347,14 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             case -3: logLinkMissing("delete", "link",     x.dstNode.id, x.dstPort, x.srcNode.id, x.srcPort); break;
             }
         }
+    }
+    
+    private void processFlowsAdd(FlowsAdd msg) {
+        System.err.println("not yet implemented -- FlowsAdd");
+    }
+    
+    private void processFlowsDel(FlowsDel msg) {
+        System.err.println("not yet implemented -- FlowsDel");
     }
     
     private void processStatReply(StatsHeader msg) {

@@ -16,52 +16,62 @@ public class Flow {
     /** flow identifier */
     public final int id;
     
-    /** the flow's path from source to destination (inclusive) */
-    public final NodePortPair[] path;
+    public final Node srcNode;
+    public final short srcPort;
     
-    public Flow(final FlowType type, final int id, final NodePortPair... path) {
+    public final Node dstNode;
+    public final short dstPort;
+    
+    /** the flow's path from source to destination (inclusive) */
+    public final FlowHop[] path;
+    
+    public Flow(final FlowType type, final int id, Node srcNode, short srcPort, Node dstNode, short dstPort, final FlowHop... path) {
         this.type = type;
         this.id = id;
+        this.srcNode = srcNode;
+        this.srcPort = srcPort;
+        this.dstNode = dstNode;
+        this.dstPort = dstPort;
         this.path = path;
     }
     
-    public Flow(final FlowType type, final int id, final org.openflow.util.NodePortPair... path) {
+    public Flow(final FlowType type, final int id, Node srcNode, short srcPort, Node dstNode, short dstPort, final Collection<FlowHop> path) {
         this.type = type;
         this.id = id;
-        this.path = new NodePortPair[path.length];
-        for(int i=0; i<path.length; i++)
-            this.path[i] = new NodePortPair(new Node(path[i].node.getType(), path[i].node.getID()), path[i].port);
-    }
-    
-    public Flow(final FlowType type, final int id, final Collection<NodePortPair> path) {
-        this.type = type;
-        this.id = id;
-        this.path = new NodePortPair[path.size()];
+        this.srcNode = srcNode;
+        this.srcPort = srcPort;
+        this.dstNode = dstNode;
+        this.dstPort = dstPort;
+        this.path = new FlowHop[path.size()];
         int i = 0;
-        for(NodePortPair elt : path) {
-            this.path[i] = new NodePortPair(new Node(elt.node.nodeType, elt.node.id), elt.port);
+        for(FlowHop elt : path) {
+            this.path[i] = new FlowHop(elt.inport, new Node(elt.node.nodeType, elt.node.id), elt.outport);
             i += 1;
         }
     }
     
     /** This returns the length of Flow */
     public int length() {
-        return 10 + path.length * NodePortPair.SIZEOF;
+        return 10 + path.length * FlowHop.SIZEOF;
     }
     
     public void write(DataOutput out) throws IOException {
         out.writeShort(type.getTypeID());
         out.writeInt(id);
-        out.writeInt(path.length);
-        for(NodePortPair e : path)
+        srcNode.write(out);
+        out.writeShort(srcPort);
+        dstNode.write(out);
+        out.writeShort(dstPort);
+        out.writeShort(path.length);
+        for(FlowHop e : path)
             e.write(out);
     }
     
     public String toString() {
-        String ret = "Flow:" + type.toString() + ":" + id + "{";
-        for(NodePortPair e : path)
+        String ret = "Flow:" + type.toString() + ":" + id + ":" + srcNode + ":" + srcPort + "{";
+        for(FlowHop e : path)
             ret += e.toString() + ", ";
         
-        return ret.substring(0, ret.length()-1) + "}";
+        return ret.substring(0, ret.length()-1) + "}:" + dstNode + ":" + dstPort;
     }
 }

@@ -144,6 +144,12 @@ public enum OFGMessageType {
             case LINKS_DELETE:
                 return new LinksDel(len, xid, in);
                 
+            case FLOWS_ADD:
+                return new FlowsAdd(len, xid, in);
+                
+            case FLOWS_DELETE:
+                return new FlowsDel(len, xid, in);
+            
             case STAT_REPLY:
                 return StatsType.decode(len, t, xid, in);
 
@@ -157,6 +163,7 @@ public enum OFGMessageType {
             case POLL_STOP:
             case NODES_REQUEST:
             case LINKS_REQUEST:
+            case FLOWS_REQUEST:
             case STAT_REQUEST:
                 throw new IOException("Received unexpected message type: " + t.toString());
                 

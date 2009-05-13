@@ -163,7 +163,7 @@ public class Flow extends AbstractDrawable {
         // nudge from and to so the points are centered on the line between from and to
         Vector2f from = new Vector2f(actualFrom.x - getPointSize()/2, actualFrom.y - getPointSize()/2);
         Vector2f to = new Vector2f(actualTo.x - getPointSize()/2, actualTo.y - getPointSize()/2);
-        Vector2f dir = Vector2f.subtract(actualFrom, actualTo);
+        Vector2f dir = Vector2f.subtract(actualTo, actualFrom);
         
         // determine vector to take us from point to point
         int d = getPointSize() + GAP_BETWEEN_POINTS;

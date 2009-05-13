@@ -724,15 +724,35 @@ class _Test():
             print 'recv: %s' % str(ltm)
             if ltm.get_type() == NodesRequest.get_type():
                 nodes = [Node(Node.TYPE_OPENFLOW_SWITCH, i+1) for i in range(self.num_nodes)]
-                self.server.send(NodesAdd(nodes))
-                self.server.send(LinksAdd([Link(i % 2 + 1, nodes[i], 0, nodes[i+1], 1) for i in range(self.num_nodes-1)]))
+                links = [Link(i % 2 + 1, nodes[i], 0, nodes[i+1], 1) for i in range(self.num_nodes-1)]
+
+                # add a second path from 2 to 3 via two additional nodes
+                if self.num_nodes >= 3:
+                    nodes.append(Node(Node.TYPE_OPENFLOW_SWITCH, 10000))
+                    nodes.append(Node(Node.TYPE_OPENFLOW_SWITCH, 10001))
+                    n = self.num_nodes
+                    self.server.send(NodesAdd(nodes))
+                    links.append(Link(0, nodes[1], 2, nodes[n], 3))  # 2 to 10000
+                    links.append(Link(0, nodes[n], 2, nodes[n+1], 3))  # 10000 to 10001
+                    links.append(Link(0, nodes[n+1], 2, nodes[2], 3))  # 10001 to 3
+
+                self.server.send(LinksAdd(links))
                 hops = [FlowHop(0, nodes[i+1], 1) for i in range(2)]
-                print str(hops[0])
-                print str(hops[1])
-                f = Flow(3, 44, nodes[0], 0, nodes[3], 1, hops)
-                print str(f)
-                fl = FlowsAdd([f])
-                self.server.send(fl)
+                flow_type = 3
+                flow_id = 44
+                f = Flow(flow_type, flow_id, nodes[0], 0, nodes[3], 1, hops)
+                flows = [f]
+
+                # add another flow which simulates bicast of the original flow
+                if self.num_nodes >= 3:
+                    hops = [FlowHop(0, nodes[1], 2),
+                            FlowHop(3, nodes[n], 2),
+                            FlowHop(3, nodes[n+1], 2),
+                            FlowHop(3, nodes[2], 1)]
+                    f = Flow(flow_type, flow_id, nodes[0], 0, nodes[3], 1, hops)
+                    flows.append(f)
+
+                self.server.send(FlowsAdd(flows))
             elif ltm.get_type() == AuthReply.get_type():
                 # get the salt associated with this transaction
                 if not self.salt_db.has_key(ltm.xid):

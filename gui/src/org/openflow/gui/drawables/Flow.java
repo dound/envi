@@ -5,7 +5,8 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.util.Vector;
 
-import org.openflow.util.NodePortPair;
+import org.openflow.gui.net.protocol.FlowType;
+import org.openflow.util.FlowHop;
 import org.pzgui.AbstractDrawable;
 import org.pzgui.Constants;
 import org.pzgui.math.Vector2f;
@@ -16,20 +17,35 @@ import org.pzgui.math.Vector2f;
  * @author David Underhill
  */
 public class Flow extends AbstractDrawable {
-    /** the nodes/ports from the flow's source to its destination */
-    private Vector<NodePortPair> path;
+    private FlowType type;
+    private int flowID;
+    
+    /** the nodes from the flow's source to its destination */
+    private FlowHop[] path;
     
     /** 
      * Creates a flow between two endpoints.
      * 
      * @param path  the path being taken by this flow from src to dst
      */
-    public Flow(Vector<NodePortPair>  path) {
+    public Flow(FlowType type, int flowID, FlowHop[]  path) {
+        this.type = type;
+        this.flowID = flowID;
         this.path = path;
     }
     
+    /** Gets the type of this flow */
+    public FlowType getType() {
+        return type;
+    }
+    
+    /** Gets the ID of this flow */
+    public int getID() {
+        return flowID;
+    }
+    
     /** Gets the path of this flow */
-    public Vector<NodePortPair> getPath() {
+    public FlowHop[] getPath() {
         return path;
     }
     
@@ -63,7 +79,7 @@ public class Flow extends AbstractDrawable {
     /** Draw the flow */
     public void drawObject(Graphics2D gfx) {
         // ignore paths which doesn't have at least a start and endpoint
-        if(path == null || path.size() <= 1 )
+        if(path.length <= 1 )
            return;
                 
         // determine the offset to make the line appear to be moving
@@ -87,9 +103,9 @@ public class Flow extends AbstractDrawable {
         // draw the flow
         int prevPathEltOn = 0;
         Vector2f to = null;
-        for(int pathEltOn=1; pathEltOn<path.size(); pathEltOn++) {
-            NodePortPair prev = path.get(pathEltOn-1);
-            NodePortPair next = path.get(pathEltOn);
+        for(int pathEltOn=1; pathEltOn<path.length; pathEltOn++) {
+            FlowHop prev = path[pathEltOn-1];
+            FlowHop next = path[pathEltOn];
             
             // only need to draw legs of non-zero distance
             if(prev.node == next.node) {
@@ -355,13 +371,13 @@ public class Flow extends AbstractDrawable {
     public boolean isWithin(int x, int y, boolean select) {
         // test to see if a rectangle around x, y intersects the bounding lines
         // at the center of the flow graphic
-        for( int i=0; i<boundingBoxes.size() && i<path.size()-1; i++ ) {
+        for( int i=0; i<boundingBoxes.size() && i<path.length-1; i++ ) {
             PathInfoPolygon bb = boundingBoxes.get(i);
             if(bb!=null && bb.contains(x, y)) {
                 // select at a node if we are over a node, otherwise select the flow between nodes
-                if(path.get(bb.endPathIndex-1).node.contains(x, y))
+                if(path[bb.endPathIndex-1].node.contains(x, y))
                     selNow.selectAtNode(bb.startPathIndex, x, y);
-                else if(path.get(bb.endPathIndex).node.contains(x, y))
+                else if(path[bb.endPathIndex].node.contains(x, y))
                     selNow.selectAtNode(bb.endPathIndex-1, x, y);
                 else
                     selNow.selectBetweenNodes(bb.startPathIndex, bb.endPathIndex, x, y);

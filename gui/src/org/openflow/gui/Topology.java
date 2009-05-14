@@ -77,27 +77,30 @@ public class Topology {
      *          topology (not necessarily this one)
      */
     public boolean addNode(BackendConnection<OFGMessage> owner, NodeWithPorts n) {
+        boolean ret = false;
         Long id = n.getID();
         NodeRefTrack localR = nodesMap.get(id);
         if(localR == null) {
-            nodesMap.put(id, new NodeRefTrack(n, owner));
-            nodesList.add(id);
-            addNodeToManager(n);
-            
             synchronized(globalNodesWriterLock) {
                 NodeRefTrack r = globalNodes.get(id);
                 if(r == null) {
                     globalNodes.put(id, new NodeRefTrack(n, owner));
-                    return true;
+                    ret = true;
                 }
-                else
+                else {
                     r.addRef(owner);
+                    n = r.obj; // use the existing node
+                }
             }
+            
+            nodesMap.put(id, new NodeRefTrack(n, owner));
+            nodesList.add(id);
+            addNodeToManager(n);
         }
         else
             localR.addRef(owner);
         
-        return false;
+        return ret;
     }
     
     /**

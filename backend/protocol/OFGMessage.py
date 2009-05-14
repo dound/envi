@@ -3,6 +3,7 @@
 import array
 import hashlib
 import struct
+import sys
 from os import urandom
 
 from twisted.internet import reactor
@@ -782,9 +783,10 @@ class _Test():
             self.server.send_msg_to_client(conn, ar)
 
 def test():
+    port = OFG_DEFAULT_PORT if len(sys.argv)==1 else sys.argv[1]
     t = _Test(num_nodes=6, test_auth=False)
     t.add_user('dgu', 'envi')
-    server = create_ofg_server(OFG_DEFAULT_PORT, lambda a,b : t.print_ltm(a,b))
+    server = create_ofg_server(port, lambda a,b : t.print_ltm(a,b))
     server.new_conn_callback = lambda a : t.new_conn_callback(a)
     t.server = server
     reactor.run()

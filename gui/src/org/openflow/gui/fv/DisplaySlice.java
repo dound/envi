@@ -43,6 +43,9 @@ public class DisplaySlice {
     /** the topologies included in this slice */
     private final LinkedList<FVTopology> topologies = new LinkedList<FVTopology>();
     
+    /** slice name */
+    private String name = "empty";
+    
     /** how to transform points from the original space to the slice's space */
     private AffineTransform transform;
     private AffineTransform transformInverse;
@@ -78,19 +81,43 @@ public class DisplaySlice {
     
     /** add a topology to this slice */
     public void addTopology(FVTopology topology) {
+        if(topologies.size() == 0)
+            name = topology.getName();
+        
+        if(topologies.contains(topology))
+            return;
+        
         topologies.add(topology);
         updateFillPatterns();
+    }
+
+    /** whether this display slice contains the specified topology */
+    public boolean hasTopology(FVTopology t) {
+        return topologies.contains(t);
     }
     
     /** remove a topology from this slice */
     public void removeTopology(FVTopology topology) {
         topologies.remove(topology);
         updateFillPatterns();
+        
+        if(topologies.size() == 0)
+            name = "empty";
+    }
+    
+    /** gets the name of the slice */
+    public String getName() {
+        return name;
+    }
+    
+    /** sets the name of the slice */
+    public void setName(String name) {
+        this.name = name;
     }
     
     /** draw the slice itself */
     public void draw(Graphics2D gfx) {
-        if(slicePaint == null || sliceShape == null)
+        if(slicePaint == null || sliceShape == null || !isVisible())
             return;
         
         Composite c = gfx.getComposite();
@@ -132,6 +159,11 @@ public class DisplaySlice {
     /** whether this slice is currently visible */
     public boolean isVisible() {
         return visible;
+    }
+
+    /** sets whether this slice is currently visible */
+    public void setVisible(boolean b) {
+        visible = b;
     }
     
     /** applies the transformation of this slice */
@@ -273,5 +305,13 @@ public class DisplaySlice {
         TexturePaint tp = new TexturePaint(fill, new Rectangle2D.Double(0, 0, sz, sz));
         fillPatterns.put(bitmask, tp);
         return tp;
+    }
+    
+    /** Slice:<slice name>{<names of topologies in the slice>} */
+    public String toString() {
+        String ret = "Slice:" + name + "{";
+        for(FVTopology t : topologies)
+            ret += t.getName() + ",";
+        return ret.substring(0, ret.length()-1) + "}";
     }
 }

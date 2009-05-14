@@ -5,7 +5,8 @@ import java.awt.Color;
 import org.openflow.gui.Topology;
 
 /**
- * Includes what color to associate with this topology (aka slice).
+ * Includes what color to associate with this topology (aka slice) and the name
+ * of the topology.
  * 
  * @author David Underhill
  */
@@ -19,9 +20,13 @@ public class FVTopology extends Topology {
     /** the fill color for this topology */
     private Color color;
     
-    public FVTopology(final FVLayoutManager manager) {
+    /** the name of the topology */
+    private String name;
+    
+    public FVTopology(final FVLayoutManager manager, String name) {
         super(manager);
         color = TOPOLOGY_COLORS[topologyColorOn++];
+        this.name = name;
     }
 
     /**
@@ -31,5 +36,19 @@ public class FVTopology extends Topology {
      */
     public Color getFillColor() {
         return color;
+    }
+    
+    /**
+     * Gets the name of the topology.
+     */
+    public String getName() {
+        return name;
+    }
+    
+    /**
+     * Sets the name of the topology.
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 }

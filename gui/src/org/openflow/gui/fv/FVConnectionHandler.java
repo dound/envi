@@ -17,7 +17,7 @@ public class FVConnectionHandler extends ConnectionHandler {
      * @param port    the port the back-end is listening on
      */
     public FVConnectionHandler(FVLayoutManager manager, String server, Short port) {
-        super(new FVTopology(manager), server, port, true, true);
+        super(new FVTopology(manager, server + ":" + port), server, port, true, true);
         manager.addDisplaySlice((FVTopology)getTopology());
     }
     

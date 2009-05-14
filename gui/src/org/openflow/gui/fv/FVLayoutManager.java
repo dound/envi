@@ -1,7 +1,17 @@
 package org.openflow.gui.fv;
 
 import java.awt.Graphics2D;
-import java.util.ArrayList;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
 
 import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.NodeWithPorts;
@@ -22,7 +32,7 @@ public class FVLayoutManager extends PZLayoutManager {
     private final FVMultipleConnectionAndTopologyHandler mch;
     
     /** the slices being displayed */
-    private final ArrayList<DisplaySlice> displaySlices = new ArrayList<DisplaySlice>();
+    private final CopyOnWriteArrayList<DisplaySlice> displaySlices = new CopyOnWriteArrayList<DisplaySlice>();
     
     /**
      * Construct the FlowVisor GUI layout manager.
@@ -39,6 +49,23 @@ public class FVLayoutManager extends PZLayoutManager {
         DisplaySlice ds = new DisplaySlice();
         ds.addTopology(topology);
         displaySlices.add(ds);
+        refreshSlices();
+    }
+    
+    /** swap the order of two slices */
+    private void swapDisplaySlices(int i, int j) {
+        if(i < 0 || j < 0 || i >= displaySlices.size() || j >= displaySlices.size())
+            return;
+        DisplaySlice tmp = displaySlices.get(i);
+        displaySlices.set(i, displaySlices.get(j));
+        displaySlices.set(j, tmp);
+        refreshSlices();
+    }
+    
+    /** force the slices layout to be refreshed as if the window had been resized */ 
+    private void refreshSlices() {
+        if(windows.size() > 0)
+            windows.get(0).componentResized(null);
     }
     
     /**
@@ -50,8 +77,24 @@ public class FVLayoutManager extends PZLayoutManager {
         
         if(addDefaultEventListener) {
             w.addEventListener(new PZWindowEventListener() {
+                /** */
+                public void mouseReleased(MouseEvent e) {
+                    super.mouseReleased(e);
+                    if(e.getButton() != MouseEvent.BUTTON1) {
+                        PZWindow window = getWindow(e);
+                        int x = window.getMX(e);
+                        int y = window.getMY(e);
+                        for(DisplaySlice ds : displaySlices) {
+                            if(x>=ds.getXOffset() && x <=ds.getXOffset()+ds.getWidth() &&
+                               y>=ds.getYOffset() && y <=ds.getYOffset()+ds.getHeight()) {
+                                showContextMenu(ds, x, y);
+                            }
+                        }
+                    }
+                }
+
+                /** take into account slice offsets when dragging within slices */
                 public void dragNode(Drawable selNode, int x, int y) {
-                    // take into account slice offsets
                     if(sliceDrawableSelectedIn != null) {
                         x -= sliceDrawableSelectedIn.getXOffset();
                         y -= sliceDrawableSelectedIn.getYOffset();
@@ -104,7 +147,7 @@ public class FVLayoutManager extends PZLayoutManager {
         
         Layoutable l = (Layoutable)d;
         for(DisplaySlice ds : displaySlices) {
-            if(ds.hasNode(l.getID())) {
+            if(ds.isVisible() && ds.hasNode(l.getID())) {
                 ds.apply(gfx, d);
                 draw(gfx, d, before);
                 ds.unapply(gfx, d);
@@ -126,6 +169,7 @@ public class FVLayoutManager extends PZLayoutManager {
             d.drawObject(gfx);
     }
     
+    /** returns the number of slices which are visible */
     private int numVisibleSlices() {
         int ret = 0;
         for(DisplaySlice ds : displaySlices)
@@ -181,8 +225,125 @@ public class FVLayoutManager extends PZLayoutManager {
         
         int i = 0;
         for(DisplaySlice ds : displaySlices) {
-            ds.updateDisplayTransform(0, sliceHeight * i, width, sliceHeight);
-            i += 1;
+            if(ds.isVisible()) {
+                ds.updateDisplayTransform(0, sliceHeight * i, width, sliceHeight);
+                i += 1;
+            }
         }
+    }
+    
+    /** create and display a context menu for ds at the specified location */
+    private void showContextMenu(final DisplaySlice ds, final int x, final int y) {
+        JPopupMenu.setDefaultLightWeightPopupEnabled(false); // force the menu on top of the dashboard
+        JPopupMenu cmnu = new JPopupMenu();
+        
+        JMenu mnu;
+        JMenuItem mnui;
+        
+        final int index = displaySlices.indexOf(ds);
+        if(index == -1)
+            return;
+        
+        // move slices up or down
+        mnui = new JMenuItem("Move Up", KeyEvent.VK_U);
+        mnui.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                swapDisplaySlices(index, index-1);
+            }});
+        mnui.setEnabled(index > 0);
+        cmnu.add(mnui);
+        
+        mnui = new JMenuItem("Move Down", KeyEvent.VK_D);
+        mnui.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                swapDisplaySlices(index, index+1);
+            }});
+        mnui.setEnabled(index < displaySlices.size() - 1);
+        cmnu.add(mnui);
+        
+        cmnu.add(new JSeparator());
+        
+        // Create new slices
+        mnu = new JMenu("Create");
+        mnu.setMnemonic(KeyEvent.VK_C);
+        for(int i=0; i<mch.getNumTopologies(); i++) {
+            final FVTopology t = (FVTopology)mch.getTopology(i);
+            mnui = new JMenuItem(t.getName());
+            mnui.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    addDisplaySlice(t);
+                    
+                }});
+            mnu.add(mnui);
+        }
+        cmnu.add(mnu);
+        
+        // Delete this slice
+        mnui = new JMenuItem("Delete this Slice");
+        mnui.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                displaySlices.remove(ds);
+                refreshSlices();
+            }});
+        // cannot delete the last slice, or the last visible slice
+        mnui.setEnabled(displaySlices.size()>0 && numVisibleSlices()>1);
+        cmnu.add(mnui);
+        
+        cmnu.add(new JSeparator());
+        
+        // Hide this slice
+        mnui = new JMenuItem("Hide this Slice", KeyEvent.VK_H);
+        mnui.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ds.setVisible(false);
+                refreshSlices();
+            }});
+        mnui.setEnabled(numVisibleSlices() > 1); // cannot hide the last slice
+        cmnu.add(mnui);
+        
+        // Show hidden slices
+        mnu = new JMenu("Show Hidden Slices");
+        mnu.setMnemonic(KeyEvent.VK_S);
+        boolean enabled = false;
+        for(final DisplaySlice tds : displaySlices) {
+            if(!tds.isVisible()) {
+                mnui = new JMenuItem(tds.getName());
+                mnui.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        tds.setVisible(true);
+                        refreshSlices();
+                    }});
+                mnu.add(mnui);
+                enabled = true;
+            }
+        }
+        mnu.setEnabled(enabled);
+        cmnu.add(mnu);
+        
+        cmnu.add(new JSeparator());
+        
+        // Change which topologies are on this slice
+        mnu = new JMenu("Topologies on this Display Slice");
+        mnu.setMnemonic(KeyEvent.VK_T);
+        for(int i=0; i<mch.getNumTopologies(); i++) {
+            final FVTopology t = (FVTopology)mch.getTopology(i);
+            final JCheckBoxMenuItem mnucb = new JCheckBoxMenuItem(t.getName());
+            mnucb.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    if(ds.hasTopology(t)) {
+                        ds.removeTopology(t);
+                        mnucb.setSelected(false);
+                    }
+                    else {
+                        ds.addTopology(t);
+                        mnucb.setSelected(true);
+                    }
+                }});
+            mnucb.setSelected(ds.hasTopology(t));
+            mnu.add(mnucb);
+        }
+        cmnu.add(mnu);
+        
+        cmnu.show(windows.get(0), x, y);
     }
 }

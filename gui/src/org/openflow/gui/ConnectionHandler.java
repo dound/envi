@@ -3,6 +3,7 @@ package org.openflow.gui;
 import java.io.DataInput;
 import java.io.IOException;
 
+import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.Host;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.Node;
@@ -11,6 +12,8 @@ import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.openflow.gui.drawables.Link.LinkExistsException;
 import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.MessageProcessor;
+import org.openflow.gui.net.protocol.FlowsAdd;
+import org.openflow.gui.net.protocol.FlowsDel;
 import org.openflow.gui.net.protocol.LinksAdd;
 import org.openflow.gui.net.protocol.LinksDel;
 import org.openflow.gui.net.protocol.NodeType;
@@ -30,6 +33,7 @@ import org.openflow.protocol.AggregateStatsReply;
 import org.openflow.protocol.AggregateStatsRequest;
 import org.openflow.protocol.Match;
 import org.openflow.protocol.SwitchDescriptionStats;
+import org.openflow.util.FlowHop;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
 
@@ -87,8 +91,10 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     
     /** Called when the backend has been disconnected or reconnected */
     public void connectionStateChange() {
-        if(!connection.isConnected())
+        if(!connection.isConnected()) {
             topology.removeAllNodes(connection);
+            System.exit(1);
+        }
         else {
             // ask the backend for a list of switches and links
             try {
@@ -151,6 +157,14 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             
         case LINKS_DELETE:
             processLinksDel((LinksDel)msg);
+            break;
+            
+        case FLOWS_ADD:
+            processFlowsAdd((FlowsAdd)msg);
+            break;
+            
+        case FLOWS_DELETE:
+            processFlowsDel((FlowsDel)msg);
             break;
             
         case STAT_REPLY:
@@ -335,6 +349,44 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             case -3: logLinkMissing("delete", "link",     x.dstNode.id, x.dstPort, x.srcNode.id, x.srcPort); break;
             }
         }
+    }
+    
+    private void processFlowsAdd(FlowsAdd msg) {
+        for(org.openflow.gui.net.protocol.Flow x : msg.flows) {
+            NodeWithPorts src = topology.getNode(x.srcNode.id);
+            if(src == null) {
+                logNodeMissing("FlowAdd", "src", x.srcNode.id);
+                continue;
+            }
+            
+            NodeWithPorts dst = topology.getNode(x.dstNode.id);
+            if(dst == null) {
+                logNodeMissing("FlowAdd", "dst", x.dstNode.id);
+                continue;
+            }
+            
+            FlowHop[] hops = new FlowHop[x.path.length + 2];
+            hops[0] = new FlowHop((short)-1, src, x.srcPort);
+            hops[hops.length-1] = new FlowHop(x.dstPort, dst, (short)-1);
+            
+            int i = 1;
+            for(org.openflow.gui.net.protocol.FlowHop fh : x.path) {
+                NodeWithPorts hop = topology.getNode(fh.node.id);
+                if(hop == null) {
+                    logNodeMissing("FlowAdd", "hop" + i, fh.node.id);
+                    continue;
+                }
+                hops[i++] = new FlowHop(fh.inport, hop, fh.outport);
+            }
+            
+            Flow flow = new Flow(x.type, x.id, hops);
+            topology.addFlow(flow);
+        }
+    }
+    
+    private void processFlowsDel(FlowsDel msg) {
+        for(org.openflow.gui.net.protocol.Flow x : msg.flows)
+            topology.removeFlowByID(x.id);
     }
     
     private void processStatReply(StatsHeader msg) {

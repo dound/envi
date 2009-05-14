@@ -425,59 +425,80 @@ class LinksDel(LinksList):
 OFG_MESSAGES.append(LinksDel)
 
 class FlowHop:
-    SIZE = Node.SIZE + 2
+    SIZE = 2 + Node.SIZE + 2
 
-    def __init__(self, node, port):
+    def __init__(self, inport, node, outport):
+        self.inport = int(inport)
         self.node = node
-        self.port = port
+        self.outport = int(outport)
 
     def pack(self):
-        return self.node.pack() + struct.pack('> H', self.port)
+        return struct.pack('> H', self.inport) + self.node.pack() + struct.pack('> H', self.outport)
 
     @staticmethod
     def unpack(buf):
+        inport = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
         node = Node.unpack(buf[:Node.SIZE])
         buf = buf[Node.SIZE:]
-        port = struct.unpack('> H', buf[:2])[0]
-        return FlowHop(node, port)
+        outport = struct.unpack('> H', buf[:2])[0]
+        return FlowHop(inport, node, outport)
 
     def __str__(self):
-        return '%s:%u' % (str(self.node), self.port)
+        return '%s:%u:%u' % (str(self.node), self.inport, self.outport)
 
 class Flow:
     TYPE_UNKNOWN = 0
 
-    def __init__(self, flow_type, flow_id, path):
+    def __init__(self, flow_type, flow_id, src_node, src_port, dst_node, dst_port, path):
         self.flow_type = int(flow_type)
         self.flow_id = int(flow_id)
+        self.src_node = src_node
+        self.src_port = int(src_port)
+        self.dst_node = dst_node
+        self.dst_port = int(dst_port)
         self.path = path
 
     def pack(self):
-        header = struct.pack('> H 2I', self.flow_type, self.flow_id, len(self.path))
+        src = self.src_node.pack() + struct.pack('> H', self.src_port)
+        dst = self.dst_node.pack() + struct.pack('> H', self.dst_port)
+        header = struct.pack('> H I', self.flow_type, self.flow_id) + src + dst + struct.pack('> H', len(self.path))
         body = ''.join(hop.pack() for hop in self.path)
         return header + body
 
     @staticmethod
     def unpack(buf):
-        flow_type, flow_id, num_hops = struct.unpack('> H 2I', buf[:10])
-        buf = buf[10:]
+        flow_type, flow_id = struct.unpack('> H I', buf[:6])
+        buf = buf[6:]
+        src_node = Node.unpack(buf[:Node.SIZE])
+        buf = buf[Node.SIZE:]
+        src_port = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+        dst_node = Node.unpack(buf[:Node.SIZE])
+        dst_port = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+        num_hops = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+
         path = []
         for _ in range(num_hops):
             path.append(FlowHop.unpack(buf[:FlowHop.SIZE]))
             buf = buf[FlowHop.SIZE:]
 
-        return Flow(flow_type, flow_id, path)
+        return Flow(flow_type, flow_id, src_node, src_port, dst_node, dst_port, path)
 
     def length(self):
-        return 10 + FlowHop.SIZE * len(self.path)
+        return 8 + 2*(2+Node.SIZE) + FlowHop.SIZE * len(self.path)
 
     @staticmethod
     def type_to_str(flow_type):
         return 'unknown'
 
     def __str__(self):
-        return 'Flow:%s:%u{%s}' % (Flow.type_to_str(self.flow_type), self.flow_id,
-                                   ''.join(str(hop) for hop in self.path))
+        return 'Flow:%s:%u:src=%s:%u{%s}dst=%s:%u' % (Flow.type_to_str(self.flow_type), self.flow_id,
+                                                      str(self.src_node), self.src_port,
+                                                      ','.join(str(hop) for hop in self.path),
+                                                      str(self.dst_node), self.dst_port)
 
 class FlowsList(OFGMessage):
     def __init__(self, flows, xid=0):
@@ -513,7 +534,7 @@ class FlowsList(OFGMessage):
 class FlowsAdd(FlowsList):
     @staticmethod
     def get_type():
-        return 0x18
+        return 0x17
 
     def __init__(self, flows, xid=0):
         FlowsList.__init__(self, flows, xid)
@@ -529,7 +550,7 @@ OFG_MESSAGES.append(FlowsAdd)
 class FlowsDel(FlowsList):
     @staticmethod
     def get_type():
-        return 0x19
+        return 0x18
 
     def __init__(self, flows, xid=0):
         FlowsList.__init__(self, flows, xid)
@@ -703,8 +724,35 @@ class _Test():
             print 'recv: %s' % str(ltm)
             if ltm.get_type() == NodesRequest.get_type():
                 nodes = [Node(Node.TYPE_OPENFLOW_SWITCH, i+1) for i in range(self.num_nodes)]
-                self.server.send(NodesAdd(nodes))
-                self.server.send(LinksAdd([Link(i % 2 + 1, nodes[i], 0, nodes[i+1], 1) for i in range(self.num_nodes-1)]))
+                links = [Link(i % 2 + 1, nodes[i], 0, nodes[i+1], 1) for i in range(self.num_nodes-1)]
+
+                # add a second path from 2 to 3 via two additional nodes
+                if self.num_nodes >= 3:
+                    nodes.append(Node(Node.TYPE_OPENFLOW_SWITCH, 10000))
+                    nodes.append(Node(Node.TYPE_OPENFLOW_SWITCH, 10001))
+                    n = self.num_nodes
+                    self.server.send(NodesAdd(nodes))
+                    links.append(Link(0, nodes[1], 2, nodes[n], 3))  # 2 to 10000
+                    links.append(Link(0, nodes[n], 2, nodes[n+1], 3))  # 10000 to 10001
+                    links.append(Link(0, nodes[n+1], 2, nodes[2], 3))  # 10001 to 3
+
+                self.server.send(LinksAdd(links))
+                hops = [FlowHop(0, nodes[i+1], 1) for i in range(2)]
+                flow_type = 3
+                flow_id = 44
+                f = Flow(flow_type, flow_id, nodes[0], 0, nodes[3], 1, hops)
+                flows = [f]
+
+                # add another flow which simulates bicast of the original flow
+                if self.num_nodes >= 3:
+                    hops = [FlowHop(0, nodes[1], 2),
+                            FlowHop(3, nodes[n], 2),
+                            FlowHop(3, nodes[n+1], 2),
+                            FlowHop(3, nodes[2], 1)]
+                    f = Flow(flow_type, flow_id, nodes[0], 0, nodes[3], 1, hops)
+                    flows.append(f)
+
+                self.server.send(FlowsAdd(flows))
             elif ltm.get_type() == AuthReply.get_type():
                 # get the salt associated with this transaction
                 if not self.salt_db.has_key(ltm.xid):
@@ -734,7 +782,7 @@ class _Test():
             self.server.send_msg_to_client(conn, ar)
 
 def test():
-    t = _Test(num_nodes=20, test_auth=False)
+    t = _Test(num_nodes=6, test_auth=False)
     t.add_user('dgu', 'envi')
     server = create_ofg_server(OFG_DEFAULT_PORT, lambda a,b : t.print_ltm(a,b))
     server.new_conn_callback = lambda a : t.new_conn_callback(a)

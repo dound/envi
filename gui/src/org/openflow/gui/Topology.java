@@ -5,12 +5,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.Link.LinkExistsException;
 import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.protocol.LinkType;
 import org.openflow.gui.net.protocol.OFGMessage;
+import org.openflow.util.FlowHop;
+import org.openflow.util.Pair;
 import org.openflow.util.RefTrack;
 import org.pzgui.PZManager;
 
@@ -307,5 +310,40 @@ public class Topology {
             removeNodeFromManager(r.obj);
         
         return virtualNodes.remove(dpid) != null;
+    }
+
+    
+    /** flows in the topology */
+    private final ConcurrentHashMap<Integer, Flow[]> flowsMap = new ConcurrentHashMap<Integer, Flow[]>();
+    
+    /** add a flow to the topology */
+    public void addFlow(Flow newFlow) {
+        Flow[] flows = flowsMap.get(newFlow.getID());
+        if(flows == null)
+            flowsMap.put(newFlow.getID(), new Flow[]{newFlow});
+        else {
+            // flow(s) with this ID already exist; add it to the list
+            Flow[] newFlows = new Flow[flows.length + 1];
+            System.arraycopy(flows, 0, newFlows, 0, flows.length);
+            newFlows[flows.length] =  newFlow;
+            
+            // ignore new flow segments which overlap with others that share its ID
+            for(Flow f : flows) {
+                for(int i=0; i<f.getPath().length-1; i++) {
+                    Pair<FlowHop, FlowHop> segment = new Pair<FlowHop, FlowHop>(f.getPath()[i], f.getPath()[i+1]);
+                    if(newFlow.hasSegment(segment))
+                        newFlow.ignoreSegment(segment);
+                }
+            }
+        }
+        manager.addDrawable(newFlow);
+    }
+
+    /** remove a flow from the topology */
+    public void removeFlowByID(int id) {
+        Flow[] flows = flowsMap.get(id);
+        if(flows != null)
+            for(Flow f : flows)
+                manager.removeDrawable(f);
     }
 }

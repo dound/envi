@@ -56,6 +56,22 @@ public class DisplaySlice {
     /** whether this slice is visible */
     private boolean visible = true;
     
+    /** x offset of this slice */
+    private int xOffset = 0;
+    
+    /** y offset of this slice */
+    private int yOffset = 0;
+    
+    /** height of this slice */
+    private int sliceHeight = -1;
+    
+    /** width of this slice */
+    private int sliceWidth = -1; 
+    
+    /** temporary for storing the original size of an icon pre-perspective scaling */
+    private Dimension origSize;
+    
+    /** construct a new DisplaySlice containing no topologies */
     public DisplaySlice() {
         transformInverse = transform = new AffineTransform();
     }
@@ -84,6 +100,26 @@ public class DisplaySlice {
         gfx.setComposite(c);
     }
 
+    /** get the x offset of the slice */
+    public int getXOffset() {
+        return xOffset;
+    }
+    
+    /** get the y offset of the slice */
+    public int getYOffset() {
+        return yOffset;
+    }
+    
+    /** get the height of the slice */
+    public int getHeight() {
+        return sliceHeight;
+    }
+    
+    /** get the width of the slice */
+    public int getWidth() {
+        return sliceWidth;
+    }
+    
     /** whether this slice contains the specified node */
     public boolean hasNode(long id) {
         for(Topology t : topologies)
@@ -97,9 +133,6 @@ public class DisplaySlice {
     public boolean isVisible() {
         return visible;
     }
-    
-    private Dimension origSize;
-    private double sliceHeight = -1;
     
     /** applies the transformation of this slice */
     public void apply(Graphics2D gfx, Drawable d) {
@@ -115,7 +148,7 @@ public class DisplaySlice {
                 si.setFillColor(getFillPattern(n.getID()));
                 
                 if(USE_FAKE_PERSPECTIVE) {
-                    double scale = 1.0 - (1.0 - n.getY() / sliceHeight) * FAKE_PERSPECTIVE_MAX_SHRINKAGE;
+                    double scale = 1.0 - (1.0 - n.getY() / (double)sliceHeight) * FAKE_PERSPECTIVE_MAX_SHRINKAGE;
                     origSize = si.getSize();
                     if(scale < 1.0)
                         si.setSize((int)(origSize.width*scale), (int)(origSize.height*scale));
@@ -145,7 +178,11 @@ public class DisplaySlice {
 
     /** updates the transform for this slice */
     public void updateDisplayTransform(int xOffset, int yOffset, int sliceWidth, int sliceHeight) {
+        this.xOffset = xOffset;
+        this.yOffset = yOffset;
         this.sliceHeight = sliceHeight;
+        this.sliceWidth = sliceWidth;
+        
         if(USE_FAKE_PERSPECTIVE) {
             int pinch = sliceWidth / 10;
             int[] xs = new int[]{xOffset+pinch, xOffset+sliceWidth, xOffset+sliceWidth-pinch, xOffset};

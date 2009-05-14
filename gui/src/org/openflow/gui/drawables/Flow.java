@@ -207,6 +207,12 @@ public class Flow extends AbstractDrawable {
     private void drawLine(Graphics2D gfx, 
                           Vector2f actualFrom, Vector2f actualTo, 
                           int startPathIndex, int endPathIndex) {
+        // do not draw lines smaller than one dot
+        if(Vector2f.distanceSq(actualFrom.x, actualFrom.y, actualTo.x, actualTo.y) < Flow.POINT_SIZE*Flow.POINT_SIZE) {
+            boundingBoxesNew.add(null); // placeholder bounding box
+            return;
+        }
+        
         // nudge from and to so the points are centered on the line between from and to
         Vector2f from = new Vector2f(actualFrom.x - getPointSize()/2, actualFrom.y - getPointSize()/2);
         Vector2f to = new Vector2f(actualTo.x - getPointSize()/2, actualTo.y - getPointSize()/2);

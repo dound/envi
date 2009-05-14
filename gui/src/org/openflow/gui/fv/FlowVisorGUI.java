@@ -3,7 +3,6 @@ package org.openflow.gui.fv;
 import java.util.ArrayList;
 
 import org.openflow.gui.OpenFlowGUI;
-import org.openflow.gui.Options;
 import org.openflow.gui.fv.FVConnectionHandler;
 import org.openflow.gui.fv.FVLayoutManager;
 import org.openflow.util.Pair;

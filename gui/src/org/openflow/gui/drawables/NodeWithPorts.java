@@ -48,6 +48,10 @@ public abstract class NodeWithPorts extends Node {
         
         // draw the port's links
         for(Link link : links) {
+            // don't draw links to nodes in other topologies
+            if(!link.getSource().isInTopologyBeingDrawn || !link.getDestination().isInTopologyBeingDrawn)
+                continue;
+            
             LongPair lp = new LongPair(link.getSource().getID(),
                                        link.getDestination().getID());
             
@@ -167,5 +171,10 @@ public abstract class NodeWithPorts extends Node {
         if((o == null) || (o.getClass() != this.getClass())) return false;
         NodeWithPorts n = (NodeWithPorts)o;
         return n.getID() == getID() && n.getType() == getType();
+    }
+    
+    private boolean isInTopologyBeingDrawn = false;
+    public void setInTopologyBeingDrawn(boolean b) {
+        isInTopologyBeingDrawn = b;
     }
 }

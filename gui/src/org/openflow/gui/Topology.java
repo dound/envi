@@ -349,4 +349,12 @@ public class Topology {
             for(Flow f : flows)
                 manager.removeDrawable(f);
     }
+    
+    /** mark all nodes as not in the current topology being drawn */
+    public static void flagAllNodesAsInAnotherTopology() {
+        synchronized(globalNodesWriterLock) {
+            for(NodeRefTrack r : globalNodes.values())
+                r.obj.setInTopologyBeingDrawn(false);
+        }
+    }
 }

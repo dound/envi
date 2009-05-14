@@ -27,7 +27,7 @@ public final class FlowVisorGUI {
         FVMultipleConnectionAndTopologyHandler mch = new FVMultipleConnectionAndTopologyHandler();
         
         // create a manager to handle drawing the topology info received by the connection
-        FVLayoutManager gm = new FVLayoutManager(mch, servers.size());
+        FVLayoutManager gm = new FVLayoutManager(mch);
         
         // layout the nodes with the spring algorithm by default
         gm.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(gm.getGraph()));

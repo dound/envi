@@ -1,7 +1,6 @@
 package org.openflow.gui.fv;
 
 import org.openflow.gui.ConnectionHandler;
-import org.openflow.gui.Topology;
 
 /**
  * The FlowVisor GUI individual connection handler.  Just a thin wrapper at the
@@ -18,7 +17,8 @@ public class FVConnectionHandler extends ConnectionHandler {
      * @param port    the port the back-end is listening on
      */
     public FVConnectionHandler(FVLayoutManager manager, String server, Short port) {
-        super(new Topology(manager), server, port, true, true);
+        super(new FVTopology(manager), server, port, true, true);
+        manager.addDisplaySlice((FVTopology)getTopology());
     }
     
     /** 

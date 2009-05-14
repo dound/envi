@@ -1,10 +1,14 @@
 package org.openflow.gui.fv;
 
 import java.awt.Graphics2D;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
+import org.openflow.gui.drawables.Flow;
+import org.openflow.gui.drawables.NodeWithPorts;
 import org.pzgui.Drawable;
+import org.pzgui.DrawableFilter;
 import org.pzgui.PZWindow;
+import org.pzgui.PZWindowEventListener;
 import org.pzgui.layout.Layoutable;
 import org.pzgui.layout.PZLayoutManager;
 
@@ -18,7 +22,7 @@ public class FVLayoutManager extends PZLayoutManager {
     private final FVMultipleConnectionAndTopologyHandler mch;
     
     /** the slices being displayed */
-    private final LinkedList<DisplaySlice> displaySlices = new LinkedList<DisplaySlice>();
+    private final ArrayList<DisplaySlice> displaySlices = new ArrayList<DisplaySlice>();
     
     /**
      * Construct the FlowVisor GUI layout manager.
@@ -35,6 +39,28 @@ public class FVLayoutManager extends PZLayoutManager {
         DisplaySlice ds = new DisplaySlice();
         ds.addTopology(topology);
         displaySlices.add(ds);
+    }
+    
+    /**
+     * Augments the superclass implementation by replacing the default event
+     * listener with one which properly handles dragging nodes in slices.
+     */
+    public void attachWindow(final PZWindow w, boolean addDefaultEventListener) {
+        super.attachWindow(w, false);
+        
+        if(addDefaultEventListener) {
+            w.addEventListener(new PZWindowEventListener() {
+                public void dragNode(Drawable selNode, int x, int y) {
+                    // take into account slice offsets
+                    if(sliceDrawableSelectedIn != null) {
+                        x -= sliceDrawableSelectedIn.getXOffset();
+                        y -= sliceDrawableSelectedIn.getYOffset();
+                    }
+                    
+                    super.dragNode(selNode, x, y);
+                }
+            });
+        }
     }
     
     /** Augment the superclass implementation by drawing the slice planes */
@@ -108,6 +134,41 @@ public class FVLayoutManager extends PZLayoutManager {
         
         return ret;
     }
+    
+    /**
+     * Augments the collision detection algorithm to work with slices.
+     */
+    public Drawable selectFrom(int x, int y, DrawableFilter filter) {
+        for(int i=0; i<displaySlices.size(); i++) {
+            DisplaySlice ds = displaySlices.get(i);
+            Drawable d = super.selectFrom(x-ds.getXOffset(), y-ds.getYOffset(), filter);
+            if(d != null) {
+                // make sure the drawable we got is actually being shown in this plane
+                if(d instanceof NodeWithPorts) {
+                    if(!ds.hasNode(((NodeWithPorts)d).getID()))
+                        continue;
+                }
+                else if(d instanceof Flow) {
+                    Flow f = (Flow)d;
+                    if(f.getPath().length==0 || !ds.hasNode(f.getPath()[0].node.getID()))
+                        continue;
+                }
+                else if(i != 0) {
+                    // for Drawables which do not appear in planes, only select 
+                    // them if the yOffset is 0 (since they are not translated)
+                    continue;
+                }
+                
+                sliceDrawableSelectedIn = ds; 
+                return d;
+            }
+        }
+        
+        return null;
+    }
+    
+    /** the slice in which the currently selected Drawable is in, if any */
+    private DisplaySlice sliceDrawableSelectedIn = null;
     
     /**
      * Augments the superclass implementation so that it computes layout 

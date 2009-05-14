@@ -719,6 +719,8 @@ class _Test():
                 self.test_bicast = False
                 print >> sys.stderr, 'warning: not enough nodes for the bicast test'
 
+        self.test_flow = (self.num_nodes >= 3)
+
         # create some simple data structures for basic authentication support
         self.salt_id_on = 1
         self.salt_db = {}
@@ -747,11 +749,13 @@ class _Test():
 
                 self.server.send(NodesAdd(nodes))
                 self.server.send(LinksAdd(links))
-                hops = [FlowHop(0, nodes[i+1], 1) for i in range(2)]
-                flow_type = 3
-                flow_id = 44
-                f = Flow(flow_type, flow_id, nodes[0], 0, nodes[3], 1, hops)
-                flows = [f]
+
+                if self.test_flow:
+                    hops = [FlowHop(0, nodes[i+1], 1) for i in range(2)]
+                    flow_type = 3
+                    flow_id = 44
+                    f = Flow(flow_type, flow_id, nodes[0], 0, nodes[3], 1, hops)
+                    flows = [f]
 
                 # add another flow which simulates bicast of the original flow
                 if self.test_bicast:
@@ -762,7 +766,8 @@ class _Test():
                     f = Flow(flow_type, flow_id, nodes[0], 0, nodes[3], 1, hops)
                     flows.append(f)
 
-                self.server.send(FlowsAdd(flows))
+                if self.test_flow:
+                    self.server.send(FlowsAdd(flows))
             elif ltm.get_type() == AuthReply.get_type():
                 # get the salt associated with this transaction
                 if not self.salt_db.has_key(ltm.xid):

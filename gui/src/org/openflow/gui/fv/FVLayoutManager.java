@@ -155,4 +155,13 @@ public class FVLayoutManager extends PZLayoutManager {
         else
             d.drawObject(gfx);
     }
+
+    /**
+     * Augments the parent so that it computes layout positions based on slice
+     * size instead of window size.
+     */
+    public void setLayoutSizeBasedOnVisibleArea() {
+        super.setLayoutSizeBasedOnVisibleArea();
+        this.setLayoutSize(this.getLayoutWidth(), this.getLayoutHeight()/numSlices);
+    }
 }

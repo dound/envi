@@ -13,6 +13,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 
+import org.openflow.gui.Topology;
 import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.pzgui.Drawable;
@@ -147,10 +148,34 @@ public class FVLayoutManager extends PZLayoutManager {
         
         Layoutable l = (Layoutable)d;
         for(DisplaySlice ds : displaySlices) {
+            // make sure we don't draw links to nodes not in our slice
+            flagBySlice(ds);
+            
             if(ds.isVisible() && ds.hasNode(l.getID())) {
                 ds.apply(gfx, d);
                 draw(gfx, d, before);
                 ds.unapply(gfx, d);
+            }
+        }
+    }
+    
+    /**
+     * Updates the flag on every NodeWithPorts object to distinguish between
+     * whether or not it is in the ds slice.
+     */
+    private void flagBySlice(DisplaySlice ds) {
+        // mark all nodes as NOT being in this slice
+        Topology.flagAllNodesAsInAnotherTopology();
+        
+        // explicitly mark nodes which are in this slice
+        for(int i=0; i<mch.getNumTopologies(); i++) {
+            FVTopology t = (FVTopology)mch.getTopology(i);
+            if(ds.hasTopology(t)) {
+                for(Long id : t.getNodeIDs()) {
+                    NodeWithPorts n = t.getNode(id);
+                    if(n != null)
+                        n.setInTopologyBeingDrawn(true);
+                }
             }
         }
     }

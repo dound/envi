@@ -224,9 +224,20 @@ public class PZWindowEventListener implements ComponentListener,
             }
         }
         else {
-            // if a node is selected, handle dragging it
-            selNode.drag(x, y);
+            dragNode(selNode, x, y);
         }
+    }
+    
+    /**
+     * Called when a node has been dragged.
+     * 
+     * @param selNode  the node being dragged
+     * @param x        current x coordinate of the drag
+     * @param y        current y coordinate of the drag
+     */
+    public void dragNode(Drawable selNode, int x, int y) {
+        // if a node is selected, handle dragging it
+        selNode.drag(x, y);
     }
 
     /** Tells the manager where the mouse is now. */

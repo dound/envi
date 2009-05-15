@@ -77,10 +77,10 @@ public class SocketConnection implements DataInput, DataOutput {
     public static String readString(DataInput in, int bytesToRead) throws IOException {
         // read the bytes which make up the string
         byte[] buf = new byte[bytesToRead];
-        int len = 0;
+        int len = bytesToRead;
         for(int i=0; i<bytesToRead; i++) {
             buf[i] = in.readByte();
-            if(len==0 && buf[i]==0)
+            if(len==bytesToRead && buf[i]==0)
                 len = i;
         }
         

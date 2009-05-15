@@ -165,10 +165,10 @@ public enum OFGMessageType {
             case LINKS_REQUEST:
             case FLOWS_REQUEST:
             case STAT_REQUEST:
-                throw new IOException("Received unexpected message type: " + t.toString());
+                throw new IOException("Received unexpected message type: " + t.toString() + " (len=" + len + "B)");
                 
             default:
-                throw new IOException("Unhandled type received: " + t.toString());
+                throw new IOException("Unhandled type received: " + t.toString() + " (len=" + len + "B)");
         }
     }
 }

@@ -306,13 +306,13 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             NodeWithPorts dst = topology.getNode(x.dstNode.id);
             if(dst == null) {
                 logNodeMissing("LinkAdd", "dst", x.dstNode.id);
-                return;
+                continue;
             }
             
             NodeWithPorts src = topology.getNode(x.srcNode.id);
             if(src == null) {
                 logNodeMissing("LinkAdd", "src", x.srcNode.id);
-                return;
+                continue;
             }
             
             try {

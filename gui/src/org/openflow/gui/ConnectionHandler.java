@@ -93,7 +93,6 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     public void connectionStateChange() {
         if(!connection.isConnected()) {
             topology.removeAllNodes(connection);
-            System.exit(1);
         }
         else {
             // ask the backend for a list of switches and links

@@ -16,7 +16,9 @@ import org.openflow.gui.net.protocol.FlowsAdd;
 import org.openflow.gui.net.protocol.FlowsDel;
 import org.openflow.gui.net.protocol.LinksAdd;
 import org.openflow.gui.net.protocol.LinksDel;
+import org.openflow.gui.net.protocol.NodeNumUsers;
 import org.openflow.gui.net.protocol.NodeType;
+import org.openflow.gui.net.protocol.NodeUtilization;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.OFGMessageType;
 import org.openflow.gui.net.protocol.Request;
@@ -168,6 +170,14 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             
         case STAT_REPLY:
             processStatReply((StatsHeader)msg);
+            break;
+            
+        case NODE_UTILIZATION:
+            processNodeUtil((NodeUtilization)msg);
+            break;
+            
+        case NODE_USER_COUNT:
+            processNodeUserCount((NodeNumUsers)msg);
             break;
             
         case AUTH_REPLY:
@@ -441,6 +451,16 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         }
         else
             System.err.println("Warning: received switch description for unknown switch " + DPIDUtil.toString(msg.dpid));
+    }
+    
+    protected void processNodeUserCount(NodeNumUsers msg) {
+        NodeWithPorts n = topology.getNode(msg.node.id);
+        n.setNumUsers(msg.num_users);
+    }
+
+    protected void processNodeUtil(NodeUtilization msg) {
+        NodeWithPorts n = topology.getNode(msg.node.id);
+        n.setUtilization(msg.utilization);
     }
     
 

@@ -168,4 +168,30 @@ public abstract class NodeWithPorts extends Node {
         NodeWithPorts n = (NodeWithPorts)o;
         return n.getID() == getID() && n.getType() == getType();
     }
+
+    /** number of users using this node */
+    private int num_users = 0;
+    
+    /** gets the number of users using this node */
+    public int getNumUsers() {
+        return num_users;
+    }
+    
+    /** sets the number of users using this node */
+    public void setNumUsers(int num_users) {
+        this.num_users = num_users;
+    }
+
+    /** utilization of this node */
+    float utilization = 0.0f;
+
+    /** gets the utilization of this node */
+    public float getUtilization() {
+        return utilization;
+    }
+    
+    /** sets the utilization of this node */
+    public void setUtilization(float utilization) {
+        this.utilization = utilization;
+    }
 }

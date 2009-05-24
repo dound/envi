@@ -76,6 +76,12 @@ public enum OFGMessageType {
      */
     STAT_REPLY((byte)0x21),
 
+    /** how utilized a node is */
+    NODE_UTILIZATION((byte)0x30),
+    
+    /** how many users are on a node */
+    NODE_USER_COUNT((byte)0x31),
+    
     ;
 
     /** the special value used to identify messages of this type */
@@ -153,6 +159,12 @@ public enum OFGMessageType {
             case STAT_REPLY:
                 return StatsType.decode(len, t, xid, in);
 
+            case NODE_UTILIZATION:
+                return new NodeUtilization(len, xid, in);
+                
+            case NODE_USER_COUNT:
+                return new NodeNumUsers(len, xid, in);
+                
             case ECHO_REQUEST:
             case ECHO_REPLY:
                 return new OFGMessage(t, xid);

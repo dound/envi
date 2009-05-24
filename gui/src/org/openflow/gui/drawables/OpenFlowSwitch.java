@@ -70,7 +70,26 @@ public class OpenFlowSwitch extends NodeWithPorts {
             if(isStringSet(serial_num))
                 gfx.drawString(serial_num, x, y);
         }
+        else {
+            // draw # of users if there are any
+            gfx.setFont(FONT_NUM_USERS);
+            int num_users = getNumUsers();
+            if(num_users > 0)
+                org.pzgui.StringDrawer.drawCenteredString(Integer.toString(num_users), gfx, getX(), getY() + gfx.getFontMetrics().getHeight()/2-5);
+            
+            gfx.setColor(Link.getUsageColor(getUtilization()));
+            gfx.setStroke(org.pzgui.Constants.STROKE_THICK);
+            gfx.translate(x, y);
+            gfx.draw(DEFAULT_SHAPE);
+            gfx.translate(-x, -y);
+            gfx.setFont(org.pzgui.Constants.FONT_DEFAULT);
+            gfx.setPaint(org.pzgui.Constants.PAINT_DEFAULT);
+            gfx.setStroke(org.pzgui.Constants.STROKE_DEFAULT);
+        }
     }
+    
+    /** font to display the user count in */
+    public static final java.awt.Font FONT_NUM_USERS = new java.awt.Font("Tahoma", java.awt.Font.BOLD, 24);
     
  
     // --------------------- ID --------------------- //

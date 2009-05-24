@@ -700,6 +700,64 @@ class FlowsRequest(Request):
         return 'REQUEST for Flows: ' + Request.__str__(self)
 OFG_MESSAGES.append(FlowsRequest)
 
+class NodeUtilization(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0x30
+
+    def __init__(self, node, util, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.node = node
+        self.util = float(util)
+
+    def length(self):
+        return OFGMessage.SIZE + Node.SIZE + 4
+
+    def pack(self):
+        return OFGMessage.pack(self) + self.node.pack() + struct.pack('> f', self.util)
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        node = Node.unpack(body[:Node.SIZE])
+        body = body[Node.SIZE:]
+        util = struct.unpack('> f', body)[0]
+        return NodeUtilization(node, util, xid)
+
+    def __str__(self):
+        return 'NODE_UTILIZATION: ' + OFGMessage.__str__(self) + ' ' + str(self.node) + '=%f' % self.util
+OFG_MESSAGES.append(NodeUtilization)
+
+class NodeNumUsers(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0x31
+
+    def __init__(self, node, num_users, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.node = node
+        self.num_users = int(num_users)
+
+    def length(self):
+        return OFGMessage.SIZE + Node.SIZE + 4
+
+    def pack(self):
+        return OFGMessage.pack(self) + self.node.pack() + struct.pack('> I', self.num_users)
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        node = Node.unpack(body[:Node.SIZE])
+        body = body[Node.SIZE:]
+        num_users = struct.unpack('> I', body)[0]
+        return NodeNumUsers(node, num_users, xid)
+
+    def __str__(self):
+        return 'NODE_NUM_USERS: ' + OFGMessage.__str__(self) + ' ' + str(self.node) + '=%u' % self.num_users
+OFG_MESSAGES.append(NodeNumUsers)
+
 OFG_PROTOCOL = LTProtocol(OFG_MESSAGES, 'H', 'B')
 
 def create_ofg_server(port, recv_callback):
@@ -796,6 +854,9 @@ class _Test():
 
                 if self.test_flow:
                     self.server.send(FlowsAdd(flows))
+
+                self.server.send(NodeUtilization(Node(Node.TYPE_OPENFLOW_SWITCH, 1), 0.9))
+                self.server.send(NodeNumUsers(Node(Node.TYPE_OPENFLOW_SWITCH, 1), 5))
             elif ltm.get_type() == AuthReply.get_type():
                 # get the salt associated with this transaction
                 if not self.salt_db.has_key(ltm.xid):

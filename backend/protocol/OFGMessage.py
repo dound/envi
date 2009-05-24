@@ -58,10 +58,34 @@ class Disconnect(OFGMessage):
         return 'DISCONNECT: ' + OFGMessage.__str__(self)
 OFG_MESSAGES.append(Disconnect)
 
-class AuthRequest(OFGMessage):
+class EchoRequest(OFGMessage):
     @staticmethod
     def get_type():
         return 0x01
+
+    def __init__(self, xid=0):
+        OFGMessage.__init__(self, xid)
+
+    def __str__(self):
+        return 'ECHO_REQUEST: ' + OFGMessage.__str__(self)
+OFG_MESSAGES.append(EchoRequest)
+
+class EchoReply(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0x02
+
+    def __init__(self, xid=0):
+        OFGMessage.__init__(self, xid)
+
+    def __str__(self):
+        return 'ECHO_REPLY: ' + OFGMessage.__str__(self)
+OFG_MESSAGES.append(EchoReply)
+
+class AuthRequest(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0x03
 
     def __init__(self, salt, xid):
         OFGMessage.__init__(self, xid)
@@ -86,7 +110,7 @@ OFG_MESSAGES.append(AuthRequest)
 class AuthReply(OFGMessage):
     @staticmethod
     def get_type():
-        return 0x02
+        return 0x04
 
     def __init__(self, username, salted_sha1_of_pw, xid=0):
         OFGMessage.__init__(self, xid)
@@ -114,7 +138,7 @@ OFG_MESSAGES.append(AuthReply)
 class AuthStatus(OFGMessage):
     @staticmethod
     def get_type():
-        return 0x03
+        return 0x05
 
     def __init__(self, auth_ok, msg, xid=0):
         OFGMessage.__init__(self, xid)
@@ -136,30 +160,6 @@ class AuthStatus(OFGMessage):
     def __str__(self):
         return 'AUTH_STATUS: ' + OFGMessage.__str__(self) + ' auth_ok=%s msg=%s' % (str(self.auth_ok), self.msg)
 OFG_MESSAGES.append(AuthStatus)
-
-class EchoRequest(OFGMessage):
-    @staticmethod
-    def get_type():
-        return 0x08
-
-    def __init__(self, xid=0):
-        OFGMessage.__init__(self, xid)
-
-    def __str__(self):
-        return 'ECHO_REQUEST: ' + OFGMessage.__str__(self)
-OFG_MESSAGES.append(EchoRequest)
-
-class EchoReply(OFGMessage):
-    @staticmethod
-    def get_type():
-        return 0x09
-
-    def __init__(self, xid=0):
-        OFGMessage.__init__(self, xid)
-
-    def __str__(self):
-        return 'ECHO_REPLY: ' + OFGMessage.__str__(self)
-OFG_MESSAGES.append(EchoReply)
 
 class PollStart(OFGMessage):
     @staticmethod

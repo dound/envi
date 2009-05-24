@@ -8,12 +8,12 @@ import java.io.IOException;
  * 
  * @author David Underhill
  */
-public class LinksAdd extends LinksList {
-    public LinksAdd(final Link[] links) {
+public class LinksAdd extends LinkSpecsList {
+    public LinksAdd(final LinkSpec[] links) {
         this(0, links);
     }
     
-    public LinksAdd(int xid, final Link[] links) {
+    public LinksAdd(int xid, final LinkSpec[] links) {
         super(OFGMessageType.LINKS_ADD, xid, links);
     }
     

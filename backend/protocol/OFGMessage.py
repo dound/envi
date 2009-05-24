@@ -364,6 +364,26 @@ class Link:
                                          Link.type_to_str(self.link_type),
                                          str(self.dst_node), self.dst_port)
 
+class LinkSpec(Link):
+    SIZE = Link.SIZE + 8
+
+    def __init__(self, link_type, src_node, src_port, dst_node, dst_port, capacity_bps):
+        Link.__init__(self, link_type, src_node, src_port, dst_node, dst_port)
+        self.capacity_bps = float(capacity_bps)
+
+    def pack(self):
+        return Link.pack(self) + struct.pack('> d', self.capacity_bps)
+
+    @staticmethod
+    def unpack(buf):
+        link = Link.unpack(buf)
+        buf = buf[Link.SIZE:]
+        capacity_bps = struct.unpack('> d', buf)[0]
+        return LinkSpec(link.link_type, link.src_node, link.src_port, link.dst_node, link.dst_port, capacity_bps)
+
+    def __str__(self):
+        return Link.__str__(self) + ':' + str(int(self.capacity_bps)/(1000*1000)) + 'Mbps'
+
 class LinksList(OFGMessage):
     def __init__(self, links, xid=0):
         OFGMessage.__init__(self, xid)
@@ -393,20 +413,27 @@ class LinksList(OFGMessage):
     def __str__(self):
         return OFGMessage.__str__(self) + ' links=%s' % str(self.links_to_string())
 
-class LinksAdd(LinksList):
+class LinkSpecsList(LinksList):
+    def __init__(self, links, xid=0):
+        LinksList.__init__(self, links, xid)
+
+    def length(self):
+        return OFGMessage.SIZE + len(self.links) * LinkSpec.SIZE
+
+class LinksAdd(LinkSpecsList):
     @staticmethod
     def get_type():
         return 0x14
 
     def __init__(self, links, xid=0):
-        LinksList.__init__(self, links, xid)
+        LinkSpecsList.__init__(self, links, xid)
 
     @staticmethod
     def unpack(body):
-        return LinksList.unpack_child(LinksAdd, body)
+        return LinkSpecsList.unpack_child(LinksAdd, body)
 
     def __str__(self):
-        return 'LINKS_ADD: ' + LinksList.__str__(self)
+        return 'LINKS_ADD: ' + LinkSpecsList.__str__(self)
 OFG_MESSAGES.append(LinksAdd)
 
 class LinksDel(LinksList):
@@ -736,16 +763,17 @@ class _Test():
             print 'recv: %s' % str(ltm)
             if ltm.get_type() == NodesRequest.get_type():
                 nodes = [Node(Node.TYPE_OPENFLOW_SWITCH, i+1) for i in range(self.num_nodes)]
-                links = [Link(i % 2 + 1, nodes[i], 0, nodes[i+1], 1) for i in range(self.num_nodes-1)]
+                c = 1000*1000*1000
+                links = [LinkSpec(i % 2 + 1, nodes[i], 0, nodes[i+1], 1, c) for i in range(self.num_nodes-1)]
 
                 # add a second path from 2 to 3 via two additional nodes
                 if self.test_bicast:
                     nodes.append(Node(Node.TYPE_OPENFLOW_SWITCH, 10000))
                     nodes.append(Node(Node.TYPE_OPENFLOW_SWITCH, 10001))
                     n = self.num_nodes
-                    links.append(Link(0, nodes[1], 2, nodes[n], 3))  # 2 to 10000
-                    links.append(Link(0, nodes[n], 2, nodes[n+1], 3))  # 10000 to 10001
-                    links.append(Link(0, nodes[n+1], 2, nodes[2], 3))  # 10001 to 3
+                    links.append(LinkSpec(0, nodes[1], 2, nodes[n], 3, c))  # 2 to 10000
+                    links.append(LinkSpec(0, nodes[n], 2, nodes[n+1], 3, c))  # 10000 to 10001
+                    links.append(LinkSpec(0, nodes[n+1], 2, nodes[2], 3, c))  # 10001 to 3
 
                 self.server.send(NodesAdd(nodes))
                 self.server.send(LinksAdd(links))

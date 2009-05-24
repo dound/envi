@@ -302,7 +302,7 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     }
     
     private void processLinksAdd(LinksAdd msg) {
-        for(org.openflow.gui.net.protocol.Link x : msg.links) {
+        for(org.openflow.gui.net.protocol.LinkSpec x : msg.links) {
             NodeWithPorts dst = topology.getNode(x.dstNode.id);
             if(dst == null) {
                 logNodeMissing("LinkAdd", "dst", x.dstNode.id);
@@ -317,6 +317,7 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             
             try {
                 Link l = topology.addLink(x.linkType, dst, x.dstPort, src, x.srcPort);
+                l.setMaximumDataRate(x.capacity_bps);
                 if(l == null)
                     continue;
                 

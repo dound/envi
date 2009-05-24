@@ -9,7 +9,7 @@ package org.openflow.gui;
  */
 public final class Options {
     /** default server IP, if any */
-    public static final String DEFAULT_SERVER_IP = "127.0.0.1";
+    public static final String DEFAULT_SERVER_IP = "openflowvisor.stanford.edu";
     
     /** default port to connect to the server on */
     public static final short DEFAULT_PORT = 2503;
@@ -27,7 +27,7 @@ public final class Options {
      * Whether links between nodes should be represented using one undirected
      * or two directed links.
      */
-    public static final boolean USE_DIRECTED_LINKS = true;
+    public static final boolean USE_DIRECTED_LINKS = false;
     
     /** whether to use a light or dark color scheme */
     public static final boolean USE_LIGHT_COLOR_SCHEME = true;

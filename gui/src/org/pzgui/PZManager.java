@@ -106,13 +106,20 @@ public class PZManager extends Thread {
     private void terminateIfNoWindowsLeft() {
         synchronized(windows) {
             if(windows.size()==0) {
-                for(PZClosing x : closingListeners)
-                    x.pzClosing(this);
-
-                System.out.println("Goodbye");
-                System.exit(0);
+                exit(0);
             }
         }
+    }
+    
+    /** 
+     * Terminates the application.
+     */
+    public void exit(int code) {
+        for(PZClosing x : closingListeners)
+            x.pzClosing(this);
+
+        System.out.println("Goodbye");
+        System.exit(code);
     }
     
     /**

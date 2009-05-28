@@ -36,6 +36,8 @@ import org.openflow.protocol.SwitchDescriptionStats;
 import org.openflow.util.FlowHop;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
+import org.pzgui.PZClosing;
+import org.pzgui.PZManager;
 
 /**
  * Processes messages from a connection and updates the associated topology 
@@ -47,7 +49,8 @@ import org.pzgui.DialogHelper;
  * 
  * @author David Underhill
  */
-public class ConnectionHandler implements MessageProcessor<OFGMessage> {
+public class ConnectionHandler implements MessageProcessor<OFGMessage>,
+                                          PZClosing {
     /** the connection being managed */
     private final BackendConnection<OFGMessage> connection;
     
@@ -498,5 +501,17 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         RequestType rt = b ? RequestType.SUBSCRIBE : RequestType.UNSUBSCRIBE;
         connection.sendMessage(new RequestLinks(rt));
         subscribeToLinkChanges = b;
+    }
+
+    /**
+     * Sends a goodbye message to the backend and then shutsdown the connection.
+     */
+    public void pzClosing(PZManager manager) {
+        try {
+            connection.sendMessage(new OFGMessage(OFGMessageType.DISCONNECT, 0));
+            connection.shutdown();
+        } catch (IOException e) {
+            System.err.println("Unable to send DISCONNECT message: " + e.getMessage());
+        }
     }
 }

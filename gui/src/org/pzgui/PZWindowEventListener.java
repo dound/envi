@@ -137,7 +137,7 @@ public class PZWindowEventListener implements ComponentListener,
         }
         else if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             System.out.println("Goodbye");
-            System.exit(0);
+            manager.exit(0);
         }
         else if(e.getKeyCode() == KeyEvent.VK_PAGE_UP) {
             window.screenshot();

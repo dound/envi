@@ -52,6 +52,9 @@ public class OpenFlowSwitch extends NodeWithPorts {
             
         // display switch description stats on mouse over
         if(this.isHovered() || this.isSelected()) {
+            gfx.drawString(DPIDUtil.dpidToHex(getID()), x, y);
+            y += gfx.getFontMetrics().getHeight();
+
             if(isStringSet(manufacturer)) {
                 gfx.drawString(manufacturer, x, y);
                 y += gfx.getFontMetrics().getHeight();

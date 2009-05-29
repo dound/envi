@@ -47,7 +47,7 @@ import org.pzgui.math.Vector2i;
  */
 public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** how to color the link when it is negatively utilized (probably a special signal or error) */
-    public static Color USAGE_COLOR_NEG = Color.BLUE;
+    public static Color USAGE_COLOR_NEG = Color.BLACK;
     
     /** how to color the link when it is completely unutilized */
     public static Color USAGE_COLOR_0 = Color.BLACK;
@@ -764,8 +764,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      */
     private static Color computeUsageColor(float usage) {
         if(usage < 0.0f)
-            return Color.BLUE;
+            return Link.USAGE_COLOR_NEG;
         else {
+            if(usage==0.0f)
+                return Link.USAGE_COLOR_0;
+            
             float mid = 1.5f / 3.0f;
             
             if(usage < mid) {

@@ -36,6 +36,8 @@ import org.openflow.protocol.SwitchDescriptionStats;
 import org.openflow.util.FlowHop;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
+import org.pzgui.PZClosing;
+import org.pzgui.PZManager;
 
 /**
  * Processes messages from a connection and updates the associated topology 
@@ -47,7 +49,8 @@ import org.pzgui.DialogHelper;
  * 
  * @author David Underhill
  */
-public class ConnectionHandler implements MessageProcessor<OFGMessage> {
+public class ConnectionHandler implements MessageProcessor<OFGMessage>,
+                                          PZClosing {
     /** the connection being managed */
     private final BackendConnection<OFGMessage> connection;
     
@@ -93,7 +96,6 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     public void connectionStateChange() {
         if(!connection.isConnected()) {
             topology.removeAllNodes(connection);
-            System.exit(1);
         }
         else {
             // ask the backend for a list of switches and links
@@ -292,7 +294,7 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         if(n.nodeType == NodeType.HOST)
             return new Host(n.id);
         else
-            return new OpenFlowSwitch(n.id);
+            return new OpenFlowSwitch(n.id, n.nodeType);
     }
 
     /** remove nodes from the topology */
@@ -303,21 +305,22 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     }
     
     private void processLinksAdd(LinksAdd msg) {
-        for(org.openflow.gui.net.protocol.Link x : msg.links) {
+        for(org.openflow.gui.net.protocol.LinkSpec x : msg.links) {
             NodeWithPorts dst = topology.getNode(x.dstNode.id);
             if(dst == null) {
                 logNodeMissing("LinkAdd", "dst", x.dstNode.id);
-                return;
+                continue;
             }
             
             NodeWithPorts src = topology.getNode(x.srcNode.id);
             if(src == null) {
                 logNodeMissing("LinkAdd", "src", x.srcNode.id);
-                return;
+                continue;
             }
             
             try {
                 Link l = topology.addLink(x.linkType, dst, x.dstPort, src, x.srcPort);
+                l.setMaximumDataRate(x.capacity_bps);
                 if(l == null)
                     continue;
                 
@@ -498,5 +501,17 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         RequestType rt = b ? RequestType.SUBSCRIBE : RequestType.UNSUBSCRIBE;
         connection.sendMessage(new RequestLinks(rt));
         subscribeToLinkChanges = b;
+    }
+
+    /**
+     * Sends a goodbye message to the backend and then shutsdown the connection.
+     */
+    public void pzClosing(PZManager manager) {
+        try {
+            connection.sendMessage(new OFGMessage(OFGMessageType.DISCONNECT, 0));
+            connection.shutdown();
+        } catch (IOException e) {
+            System.err.println("Unable to send DISCONNECT message: " + e.getMessage());
+        }
     }
 }

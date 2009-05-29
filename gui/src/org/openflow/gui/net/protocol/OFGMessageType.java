@@ -15,20 +15,20 @@ public enum OFGMessageType {
     /** Disconnection message */
     DISCONNECT((byte)0x00),
 
-    /** Authentication request */
-    AUTH_REQUEST((byte)0x01),
-
-    /** Authentication reply */
-    AUTH_REPLY((byte)0x02),
-    
-    /** Information about whether a user has been authenticated */
-    AUTH_STATUS((byte)0x03),
-    
     /** request for an echo reply (keep-alive) */
-    ECHO_REQUEST((byte)0x08),
+    ECHO_REQUEST((byte)0x01),
     
     /** reply to an echo request (keep-alive) */
-    ECHO_REPLY((byte)0x09),
+    ECHO_REPLY((byte)0x02),
+    
+    /** Authentication request */
+    AUTH_REQUEST((byte)0x03),
+
+    /** Authentication reply */
+    AUTH_REPLY((byte)0x04),
+    
+    /** Information about whether a user has been authenticated */
+    AUTH_STATUS((byte)0x05),
     
     /** Tell the backend to start polling a message */
     POLL_START((byte)0x0E),
@@ -165,10 +165,10 @@ public enum OFGMessageType {
             case LINKS_REQUEST:
             case FLOWS_REQUEST:
             case STAT_REQUEST:
-                throw new IOException("Received unexpected message type: " + t.toString());
+                throw new IOException("Received unexpected message type: " + t.toString() + " (len=" + len + "B)");
                 
             default:
-                throw new IOException("Unhandled type received: " + t.toString());
+                throw new IOException("Unhandled type received: " + t.toString() + " (len=" + len + "B)");
         }
     }
 }

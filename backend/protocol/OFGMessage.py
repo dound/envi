@@ -369,16 +369,16 @@ class LinkSpec(Link):
 
     def __init__(self, link_type, src_node, src_port, dst_node, dst_port, capacity_bps):
         Link.__init__(self, link_type, src_node, src_port, dst_node, dst_port)
-        self.capacity_bps = float(capacity_bps)
+        self.capacity_bps = int(capacity_bps)
 
     def pack(self):
-        return Link.pack(self) + struct.pack('> d', self.capacity_bps)
+        return Link.pack(self) + struct.pack('> Q', self.capacity_bps)
 
     @staticmethod
     def unpack(buf):
         link = Link.unpack(buf)
         buf = buf[Link.SIZE:]
-        capacity_bps = struct.unpack('> d', buf)[0]
+        capacity_bps = struct.unpack('> Q', buf)[0]
         return LinkSpec(link.link_type, link.src_node, link.src_port, link.dst_node, link.dst_port, capacity_bps)
 
     def __str__(self):

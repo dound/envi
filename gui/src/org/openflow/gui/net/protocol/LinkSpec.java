@@ -12,16 +12,16 @@ import java.io.IOException;
 public class LinkSpec extends Link {
     public static final int SIZEOF = Link.SIZEOF + 8;
     
-    public final double capacity_bps;
+    public final long capacity_bps;
     
     public LinkSpec(DataInput in) throws IOException {
         super(in);
-        this.capacity_bps = in.readDouble();
+        this.capacity_bps = in.readLong();
     }
     
     public void write(DataOutput out) throws IOException {
         super.write(out);
-        out.writeDouble(capacity_bps);
+        out.writeLong(capacity_bps);
     }
     
     public String toString() {

@@ -272,6 +272,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     /** Draws the link */
     public void drawObject(Graphics2D gfx) {
+        if(this.isDrawn())
+            return;
+        else
+            this.setDrawn();
+        
         // draw nothing if there is no current draw color for the link
         if(curDrawColor == null)
             return;

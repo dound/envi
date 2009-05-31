@@ -30,7 +30,10 @@ public final class FlowVisorGUI {
         FVLayoutManager gm = new FVLayoutManager(mch);
         
         // layout the nodes with the spring algorithm by default
-        gm.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(gm.getGraph()));
+        edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge> sl;
+        sl = new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(gm.getGraph());
+        sl.setRepulsionRange(0); // don't repel
+        gm.setLayout(sl);
         
         // create the initial connection(s)
         for(Pair<String, Short> server : servers) {

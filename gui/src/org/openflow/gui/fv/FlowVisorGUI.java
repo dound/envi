@@ -33,6 +33,7 @@ public final class FlowVisorGUI {
         edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge> sl;
         sl = new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(gm.getGraph());
         sl.setRepulsionRange(0); // don't repel
+        sl.setForceMultiplier(0);
         gm.setLayout(sl);
         
         // create the initial connection(s)

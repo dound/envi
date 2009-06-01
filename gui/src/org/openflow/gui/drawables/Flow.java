@@ -2,6 +2,7 @@ package org.openflow.gui.drawables;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.Polygon;
 import java.util.LinkedList;
 import java.util.Vector;
@@ -100,7 +101,7 @@ public class Flow extends AbstractDrawable {
     public static final boolean ANIMATE = true;
     
     /** radius of circles which make up the flow */
-    private static final int POINT_SIZE = 20;
+    public static final int POINT_SIZE = 20;
     
     /** gap between points */
     private static final int GAP_BETWEEN_POINTS = POINT_SIZE;
@@ -115,7 +116,7 @@ public class Flow extends AbstractDrawable {
     private long lastRedraw = System.currentTimeMillis();
     
     /** color of the interior of the circles making up the flow */
-    private Color colorConn = Color.BLUE;
+    private Paint paintConn = Color.BLUE;
     
     /** color of the exterior of the circles making up the flow */
     private Color colorConnBorder = Color.BLACK;
@@ -281,7 +282,7 @@ public class Flow extends AbstractDrawable {
     private void drawCircle(Graphics2D gfx, double x, double y) {
         int size = getPointSize();
         
-        gfx.setPaint(colorConn);
+        gfx.setPaint(paintConn);
         gfx.fillOval((int)x, (int)y, size, size);
 
         gfx.setPaint(colorConnBorder);
@@ -293,9 +294,14 @@ public class Flow extends AbstractDrawable {
         return POINT_SIZE;
     }
     
-    /** Gets the color of this flow */
-    public Color getColor() {
-        return colorConn;
+    /** Gets the paint for this flow */
+    public Paint getPaint() {
+        return paintConn;
+    }
+    
+    /** Sets the paint for this flow */
+    public void setPaint(Paint p) {
+        paintConn = p;
     }
     
     

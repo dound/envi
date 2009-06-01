@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.JCheckBoxMenuItem;
@@ -15,6 +17,7 @@ import javax.swing.JSeparator;
 
 import org.openflow.gui.Topology;
 import org.openflow.gui.drawables.Flow;
+import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.pzgui.Drawable;
 import org.pzgui.DrawableFilter;
@@ -34,6 +37,9 @@ public class FVLayoutManager extends PZLayoutManager {
     
     /** the slices being displayed */
     private final CopyOnWriteArrayList<DisplaySlice> displaySlices = new CopyOnWriteArrayList<DisplaySlice>();
+    
+    /** track when links are drawn to ensure that they are drawn only once per slice */
+    private HashMap<DisplaySlice, HashSet<Link>> drawnLinksBySlice = new HashMap<DisplaySlice, HashSet<Link>>();
     
     /**
      * Construct the FlowVisor GUI layout manager.
@@ -116,6 +122,8 @@ public class FVLayoutManager extends PZLayoutManager {
         
         for(DisplaySlice ds : displaySlices)
             ds.draw(gfx);
+        
+        drawnLinksBySlice.clear();
     }
     
     /** 
@@ -149,7 +157,7 @@ public class FVLayoutManager extends PZLayoutManager {
         Layoutable l = (Layoutable)d;
         for(DisplaySlice ds : displaySlices) {
             // make sure we don't draw links to nodes not in our slice
-            flagBySlice(ds);
+            flagBySlice(ds, d, before);
             
             if(ds.isVisible() && ds.hasNode(l.getID())) {
                 ds.apply(gfx, d);
@@ -163,7 +171,7 @@ public class FVLayoutManager extends PZLayoutManager {
      * Updates the flag on every NodeWithPorts object to distinguish between
      * whether or not it is in the ds slice.
      */
-    private void flagBySlice(DisplaySlice ds) {
+    private void flagBySlice(DisplaySlice ds, Drawable d, boolean before) {
         // mark all nodes as NOT being in this slice
         Topology.flagAllNodesAsInAnotherTopology();
         
@@ -177,6 +185,36 @@ public class FVLayoutManager extends PZLayoutManager {
                         n.setInTopologyBeingDrawn(true);
                 }
             }
+        }
+        
+        // make sure only the appropriate links are drawn
+        if(before && d instanceof NodeWithPorts) {
+            // determine which links have already be drawn in this slice
+            HashSet<Link> linksDrawn = drawnLinksBySlice.get(ds);
+            if(linksDrawn == null) {
+                linksDrawn = new HashSet<Link>();
+                drawnLinksBySlice.put(ds, linksDrawn);
+            }
+            
+            // save a list of links which will have been drawn after this call
+            HashSet<Link> linksDrawnNew = new HashSet<Link>();
+            
+            NodeWithPorts n = (NodeWithPorts)d;
+            for(Link l : n.getLinks()) {
+                if(!l.getSource().isInTopologyBeingDrawn() || !l.getDestination().isInTopologyBeingDrawn())
+                    continue;
+                    
+                if(!linksDrawn.contains(l)) {
+                    linksDrawnNew.add(l);
+                    l.unsetDrawn();
+                }
+                else
+                    l.setDrawn();
+            }
+            
+            // update which links have been drawn
+            for(Link l : linksDrawnNew)
+                linksDrawn.add(l);
         }
     }
     

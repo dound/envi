@@ -746,7 +746,7 @@ class _Test():
                 self.test_bicast = False
                 print >> sys.stderr, 'warning: not enough nodes for the bicast test'
 
-        self.test_flow = (self.num_nodes >= 3)
+        self.test_flow = (self.num_nodes >= 4)
 
         # create some simple data structures for basic authentication support
         self.salt_id_on = 1

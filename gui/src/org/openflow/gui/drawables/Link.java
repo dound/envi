@@ -68,6 +68,12 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         }
     }
     
+    /** 
+     * Used to ensure new links are created sequentially to ensure link exists
+     * exceptions can be properly generated.
+     */
+    private static final Object ONE_AT_A_TIME = new Object();
+    
     /**
      * Constructs a new link between src and dst.
      * 
@@ -80,18 +86,20 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      * @throws LinkExistsException  thrown if the link already exists
      */
     public Link(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
-        // do not re-create existing links
-        if(src.getDirectedLinkTo(srcPort, dst, dstPort, true) != null)
-            throw new LinkExistsException("Link construction error: link already exists");
-        
-        this.type = linkType;
-        this.src = src;
-        this.dst = dst;
-        this.srcPort = srcPort;
-        this.dstPort = dstPort;
-        
-        src.addLink(this);
-        dst.addLink(this);
+        synchronized(ONE_AT_A_TIME) {
+            // do not re-create existing links
+            if(src.getDirectedLinkTo(srcPort, dst, dstPort, true) != null)
+                throw new LinkExistsException("Link construction error: link already exists");
+            
+            this.type = linkType;
+            this.src = src;
+            this.dst = dst;
+            this.srcPort = srcPort;
+            this.dstPort = dstPort;
+            
+            src.addLink(this);
+            dst.addLink(this);
+        }
     }
     
     
@@ -272,6 +280,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     /** Draws the link */
     public void drawObject(Graphics2D gfx) {
+        if(this.isDrawn())
+            return;
+        else
+            this.setDrawn();
+        
         // draw nothing if there is no current draw color for the link
         if(curDrawColor == null)
             return;

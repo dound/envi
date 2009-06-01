@@ -149,17 +149,22 @@ public class FVLayoutManager extends PZLayoutManager {
      *  @param before  if true, d.drawBeforeObject(gfx) is called, else d.drawObject(gfx)
      */
     private void drawWrap(Graphics2D gfx, Drawable d, boolean before) {
-        if(!(d instanceof Layoutable)) {
+        Long layoutableID = null;
+        Integer flowID = null;
+        if(d instanceof Layoutable)
+            layoutableID = ((Layoutable)d).getID();
+        else if(d instanceof Flow)
+            flowID = ((Flow)d).getID();
+        else {
             draw(gfx, d, before);
             return;
         }
         
-        Layoutable l = (Layoutable)d;
         for(DisplaySlice ds : displaySlices) {
             // make sure we don't draw links to nodes not in our slice
             flagBySlice(ds, d, before);
             
-            if(ds.isVisible() && ds.hasNode(l.getID())) {
+            if(ds.isVisible() && ((layoutableID!=null && ds.hasNode(layoutableID)) || (flowID!=null && ds.hasFlow(flowID)))) {
                 ds.apply(gfx, d);
                 draw(gfx, d, before);
                 ds.unapply(gfx, d);

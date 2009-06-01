@@ -147,6 +147,15 @@ public class DisplaySlice {
         return sliceWidth;
     }
     
+    /** whether this slice contains the specified flow */
+    public boolean hasFlow(int id) {
+        for(Topology t : topologies)
+            if(t.hasFlow(id))
+                return true;
+        
+        return false;
+    }
+    
     /** whether this slice contains the specified node */
     public boolean hasNode(long id) {
         for(Topology t : topologies)

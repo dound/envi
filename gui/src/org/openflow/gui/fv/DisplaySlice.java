@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.openflow.gui.Topology;
+import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.Node;
 import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.pzgui.Drawable;
@@ -186,7 +187,7 @@ public class DisplaySlice {
             Icon icon = n.getIcon();
             if(icon instanceof ShapeIcon) {
                 ShapeIcon si = (ShapeIcon)icon;
-                si.setFillColor(getFillPattern(n.getID()));
+                si.setFillColor(getFillPatternWrap(n.getID(), OpenFlowSwitch.DEFAULT_SIZE, fillPatterns));
                 
                 if(USE_FAKE_PERSPECTIVE) {
                     double scale = 1.0 - (1.0 - n.getY() / (double)sliceHeight) * FAKE_PERSPECTIVE_MAX_SHRINKAGE;
@@ -195,6 +196,10 @@ public class DisplaySlice {
                         si.setSize((int)(origSize.width*scale), (int)(origSize.height*scale));
                 }
             }
+        }
+        else if(d instanceof Flow) {
+            Flow f = (Flow)d;
+            f.setPaint(getFillPatternWrap(f.getID(), Flow.POINT_SIZE, flowFillPatterns));
         }
     }
 
@@ -269,13 +274,14 @@ public class DisplaySlice {
      * signals that the first topology's color is included, and so on.
      */
     private final HashMap<Integer, Paint> fillPatterns = new HashMap<Integer, Paint>();
+    private final HashMap<Integer, Paint> flowFillPatterns = new HashMap<Integer, Paint>();
     private final int[] topology_indices = new int[32];
     
     /** gets the fill pattern for the node associated with the specified ID */
-    private Paint getFillPattern(long id) {
+    private Paint getFillPatternWrap(long id, int sz, HashMap<Integer, Paint> cache) {
         int i = 0, j = 0, n = 0;
         for(FVTopology t : topologies) {
-            if(t.hasNode(id)) {
+            if((cache==fillPatterns && t.hasNode(id)) || (cache==flowFillPatterns && t.hasFlow((int)id))) {
                 n += 1;
                 topology_indices[i++] = j;
             }
@@ -283,22 +289,21 @@ public class DisplaySlice {
             j += 1;
         }
         
-        return getFillPattern(n);
+        return getFillPattern(n, sz, cache);
     }
     
     /** gets the fill pattern some set of topologies (uses a static array) */
-    private Paint getFillPattern(int n) {
+    private Paint getFillPattern(int n, int sz, HashMap<Integer, Paint> cache) {
         int bitmask = 0;
         for(int i=0; i<n; i++)
             bitmask += (1 << topology_indices[i]);
         
         // check to see if we already computed this value
-        Paint ret = fillPatterns.get(bitmask);
+        Paint ret = cache.get(bitmask);
         if(ret != null)
             return ret;
         
         // have to compute it now
-        int sz = OpenFlowSwitch.DEFAULT_SIZE;
         BufferedImage fill = new BufferedImage(sz, sz, BufferedImage.TYPE_INT_RGB);
         Graphics2D gfx = (Graphics2D)fill.getGraphics();
         double degreesPerTopo = 360.0 / n;
@@ -312,7 +317,7 @@ public class DisplaySlice {
         
         // memoize it
         TexturePaint tp = new TexturePaint(fill, new Rectangle2D.Double(0, 0, sz, sz));
-        fillPatterns.put(bitmask, tp);
+        cache.put(bitmask, tp);
         return tp;
     }
     

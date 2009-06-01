@@ -174,6 +174,9 @@ public abstract class NodeWithPorts extends Node {
     }
     
     private boolean isInTopologyBeingDrawn = false;
+    public boolean isInTopologyBeingDrawn() {
+        return isInTopologyBeingDrawn;
+    }
     public void setInTopologyBeingDrawn(boolean b) {
         isInTopologyBeingDrawn = b;
     }

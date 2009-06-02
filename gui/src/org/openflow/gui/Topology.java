@@ -341,10 +341,32 @@ public class Topology {
         }
         manager.addDrawable(newFlow);
     }
+    
+    /**
+     * Gets the set of flow(s) with the specified ID, if any such flow(s) exist
+     * in this topology.
+     * 
+     * @return the Flows with the requested ID, or null if no such flows exist
+     */
+    public Flow[] getFlow(Integer id) {
+        return flowsMap.get(id);
+    }
+    
+    /** Gets the set of flow IDs currently in the topology */
+    public Set<Integer> getFlowIDs() {
+        return flowsMap.keySet();
+    }
+
+    /**
+     * Gets whether this topology has a flow with the specified ID.
+     */
+    public boolean hasFlow(Integer id) {
+        return getFlow(id) != null;
+    }
 
     /** remove a flow from the topology */
     public void removeFlowByID(int id) {
-        Flow[] flows = flowsMap.get(id);
+        Flow[] flows = flowsMap.remove(id);
         if(flows != null)
             for(Flow f : flows)
                 manager.removeDrawable(f);

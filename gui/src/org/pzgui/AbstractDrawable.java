@@ -28,6 +28,10 @@ public abstract class AbstractDrawable implements Drawable {
         return drawn;
     }
 
+    public void setDrawn() {
+        drawn = true;
+    }
+    
     public void unsetDrawn() {
         drawn = false;
     }

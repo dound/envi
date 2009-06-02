@@ -366,7 +366,7 @@ public class Topology {
 
     /** remove a flow from the topology */
     public void removeFlowByID(int id) {
-        Flow[] flows = flowsMap.get(id);
+        Flow[] flows = flowsMap.remove(id);
         if(flows != null)
             for(Flow f : flows)
                 manager.removeDrawable(f);

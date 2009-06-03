@@ -2,6 +2,7 @@ package org.openflow.gui;
 
 import java.util.ArrayList;
 
+import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.openflow.util.Pair;
 import org.pzgui.DialogHelper;
 import org.pzgui.PZManager;
@@ -31,6 +32,9 @@ public final class OpenFlowGUI {
         
         // layout the nodes with the spring algorithm by default
         gm.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(gm.getGraph()));
+        
+        // leave a small 10-pixel border around the edge of the screen
+        gm.setBorderSize(OpenFlowSwitch.DEFAULT_SIZE / 2 + 10);
         
         // create a manager to handle the connection itself
         ConnectionHandler cm = makeDefaultConnection(gm, server, port, true, true);

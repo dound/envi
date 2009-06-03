@@ -32,6 +32,15 @@ public abstract class AbstractLayoutable extends AbstractDrawable
         setYPos(y);
     }
     
+    public void setPos(int x, int y, boolean notePositionChanged) {
+        if(notePositionChanged || positionChanged)
+            setPos(x, y);
+        else {
+            setPos(x, y);
+            positionChanged = false;
+        }
+    }
+    
     public void setXPos( int x) {
         if(canPositionChange()) {
             if(this.x != x)

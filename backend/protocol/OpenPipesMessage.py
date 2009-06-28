@@ -221,17 +221,20 @@ class OPModulesList(OFGMessage):
         return OFGMessage.SIZE + module_size
 
     def pack(self):
-        return OFGMessage.pack(self) + ''.join([m.pack() for m in self.modules])
+        return OFGMessage.pack(self) + struct.pack('> H', len(self.modules)) + \
+                ''.join([m.pack() for m in self.modules])
 
     @staticmethod
     def unpack(body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        num_modules = len(body) / OPModule.SIZE
+        num_modules = struct.unpack('> H', body[:2])[0]
+        body = body[2:]
         modules = []
         for _ in range(num_modules):
-            modules.append(OPModule.unpack(body[OPModule.SIZE:]))
-            body = body[:OPModule.SIZE]
+            module = OPModule.unpack(body)
+            modules.append(module)
+            body = body[module.length():]
         return OPModulesList(modules, xid)
 
     def __str__(self):

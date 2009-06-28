@@ -141,8 +141,8 @@ class OPNodesAdd(OPNodesList):
     def get_type():
         return 0xF2
 
-    def __init__(self, modules, xid=0):
-        OPNodesList.__init__(self, modules, xid)
+    def __init__(self, nodes, xid=0):
+        OPNodesList.__init__(self, nodes, xid)
 
     @staticmethod
     def unpack(body):
@@ -157,8 +157,8 @@ class OPNodesDel(OPNodesList):
     def get_type():
         return 0xF3
 
-    def __init__(self, dpids, xid=0):
-        OPNodesList.__init__(self, dpids, xid)
+    def __init__(self, nodes, xid=0):
+        OPNodesList.__init__(self, nodes, xid)
 
     @staticmethod
     def unpack(body):

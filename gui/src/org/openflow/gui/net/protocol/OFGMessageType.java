@@ -103,6 +103,12 @@ public enum OFGMessageType {
     /** Reply about a module's status */
     OP_MODULE_STATUS_REPLY((byte)0xF7),
     
+    /** A list of modules to add. */
+    OP_MODULE_INSTANCES_ADD((byte)0xF8),
+
+    /** A list of modules to add. */
+    OP_MODULE_INSTANCES_DEL((byte)0xF9),
+
     ;
 
     /** the special value used to identify messages of this type */

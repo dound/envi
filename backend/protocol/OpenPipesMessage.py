@@ -87,6 +87,87 @@ class OPTestInfo(OFGMessage):
         return fmt % (self.input, self.output)
 OP_MESSAGES.append(OPTestInfo)
 
+class OPNode(Node):
+    NAME_LEN = 32
+    DESC_LEN = 128
+    SIZE = Node.SIZE + NAME_LEN + DESC_LEN
+
+    def __init__(self, node_type, node_id, name, desc):
+        Node.__init__(self, node_type, node_id)
+        self.name = str(name)
+        self.desc = str(desc)
+
+    def pack(self):
+        return Node.pack(self) + struct.pack('> %us%us' % (OPNode.NAME_LEN, OPNode.DESC_LEN), self.name, self.desc)
+
+    @staticmethod
+    def unpack(buf):
+        node_type = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+        node_id = struct.unpack('> Q', buf[:8])[0]
+        buf = buf[8:]
+        name = struct.unpack('> %us' % OPNode.NAME_LEN, buf[:OPNode.NAME_LEN])[0]
+        buf = buf[OPNode.NAME_LEN:]
+        desc = struct.unpack('> %us' % OPNode.DESC_LEN, buf[:OPNode.NAME_DESC])[0]
+        return OPNode(node_type, node_id, name, desc)
+
+class OPNodesList(OFGMessage):
+    def __init__(self, modules, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.modules = modules
+
+    def length(self):
+        return OFGMessage.SIZE + len(self.modules) * OPNode.SIZE
+
+    def pack(self):
+        return OFGMessage.pack(self) + ''.join([m.pack() for m in self.modules])
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        num_nodes = len(body) / OPNode.SIZE
+        nodes = []
+        for _ in range(num_nodes):
+            nodes.append(OPNode.unpack(body[OPNode.SIZE:]))
+            body = body[:OPNode.SIZE]
+        return OPNodesList(nodes, xid)
+
+    def __str__(self):
+        return OFGMessage.__str__(self) + ' nodes=[%s]' % ''.join([str(m) + ',' for m in self.modules])
+
+class OPNodesAdd(OPNodesList):
+    @staticmethod
+    def get_type():
+        return 0xF2
+
+    def __init__(self, modules, xid=0):
+        OPNodesList.__init__(self, modules, xid)
+
+    @staticmethod
+    def unpack(body):
+        return OPNodesList.unpack(body)
+
+    def __str__(self):
+        return 'NODES_ADD: ' + OPNodesList.__str__(self)
+OFG_MESSAGES.append(OPNodesAdd)
+
+class OPNodesDel(OPNodesList):
+    @staticmethod
+    def get_type():
+        return 0xF3
+
+    def __init__(self, dpids, xid=0):
+        OPNodesList.__init__(self, dpids, xid)
+
+    @staticmethod
+    def unpack(body):
+        return OPNodesList.unpack_child(body)
+
+    def __str__(self):
+        return 'NODES_DEL: ' + OPNodesList.__str__(self)
+OFG_MESSAGES.append(OPNodesDel)
+
 class OPModule(Node):
     NAME_LEN = 32
     SIZE = Node.SIZE + 32
@@ -153,19 +234,39 @@ class OPModulesList(OFGMessage):
 class OPModulesAdd(OPModulesList):
     @staticmethod
     def get_type():
-        return 0xF2
+        return 0xF4
 
     def __init__(self, modules, xid=0):
         OPModulesList.__init__(self, modules, xid)
+
+    @staticmethod
+    def unpack(body):
+        return OPModulesList.unpack(body)
 
     def __str__(self):
         return 'MODULES_ADD: ' + OPModulesList.__str__(self)
 OFG_MESSAGES.append(OPModulesAdd)
 
+class OPModulesDel(OPModulesList):
+    @staticmethod
+    def get_type():
+        return 0xF5
+
+    def __init__(self, dpids, xid=0):
+        OPModulesList.__init__(self, dpids, xid)
+
+    @staticmethod
+    def unpack(body):
+        return OPModulesList.unpack_child(body)
+
+    def __str__(self):
+        return 'MODULES_DEL: ' + OPModulesList.__str__(self)
+OFG_MESSAGES.append(OPModulesDel)
+
 class OPModuleStatusRequest(OFGMessage):
     @staticmethod
     def get_type():
-        return 0xF3
+        return 0xF6
 
     def __init__(self, node, module, xid=0):
         OFGMessage.__init__(self, xid)
@@ -197,7 +298,7 @@ OP_MESSAGES.append(OPModuleStatusRequest)
 class OPModuleStatusReply(OFGMessage):
     @staticmethod
     def get_type():
-        return 0xF4
+        return 0xF7
 
     def __init__(self, node, module, status, xid=0):
         OFGMessage.__init__(self, xid)

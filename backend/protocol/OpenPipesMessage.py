@@ -190,15 +190,20 @@ class OPModule(Node):
 
         return (cid << 32L) | mid
 
-    def __init__(self, node_type, node_id, name):
+    def __init__(self, node_type, node_id, name, ports):
         Node.__init__(self, node_type, node_id)
         self.name = str(name)
+        self.ports = ports
 
     def length(self):
-        return OPModule.SIZE
+        port_size = 0
+        for p in self.ports:
+            port_size += p.length()
+        return OPModule.SIZE + 2 + port_size
 
     def pack(self):
-        return Node.pack(self) + struct.pack('> %us' % OPModule.NAME_LEN, self.name)
+        return Node.pack(self) + struct.pack('> %us H' % OPModule.NAME_LEN, self.name, len(self.ports)) + \
+                ''.join([p.pack() for p in self.ports])
 
     @staticmethod
     def unpack(buf):
@@ -206,8 +211,19 @@ class OPModule(Node):
         buf = buf[2:]
         node_id = struct.unpack('> Q', buf[:8])[0]
         buf = buf[8:]
-        name = struct.unpack('> %us' % OPModule.NAME_LEN, buf[:OPModule.NAME_LEN])[0]
-        return OPModule(node_type, node_id, name)
+        name = struct.unpack('> %us' % OPModule.NAME_LEN, buf[:OPModule.NAME_LEN])[0][:-1]
+        buf = buf[OPModule.NAME_LEN:]
+        num_ports = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+        ports = []
+        for _ in range(num_ports):
+            port = OPModulePort.unpack(buf)
+            ports.append(port)
+            buf = buf[port.length():]
+        return OPModule(node_type, node_id, name, ports)
+
+    def __str__(self):
+        return Node.__str__(self) + ' ports=[%s]' % ''.join([str(p) + ',' for p in self.ports])
 
 class OPModulesList(OFGMessage):
     def __init__(self, modules, xid=0):
@@ -400,14 +416,14 @@ def test():
     # when the gui connects, tell it about the modules and nodes
     def new_conn_callback(conn):
         modules = [
-            OPModule(Node.TYPE_MODULE_HW, 1, "MAC Lookup"),
-            OPModule(Node.TYPE_MODULE_HW, 2, "TTL Decrement"),
-            OPModule(Node.TYPE_MODULE_HW, 3, "TTL Decrement (FAULTY)"),
-            OPModule(Node.TYPE_MODULE_HW, 4, "Route Lookup"),
-            OPModule(Node.TYPE_MODULE_HW, 5, "Checksum Update"),
-            OPModule(Node.TYPE_MODULE_HW, 6, "TTL / Checksum Validate"),
-            OPModule(Node.TYPE_MODULE_SW, 100, "TTL / Checksum Validate"),
-            OPModule(Node.TYPE_MODULE_SW, 101, "Compar-ison Module"),
+            OPModule(Node.TYPE_MODULE_HW, 1, "MAC Lookup", []),
+            OPModule(Node.TYPE_MODULE_HW, 2, "TTL Decrement", []),
+            OPModule(Node.TYPE_MODULE_HW, 3, "TTL Decrement (FAULTY)", []),
+            OPModule(Node.TYPE_MODULE_HW, 4, "Route Lookup", []),
+            OPModule(Node.TYPE_MODULE_HW, 5, "Checksum Update", []),
+            OPModule(Node.TYPE_MODULE_HW, 6, "TTL / Checksum Validate", []),
+            OPModule(Node.TYPE_MODULE_SW, 100, "TTL / Checksum Validate", []),
+            OPModule(Node.TYPE_MODULE_SW, 101, "Compar-ison Module", []),
             ]
         server.send_msg_to_client(conn, OPModulesAdd(modules))
 

@@ -292,11 +292,11 @@ class OPModulePort(object):
         buf = buf[2:]
         name_len = struct.unpack('> B', buf[:1])[0]
         buf = buf[1:]
-        name = struct.unpack('> %us' % name_len, buf[:name_len])[0]
-        buf = buf[name_len_LEN:]
+        name = struct.unpack('> %us' % name_len, buf[:name_len])[0][:-1]
+        buf = buf[name_len:]
         desc_len = struct.unpack('> B', buf[:1])[0]
         buf = buf[1:]
-        desc = struct.unpack('> %us' % desc_len, buf[:desc_len])[0]
+        desc = struct.unpack('> %us' % desc_len, buf[:desc_len])[0][:-1]
         return OPModulePort(port_id, name, desc)
 
     def __str__(self):

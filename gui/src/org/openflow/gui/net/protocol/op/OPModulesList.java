@@ -44,7 +44,8 @@ public abstract class OPModulesList extends OFGMessage {
     }
     
     public void write(DataOutput out) throws IOException {
-        super.write(out); 
+        super.write(out);
+        out.writeShort(modules.length);
         for(OPModule m : modules)
             m.write(out);
     }

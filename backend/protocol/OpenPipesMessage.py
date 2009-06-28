@@ -263,6 +263,40 @@ class OPModulesDel(OPModulesList):
         return 'MODULES_DEL: ' + OPModulesList.__str__(self)
 OFG_MESSAGES.append(OPModulesDel)
 
+class OPModulePort(object):
+    NAME_LEN_MAX = 32
+    DESC_LEN_MAX = 128
+
+    def __init__(self, port_id, name, desc):
+        self.id = port_id
+        self.name = str(name)[0:OPModulePort.NAME_LEN_MAX]
+        self.desc = str(desc)[0:OPModulePort.DESC_LEN_MAX]
+
+    def length(self):
+        return OFGMessage.SIZE + 1 + len(self.name) + 1 + 1 + len(self.desc) + 1
+
+    def pack(self):
+        name_len = len(self.name) + 1
+        desc_len = len(self.desc) + 1
+        return struct.pack('> H B %us B %us' % (name_len, desc_len), self.id, name_len, self.name, desc_len, self.desc)
+
+    @staticmethod
+    def unpack(buf):
+        port_id = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+        name_len = struct.unpack('> B', buf[:1])[0]
+        buf = buf[1:]
+        name = struct.unpack('> %us' % name_len, buf[:name_len])[0]
+        buf = buf[name_len_LEN:]
+        desc_len = struct.unpack('> B', buf[:1])[0]
+        buf = buf[1:]
+        desc = struct.unpack('> %us' % desc_len, buf[:desc_len])[0]
+        return OPModulePort(port_id, name, desc)
+
+    def __str__(self):
+        fmt = "OP_MODULE_PORT: id=%d name='%s' desc='%s'"
+        return fmt % (self.id, self.name, self.desc)
+
 class OPModuleStatusRequest(OFGMessage):
     @staticmethod
     def get_type():

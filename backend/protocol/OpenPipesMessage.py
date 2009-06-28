@@ -106,9 +106,9 @@ class OPNode(Node):
         buf = buf[2:]
         node_id = struct.unpack('> Q', buf[:8])[0]
         buf = buf[8:]
-        name = struct.unpack('> %us' % OPNode.NAME_LEN, buf[:OPNode.NAME_LEN])[0]
+        name = struct.unpack('> %us' % OPNode.NAME_LEN, buf[:OPNode.NAME_LEN])[0][:-1]
         buf = buf[OPNode.NAME_LEN:]
-        desc = struct.unpack('> %us' % OPNode.DESC_LEN, buf[:OPNode.NAME_DESC])[0]
+        desc = struct.unpack('> %us' % OPNode.DESC_LEN, buf[:OPNode.NAME_DESC])[0][:-1]
         return OPNode(node_type, node_id, name, desc)
 
 class OPNodesList(OFGMessage):

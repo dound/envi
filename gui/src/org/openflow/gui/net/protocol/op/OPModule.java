@@ -36,11 +36,17 @@ public class OPModule extends Node {
 
     /** name of the module */
     public final String name;
+    public final OPModulePort ports[];
     
     public OPModule(DataInput in) throws IOException {
         super(in);
         name = SocketConnection.readString(in, NAME_LEN);
+
         int num_ports = in.readShort();
+        ports = new OPModulePort[num_ports];
+        for (int i = 0; i < num_ports; i++) {
+            ports[i] = new OPModulePort(in);
+        }
     }
 
     public int length() {
@@ -48,6 +54,16 @@ public class OPModule extends Node {
     }
 
     public String toString() {
-        return nodeType + "{" + DPIDUtil.toString(extractModuleID(id)) + "}-" + extractCopyID(id) + ":" + name;
+        String strPorts;
+        if(ports.length > 0)
+            strPorts = ports[0].toString();
+        else
+            strPorts = "";
+
+        for(int i=1; i<ports.length; i++)
+            strPorts += ", " + ports[i].toString();
+
+        return nodeType + "{" + DPIDUtil.toString(extractModuleID(id)) + "}-" + extractCopyID(id) + ":" + name +
+        "-Ports[" + strPorts + "]";
     }
 }

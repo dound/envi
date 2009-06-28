@@ -111,6 +111,9 @@ class OPNode(Node):
         desc = struct.unpack('> %us' % OPNode.DESC_LEN, buf[:OPNode.NAME_DESC])[0][:-1]
         return OPNode(node_type, node_id, name, desc)
 
+    def __str__(self):
+        return Node.__str__(self) + ' name=%s desc=%s' % (self.name, self.desc)
+
 class OPNodesList(OFGMessage):
     def __init__(self, modules, xid=0):
         OFGMessage.__init__(self, xid)

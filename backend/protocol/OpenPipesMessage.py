@@ -162,7 +162,7 @@ class OPNodesDel(OPNodesList):
 
     @staticmethod
     def unpack(body):
-        return OPNodesList.unpack_child(body)
+        return OPNodesList.unpack(body)
 
     def __str__(self):
         return 'NODES_DEL: ' + OPNodesList.__str__(self)

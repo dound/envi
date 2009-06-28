@@ -85,14 +85,23 @@ public enum OFGMessageType {
     /** Information about a test being performed on the system. */
     OP_TEST_INFO((byte)0xF1),
     
+    /** A list of nodes to add. */
+    OP_NODES_ADD((byte)0xF2),
+
+    /** A list of nodes to add. */
+    OP_NODES_DEL((byte)0xF3),
+
     /** A list of modules to add. */
-    OP_MODULES_ADD((byte)0xF2),
-    
+    OP_MODULES_ADD((byte)0xF4),
+
+    /** A list of modules to add. */
+    OP_MODULES_DEL((byte)0xF5),
+
     /** Request for a module's status */
-    OP_MODULE_STATUS_REQUEST((byte)0xF3),
+    OP_MODULE_STATUS_REQUEST((byte)0xF6),
 
     /** Reply about a module's status */
-    OP_MODULE_STATUS_REPLY((byte)0xF4),
+    OP_MODULE_STATUS_REPLY((byte)0xF7),
     
     ;
 

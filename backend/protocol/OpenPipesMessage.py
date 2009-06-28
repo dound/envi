@@ -194,6 +194,9 @@ class OPModule(Node):
         Node.__init__(self, node_type, node_id)
         self.name = str(name)
 
+    def length(self):
+        return OPModule.SIZE
+
     def pack(self):
         return Node.pack(self) + struct.pack('> %us' % OPModule.NAME_LEN, self.name)
 
@@ -212,7 +215,10 @@ class OPModulesList(OFGMessage):
         self.modules = modules
 
     def length(self):
-        return OFGMessage.SIZE + len(self.modules) * OPModule.SIZE
+        module_size = 0
+        for m in self.modules:
+            module_size += m.length()
+        return OFGMessage.SIZE + module_size
 
     def pack(self):
         return OFGMessage.pack(self) + ''.join([m.pack() for m in self.modules])

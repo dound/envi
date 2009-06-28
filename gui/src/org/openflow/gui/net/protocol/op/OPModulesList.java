@@ -36,7 +36,11 @@ public abstract class OPModulesList extends OFGMessage {
     }
     
     public int length() {
-        return super.length() + modules.length * OPModule.SIZEOF;
+        int modulesLength = 0;
+        for (OPModule m : modules) {
+            modulesLength += m.length();
+        }
+        return super.length() + modulesLength;
     }
     
     public void write(DataOutput out) throws IOException {

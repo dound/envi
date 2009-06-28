@@ -279,7 +279,7 @@ class OPModulePort(object):
         self.desc = str(desc)[0:OPModulePort.DESC_LEN_MAX]
 
     def length(self):
-        return OFGMessage.SIZE + 1 + len(self.name) + 1 + 1 + len(self.desc) + 1
+        return 2 + 1 + len(self.name) + 1 + 1 + len(self.desc) + 1
 
     def pack(self):
         name_len = len(self.name) + 1

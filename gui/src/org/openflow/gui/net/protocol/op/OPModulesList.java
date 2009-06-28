@@ -27,17 +27,11 @@ public abstract class OPModulesList extends OFGMessage {
     public OPModulesList(final int len, final OFGMessageType t, final int xid, final DataInput in) throws IOException {
         super(t, xid);
         
-        // make sure the number of bytes leftover makes sense
-        int left = len - super.length();
-        if(left % OPModule.SIZEOF != 0) {
-            throw new IOException("Body of modules list is not a multiple of " + OPModule.SIZEOF + " (length of body is " + left + " bytes)");
-        }
-        
-        // read in the DPIDs
+        // read in the modules
+        int num_modules = in.readShort();
         int index = 0;
-        modules = new OPModule[left / OPModule.SIZEOF];
-        while(left >= OPModule.SIZEOF) {
-            left -= OPModule.SIZEOF;
+        modules = new OPModule[num_modules];
+        for (int i = 0; i < num_modules; i++) {
             modules[index++] = new OPModule(in);
         }
     }

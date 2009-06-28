@@ -14,7 +14,6 @@ import org.openflow.util.string.DPIDUtil;
  */
 public class OPModule extends Node {
     public static final int NAME_LEN = 32;
-    public static final int SIZEOF = Node.SIZEOF + NAME_LEN;
 
     /** extracts the portion of the ID which correspond to module ID */
     public static final int extractModuleID(long id) {
@@ -41,8 +40,13 @@ public class OPModule extends Node {
     public OPModule(DataInput in) throws IOException {
         super(in);
         name = SocketConnection.readString(in, NAME_LEN);
+        int num_ports = in.readShort();
     }
-        
+
+    public int length() {
+        return Node.SIZEOF + NAME_LEN + 2;
+    }
+
     public String toString() {
         return nodeType + "{" + DPIDUtil.toString(extractModuleID(id)) + "}-" + extractCopyID(id) + ":" + name;
     }

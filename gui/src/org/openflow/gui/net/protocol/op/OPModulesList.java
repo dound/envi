@@ -29,10 +29,9 @@ public abstract class OPModulesList extends OFGMessage {
         
         // read in the modules
         int num_modules = in.readShort();
-        int index = 0;
         modules = new OPModule[num_modules];
         for (int i = 0; i < num_modules; i++) {
-            modules[index++] = new OPModule(in);
+            modules[i] = new OPModule(in);
         }
     }
     

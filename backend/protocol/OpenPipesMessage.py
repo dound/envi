@@ -134,7 +134,7 @@ class OPNodesList(OFGMessage):
         return OPNodesList(nodes, xid)
 
     def __str__(self):
-        return OFGMessage.__str__(self) + ' nodes=[%s]' % ''.join([str(m) + ',' for m in self.modules])
+        return OFGMessage.__str__(self) + ' nodes=[%s]' % ''.join([str(n) + ',' for n in self.nodes])
 
 class OPNodesAdd(OPNodesList):
     @staticmethod

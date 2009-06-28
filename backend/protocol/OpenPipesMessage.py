@@ -276,9 +276,9 @@ def test():
             Node(Node.TYPE_NETFPGA, 1003),
             Node(Node.TYPE_NETFPGA, 1004),
             Node(Node.TYPE_NETFPGA, 1005),
-            Node(Node.TYPE_LAPTOP,  2000),
-            Node(Node.TYPE_LAPTOP,  2001),
-            Node(Node.TYPE_LAPTOP,  2002),
+            Node(Node.TYPE_PC,      2000),
+            Node(Node.TYPE_PC,      2001),
+            Node(Node.TYPE_PC,      2002),
             ]
         server.send_msg_to_client(conn, NodesAdd(nodes))
 

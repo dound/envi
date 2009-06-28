@@ -235,7 +235,7 @@ class Node:
     TYPE_IN        = 1000
     TYPE_OUT       = 1001
     TYPE_NETFPGA   = 1002
-    TYPE_LAPTOP    = 1003
+    TYPE_PC        = 1003
     TYPE_MODULE_HW = 2000
     TYPE_MODULE_SW = 2001
 
@@ -265,8 +265,8 @@ class Node:
             return 'Out'
         elif node_type == Node.TYPE_NETFPGA:
             return 'NetFPGA'
-        elif node_type == Node.TYPE_LAPTOP:
-            return 'Laptop'
+        elif node_type == Node.TYPE_PC:
+            return 'PC'
         elif node_type == Node.TYPE_MODULE_HW:
             return 'Module(HW)'
         elif node_type == Node.TYPE_MODULE_SW:

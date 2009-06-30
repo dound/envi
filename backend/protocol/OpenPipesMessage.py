@@ -521,7 +521,7 @@ def test():
             OPNode(Node.TYPE_PC,      2000, "pc1", "Core 2 Duo with 1G RAM"),
             OPNode(Node.TYPE_PC,      2001, "pc2", "Core 2 Duo with 2G RAM"),
             OPNode(Node.TYPE_PC,      2002, "pc3", "Centrino with 1G RAM"),
-            OPNode(Node.TYPE_PC,      2003, "pc3", "Centrino with 1G RAM"),
+            OPNode(Node.TYPE_PC,      2003, "pc4", "Centrino with 1G RAM"),
             ]
         server.send_msg_to_client(conn, OPNodesAdd(nodes))
 

@@ -415,7 +415,7 @@ public class OPConnectionHandler extends ConnectionHandler
             icon = gicon;
             break;
             
-        case TYPE_LAPTOP:
+        case TYPE_PC:
             icon = new org.pzgui.icon.ImageIcon("images/laptop-blue.png");
             break;
             
@@ -434,7 +434,7 @@ public class OPConnectionHandler extends ConnectionHandler
         }
         
         OPNodeWithNameAndPorts ret = new OPNodeWithNameAndPorts(n.nodeType, name, n.id, icon);
-        if(ret.getType() == NodeType.TYPE_NETFPGA || ret.getType() == NodeType.TYPE_LAPTOP) {
+        if(ret.getType() == NodeType.TYPE_NETFPGA || ret.getType() == NodeType.TYPE_PC) {
             config.put(key(ret), new Pair<OPNodeWithNameAndPorts, ArrayList<OPModule>>(ret, new ArrayList<OPModule>()));
         }
         return ret;

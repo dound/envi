@@ -92,7 +92,7 @@ public class OPModule extends OPNodeWithNameAndPorts {
         if(getType()==NodeType.TYPE_MODULE_HW && n.getType()==NodeType.TYPE_NETFPGA)
             return true;
         
-        if(getType()==NodeType.TYPE_MODULE_SW && n.getType()==NodeType.TYPE_LAPTOP)
+        if(getType()==NodeType.TYPE_MODULE_SW && n.getType()==NodeType.TYPE_PC)
             return true;
         
         return false;

@@ -59,8 +59,8 @@ public class OPLayoutManager extends PZManager {
                 }
                 break;
             
-            // don't highlight if we drag a HW module over a Laptop
-            case TYPE_LAPTOP:
+            // don't highlight if we drag a HW module over a PC
+            case TYPE_PC:
                 if(m.isHardwareModule()) {
                     dehover();
                     return;

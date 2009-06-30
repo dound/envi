@@ -27,8 +27,8 @@ public enum NodeType {
     /** a NetFPGA */
     TYPE_NETFPGA((short)1002),
     
-    /** a laptop */
-    TYPE_LAPTOP((short)1003),
+    /** a pc */
+    TYPE_PC((short)1003),
     
     /** a hardware module */
     TYPE_MODULE_HW((short)2000),

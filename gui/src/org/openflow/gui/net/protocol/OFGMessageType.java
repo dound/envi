@@ -5,6 +5,9 @@ import java.io.IOException;
 
 import org.openflow.gui.net.protocol.op.OPModuleStatusReply;
 import org.openflow.gui.net.protocol.op.OPModulesAdd;
+import org.openflow.gui.net.protocol.op.OPModulesDel;
+import org.openflow.gui.net.protocol.op.OPNodesAdd;
+import org.openflow.gui.net.protocol.op.OPNodesDel;
 import org.openflow.gui.net.protocol.op.OPTestInfo;
 import org.openflow.gui.net.protocol.auth.*;
 import org.openflow.protocol.StatsType;
@@ -180,8 +183,17 @@ public enum OFGMessageType {
             case STAT_REPLY:
                 return StatsType.decode(len, t, xid, in);
     
+            case OP_NODES_ADD:
+                return new OPNodesAdd(len, xid, in);
+
+            case OP_NODES_DEL:
+                return new OPNodesDel(len, xid, in);
+
             case OP_MODULES_ADD:
                 return new OPModulesAdd(len, xid, in);
+            
+            case OP_MODULES_DEL:
+                return new OPModulesDel(len, xid, in);
             
             case OP_TEST_INFO:
                 return new OPTestInfo(len, xid, in);

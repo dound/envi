@@ -115,15 +115,15 @@ class OPNode(Node):
         return Node.__str__(self) + ' name=%s desc=%s' % (self.name, self.desc)
 
 class OPNodesList(OFGMessage):
-    def __init__(self, modules, xid=0):
+    def __init__(self, nodes, xid=0):
         OFGMessage.__init__(self, xid)
-        self.modules = modules
+        self.nodes = nodes
 
     def length(self):
-        return OFGMessage.SIZE + len(self.modules) * OPNode.SIZE
+        return OFGMessage.SIZE + len(self.nodes) * OPNode.SIZE
 
     def pack(self):
-        return OFGMessage.pack(self) + ''.join([m.pack() for m in self.modules])
+        return OFGMessage.pack(self) + ''.join([n.pack() for n in self.nodes])
 
     @staticmethod
     def unpack(body):

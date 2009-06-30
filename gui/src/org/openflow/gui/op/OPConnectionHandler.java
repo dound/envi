@@ -34,6 +34,8 @@ import org.openflow.gui.net.protocol.op.OPModuleStatusReply;
 import org.openflow.gui.net.protocol.op.OPModuleStatusRequest;
 import org.openflow.gui.net.protocol.op.OPModulesAdd;
 import org.openflow.gui.net.protocol.op.OPMoveModule;
+import org.openflow.gui.net.protocol.op.OPNodesAdd;
+import org.openflow.gui.net.protocol.op.OPNodesDel;
 import org.openflow.gui.net.protocol.op.OPTestInfo;
 import org.openflow.util.Pair;
 
@@ -328,6 +330,16 @@ public class OPConnectionHandler extends ConnectionHandler
      */
     public void process(final OFGMessage msg) {
         switch(msg.type) {
+        case OP_NODES_ADD:
+            for(org.openflow.gui.net.protocol.op.OPNode n : ((OPNodesAdd)msg).nodes)
+                super.processDrawableNodeAdd(processNodeAdd(n));
+            break;
+            
+        case OP_NODES_DEL:
+            for(org.openflow.gui.net.protocol.op.OPNode n : ((OPNodesDel)msg).nodes)
+                super.processNodeDel(n);
+            break;
+
         case OP_MODULES_ADD:
             for(org.openflow.gui.net.protocol.op.OPModule m : ((OPModulesAdd)msg).modules)
                 super.processDrawableNodeAdd(processNodeAdd(m));

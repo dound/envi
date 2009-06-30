@@ -509,19 +509,27 @@ def test():
         server.send_msg_to_client(conn, OPModulesAdd(modules))
 
         nodes = [
-            Node(Node.TYPE_IN,       111),
-            Node(Node.TYPE_OUT,      999),
-            Node(Node.TYPE_NETFPGA, 1000),
-            Node(Node.TYPE_NETFPGA, 1001),
-            Node(Node.TYPE_NETFPGA, 1002),
-            Node(Node.TYPE_NETFPGA, 1003),
-            Node(Node.TYPE_NETFPGA, 1004),
-            Node(Node.TYPE_NETFPGA, 1005),
-            Node(Node.TYPE_PC,      2000),
-            Node(Node.TYPE_PC,      2001),
-            Node(Node.TYPE_PC,      2002),
+            OPNode(Node.TYPE_IN,       111, "Input", "Input"),
+            OPNode(Node.TYPE_OUT,      999, "Output", "Output"),
+            OPNode(Node.TYPE_NETFPGA, 1000, "NetFPGA", "NetFPGA"),
+            OPNode(Node.TYPE_NETFPGA, 1001, "NetFPGA", "NetFPGA"),
+            OPNode(Node.TYPE_NETFPGA, 1002, "NetFPGA", "NetFPGA"),
+            OPNode(Node.TYPE_NETFPGA, 1003, "NetFPGA", "NetFPGA"),
+            OPNode(Node.TYPE_NETFPGA, 1004, "NetFPGA", "NetFPGA"),
+            OPNode(Node.TYPE_NETFPGA, 1005, "NetFPGA", "NetFPGA"),
+            OPNode(Node.TYPE_NETFPGA, 1006, "NetFPGA", "NetFPGA"),
+            OPNode(Node.TYPE_PC,      2000, "pc1", "Core 2 Duo with 1G RAM"),
+            OPNode(Node.TYPE_PC,      2001, "pc2", "Core 2 Duo with 2G RAM"),
+            OPNode(Node.TYPE_PC,      2002, "pc3", "Centrino with 1G RAM"),
+            OPNode(Node.TYPE_PC,      2003, "pc3", "Centrino with 1G RAM"),
             ]
-        server.send_msg_to_client(conn, NodesAdd(nodes))
+        server.send_msg_to_client(conn, OPNodesAdd(nodes))
+
+        nodes = [
+            OPNode(Node.TYPE_NETFPGA, 1006, "NetFPGA", "NetFPGA"),
+            OPNode(Node.TYPE_PC,      2003, "pc2", "Core 2 Duo with 2G RAM"),
+            ]
+        server.send_msg_to_client(conn, OPNodesDel(nodes))
 
         server.send_msg_to_client(conn, OPTestInfo("hello world", "happy world"))
 

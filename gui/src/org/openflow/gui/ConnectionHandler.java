@@ -284,8 +284,13 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     /** remove nodes from the topology */
     private void processNodesDel(NodesDel msg) {
         for(org.openflow.gui.net.protocol.Node n : msg.nodes)
-            if(topology.removeNode(connection, n.id) < 0)
-                System.err.println("Ignoring switch delete message for non-existant switch: " + DPIDUtil.toString(n.id));
+            processNodeDel(n);
+    }
+
+    /** remove nodes from the topology */
+    protected void processNodeDel(org.openflow.gui.net.protocol.Node n) {
+        if(topology.removeNode(connection, n.id) < 0)
+            System.err.println("Ignoring switch delete message for non-existant switch: " + DPIDUtil.toString(n.id));
     }
     
     private void processLinksAdd(LinksAdd msg) {

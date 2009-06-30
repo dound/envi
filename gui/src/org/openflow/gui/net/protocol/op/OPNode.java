@@ -13,7 +13,7 @@ import org.openflow.gui.net.protocol.Node;
  */
 public class OPNode extends Node {
     public static final int NAME_LEN = 32;
-    public static final int DESC_LEN = 32;
+    public static final int DESC_LEN = 128;
     public static final int SIZEOF = Node.SIZEOF + NAME_LEN + DESC_LEN;
 
     /** name of the node */

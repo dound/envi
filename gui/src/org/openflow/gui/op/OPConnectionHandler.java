@@ -410,6 +410,10 @@ public class OPConnectionHandler extends ConnectionHandler
         case OP_TEST_INFO:
             processTestInfo((OPTestInfo)msg);
             break;
+
+        case OP_MOVE_MODULE:
+            moveModule((OPMoveModule)msg);
+            break;
         
         default:
             super.process(msg);

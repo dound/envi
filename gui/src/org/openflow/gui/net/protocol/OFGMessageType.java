@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.openflow.gui.net.protocol.op.OPModuleStatusReply;
 import org.openflow.gui.net.protocol.op.OPModulesAdd;
 import org.openflow.gui.net.protocol.op.OPModulesDel;
+import org.openflow.gui.net.protocol.op.OPMoveModule;
 import org.openflow.gui.net.protocol.op.OPNodesAdd;
 import org.openflow.gui.net.protocol.op.OPNodesDel;
 import org.openflow.gui.net.protocol.op.OPTestInfo;
@@ -201,6 +202,9 @@ public enum OFGMessageType {
             case OP_MODULE_STATUS_REPLY:
                 return new OPModuleStatusReply(len, xid, in);
 
+            case OP_MOVE_MODULE:
+                return new OPMoveModule(len, xid, in);
+
             case ECHO_REQUEST:
             case ECHO_REPLY:
                 return new OFGMessage(t, xid);
@@ -212,7 +216,6 @@ public enum OFGMessageType {
             case NODES_REQUEST:
             case LINKS_REQUEST:
             case STAT_REQUEST:
-            case OP_MOVE_MODULE:
             case OP_MODULE_STATUS_REQUEST:
                 throw new IOException("Received unexpected message type: " + t.toString());
                 

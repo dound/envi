@@ -22,9 +22,14 @@ public class OPModule extends OPNodeWithNameAndPorts {
      * Returns a copy of mToCopy whose isOriginal() method will return false.
      */
     public OPModule(OPModule mToCopy) {
-        super(mToCopy.getType(), mToCopy.getName(),
-              org.openflow.gui.net.protocol.op.OPModule.createNodeID(mToCopy.getID(), NEXT_COPY_ID++), 
-              mToCopy.getIcon());
+        this(mToCopy, org.openflow.gui.net.protocol.op.OPModule.createNodeID(mToCopy.getID(), NEXT_COPY_ID++));
+    }
+
+    /**
+     * Returns a copy of mToCopy whose isOriginal() method will return false.
+     */
+    public OPModule(OPModule mToCopy, long newID) {
+        super(mToCopy.getType(), mToCopy.getName(), newID, mToCopy.getIcon());
         original = false;
         setNameColor(Color.YELLOW);
     }

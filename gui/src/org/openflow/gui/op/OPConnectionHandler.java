@@ -199,13 +199,10 @@ public class OPConnectionHandler extends ConnectionHandler
     /** moves a module m to the specified node */
     private void moveModule(OPModule m, OPNodeWithNameAndPorts to) {
         OPNodeWithNameAndPorts from = m.getNodeInstalledOn();
-        if(from != null)
-            config.get(key(from)).b.remove(m);
-        
+
         try {
             OPMoveModule mvMsg = new OPMoveModule(m, from, to);
             getConnection().sendMessage(mvMsg);
-            m.installOnNode(to);
         }
         catch(IOException e) {
             System.err.println("Error: failed to " + (to==null ? "un" : "") + "install module due to network error: " + e.getMessage());

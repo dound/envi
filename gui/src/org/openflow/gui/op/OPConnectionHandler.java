@@ -178,6 +178,97 @@ public class OPConnectionHandler extends ConnectionHandler
             System.err.println("Error: failed to " + (to==null ? "un" : "") + "install module due to network error: " + e.getMessage());
         }
     }
+
+    /** moves a module m to the specified node */
+    private void moveModule(OPMoveModule msg) {
+        // Attempt to get the various nodes
+        long moduleID = msg.module.id;
+        long fromID = msg.from.id;
+        long toID = msg.to.id;
+
+        // Basic sanity checking
+        if (msg.module.equals(OPMoveModule.NODE_NONE)) {
+            System.err.println("Attempt made to move nothing");
+            return;
+        }
+
+        if (msg.from.equals(OPMoveModule.NODE_NONE) && msg.to.equals(OPMoveModule.NODE_NONE)) {
+            System.err.println("No source or destination specified when moving a module");
+            return;
+        }
+
+        OPNodeWithNameAndPorts module = (OPNodeWithNameAndPorts)getTopology().getNode(moduleID);
+        OPNodeWithNameAndPorts from = (OPNodeWithNameAndPorts)getTopology().getNode(fromID);
+        OPNodeWithNameAndPorts to = (OPNodeWithNameAndPorts)getTopology().getNode(toID);
+
+        // Create a copy of the module if the source node is none
+        // (it means that it's being added to the topology)
+        if (msg.from.equals(OPMoveModule.NODE_NONE)) {
+            long tmpModuleID = org.openflow.gui.net.protocol.op.OPModule.extractModuleID(moduleID);
+            module = (OPNodeWithNameAndPorts)getTopology().getNode(tmpModuleID);
+        }
+
+        OPModule m = null;
+        if (module instanceof OPModule) {
+            m = (OPModule)module;
+        }
+
+        // Verify that we have a module and node
+        if (m == null || (from == null && to == null)) {
+            System.err.println("Error: failed to find module and node(s) when installing module instance. " 
+                    + "Module ID: " + moduleID);
+            return;
+        }
+
+        // Are we dragging it to a node?
+        if (to != null) {
+            // Duplicate the module (it should be an original)
+            if(m.isOriginal()) {
+                m = new OPModule(m, moduleID);
+                getTopology().addNode(getConnection(), m);
+            }
+
+            // Update which node the module is installed on
+            if(from != null)
+                config.get(key(from)).b.remove(m);
+            config.get(key(to)).b.add(m);
+
+            m.setPos(to.getX(), to.getY());
+            m.installOnNode(to);
+        }
+        // Otherwise we're removing it but not placing it somewhere new
+        else if(m.getNodeInstalledOn() != null) {
+            // Update which node the module is installed on
+            if(from != null) {
+                config.get(key(from)).b.remove(m);
+                getTopology().removeNode(getConnection(), Long.valueOf(moduleID));
+            }
+
+            // disconnect the links associated with the module being removed
+            org.openflow.gui.net.protocol.Link[] links = new org.openflow.gui.net.protocol.Link[m.getLinks().size()];
+            int i = 0;
+            for(org.openflow.gui.drawables.Link l : m.getLinks()) {
+                links[i++] = new org.openflow.gui.net.protocol.Link(
+                        LinkType.WIRE,
+                        new org.openflow.gui.net.protocol.Node(((OPNodeWithNameAndPorts)l.getDestination()).getType(), l.getDestination().getID()),
+                        l.getMyPort(l.getDestination()),
+                        new org.openflow.gui.net.protocol.Node(((OPNodeWithNameAndPorts)l.getSource()).getType(), l.getSource().getID()),
+                        l.getMyPort(l.getSource())
+                        );
+            }
+
+            // tell the backend about the link removals
+            LinksDel linkDelMsg = new LinksDel(links);
+            try {
+                getConnection().sendMessage(linkDelMsg);
+            }
+            catch(IOException ex) {
+                System.err.println("Failed to send link delete (" + ex + "): " + linkDelMsg);
+            }
+
+            manager.removeDrawable(m);
+        }
+    }
     
     /** handles requesting the status of the specified module */
     private void handleModuleStatusRequested(OPModule m) {

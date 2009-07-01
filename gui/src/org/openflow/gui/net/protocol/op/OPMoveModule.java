@@ -1,9 +1,11 @@
 package org.openflow.gui.net.protocol.op;
 
+import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
 import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
+import org.openflow.gui.net.SocketConnection;
 import org.openflow.gui.net.protocol.Node;
 import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
@@ -66,6 +68,19 @@ public class OPMoveModule extends OFGMessage {
         this.to = to;
     }
     
+    /** Construct from a data stream */
+    public OPMoveModule(final int len, final int xid, final DataInput in) throws IOException {
+        super(OFGMessageType.OP_MOVE_MODULE, xid);
+
+        Node module = new Node(in);
+        Node from = new Node(in);
+        Node to = new Node(in);
+
+        this.module = module;
+        this.from = from;
+        this.to = to;
+    }
+
     /** This returns the maximum length of this message */
     public int length() {
         return super.length() + 3 * Node.SIZEOF;

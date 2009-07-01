@@ -149,53 +149,23 @@ public class OPConnectionHandler extends ConnectionHandler
             // dragged m to a new place: install request
             OPNodeWithNameAndPorts n = (OPNodeWithNameAndPorts)d;
             if(m.isCompatibleWith(n) && (ALLOW_MULTIPLE_MODULES_PER_NODE || config.get(key(n)).b.size()==0)) {
-                // duplicate if m is an original
-                if(m.isOriginal()) {
-                    m = new OPModule(m);
-                    getTopology().addNode(getConnection(), m);
-                }
                 
                 // only need to send a message if the module is moving to a 
                 // different node
                 if(!n.equals(m.getNodeInstalledOn())) {
                     moveModule(m, n);
-                    config.get(key(n)).b.add(m);
                 }
-                m.setPos(e.getX(), e.getY());
                 return;
             }
         }
         
         // dragged to empty space or an incompatible node
         if(m.getNodeInstalledOn() != null && !m.isOriginal()) {
-         // disconnect the links associated with the module being removed
-            org.openflow.gui.net.protocol.Link[] links = new org.openflow.gui.net.protocol.Link[m.getLinks().size()];
-            int i = 0;
-            for(org.openflow.gui.drawables.Link l : m.getLinks()) {
-                links[i++] = new org.openflow.gui.net.protocol.Link(
-                        LinkType.WIRE,
-                        new org.openflow.gui.net.protocol.Node(((OPNodeWithNameAndPorts)l.getDestination()).getType(), l.getDestination().getID()),
-                        l.getMyPort(l.getDestination()),
-                        new org.openflow.gui.net.protocol.Node(((OPNodeWithNameAndPorts)l.getSource()).getType(), l.getSource().getID()),
-                        l.getMyPort(l.getSource())
-                        );
-            }
-            
-            // tell the backend about the link removals
-            LinksDel msg = new LinksDel(links);
-            try {
-                getConnection().sendMessage(msg);
-            }
-            catch(IOException ex) {
-                System.err.println("Failed to send link delete (" + ex + "): " + msg);
-            }
-            
             // dragged m to nowhere: uninstall request
             moveModule(m, null);
-            manager.removeDrawable(m);
         }
     }
-    
+
     /** moves a module m to the specified node */
     private void moveModule(OPModule m, OPNodeWithNameAndPorts to) {
         OPNodeWithNameAndPorts from = m.getNodeInstalledOn();

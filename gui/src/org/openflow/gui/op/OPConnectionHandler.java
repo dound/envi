@@ -143,8 +143,12 @@ public class OPConnectionHandler extends ConnectionHandler
         Drawable d = manager.selectFrom(e.getX(), e.getY(), filterIgnoreModules);
         if(d instanceof OPNodeWithNameAndPorts) {
             // ignore the request if m is already installed on d
-            if(m.getNodeInstalledOn() == d)
+            // but reset the X/Y position
+            if(m.getNodeInstalledOn() == d) {
+                OPNodeWithNameAndPorts to = (OPNodeWithNameAndPorts)d;
+                m.setPos(to.getX(), to.getY());
                 return;
+            }
             
             // dragged m to a new place: install request
             OPNodeWithNameAndPorts n = (OPNodeWithNameAndPorts)d;

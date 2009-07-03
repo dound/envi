@@ -7,11 +7,15 @@ import org.openflow.gui.net.protocol.NodeType;
 import org.pzgui.icon.Icon;
 
 public class OPModule extends OPNodeWithNameAndPorts {
+    /** List of ports associated with the module */
+    private OPModulePort ports[];
+
     /**
      * Creates a new "original" module (isOriginal() will return true).
      */
-    public OPModule(boolean hw, String name, long id, Icon icon) {
+    public OPModule(boolean hw, String name, long id, Icon icon, OPModulePort ports[]) {
         super(hw ? NodeType.TYPE_MODULE_HW : NodeType.TYPE_MODULE_SW, name, id, icon);
+        this.ports = ports;
         if(getCopyID() != 0)
             throw new Error("Error: copy ID should be 0 for original modules!  Got: " + getCopyID());
         setNameColor(Color.WHITE);
@@ -30,6 +34,7 @@ public class OPModule extends OPNodeWithNameAndPorts {
      */
     public OPModule(OPModule mToCopy, long newID) {
         super(mToCopy.getType(), mToCopy.getName(), newID, mToCopy.getIcon());
+        ports = mToCopy.ports;
         original = false;
         setNameColor(Color.YELLOW);
     }
@@ -182,5 +187,9 @@ public class OPModule extends OPNodeWithNameAndPorts {
     
     public void dragDone() {
         dragging = false;
+    }
+
+    public OPModulePort[] getPorts() {
+        return ports;
     }
 }

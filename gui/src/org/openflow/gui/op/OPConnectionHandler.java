@@ -24,6 +24,7 @@ import org.openflow.gui.op.OPLayoutManager;
 import org.openflow.gui.drawables.LayoutableIcon;
 import org.openflow.gui.drawables.Node;
 import org.openflow.gui.drawables.OPModule;
+import org.openflow.gui.drawables.OPModulePort;
 import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
 import org.openflow.gui.net.protocol.LinkType;
 import org.openflow.gui.net.protocol.LinksAdd;
@@ -436,6 +437,8 @@ public class OPConnectionHandler extends ConnectionHandler
         GeometricIcon gicon;
         Icon icon;
         String name = "";
+        org.openflow.gui.net.protocol.op.OPModule m;
+        OPModulePort ports[];
         
         switch(n.nodeType) {
         
@@ -465,13 +468,21 @@ public class OPConnectionHandler extends ConnectionHandler
             
         case TYPE_MODULE_HW:
             icon = new ShapeIcon(new RoundRectangle2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE*4/5, 10, 10), DARK_GREEN, Color.BLACK);
-            name = ((org.openflow.gui.net.protocol.op.OPModule)n).name;
-            return new OPModule(true, name, n.id, icon);
+            m = (org.openflow.gui.net.protocol.op.OPModule)n;
+            name = m.name;
+            ports = new OPModulePort[m.ports.length];
+            for (int i = 0; i < m.ports.length; i++)
+                ports[i] = new OPModulePort(m.ports[i].id, m.ports[i].name, m.ports[i].desc);
+            return new OPModule(true, name, n.id, icon, ports);
         
         case TYPE_MODULE_SW:
             icon = new ShapeIcon(new Ellipse2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_BLUE, Color.BLACK);
-            name = ((org.openflow.gui.net.protocol.op.OPModule)n).name;
-            return new OPModule(false, name, n.id, icon);
+            m = (org.openflow.gui.net.protocol.op.OPModule)n;
+            name = m.name;
+            ports = new OPModulePort[m.ports.length];
+            for (int i = 0; i < m.ports.length; i++)
+                ports[i] = new OPModulePort(m.ports[i].id, m.ports[i].name, m.ports[i].desc);
+            return new OPModule(false, name, n.id, icon, ports);
             
         default:
             return super.processNodeAdd(n);

@@ -13,7 +13,7 @@ import org.openflow.gui.net.SocketConnection;
  */
 public class OPModulePort {
     /** port id */
-    public final int id;
+    public final short id;
     
     /** port name */
     public final String name;
@@ -21,7 +21,7 @@ public class OPModulePort {
     /** port description */
     public final String desc;
     
-    public OPModulePort(final int id, final String name, final String desc) {
+    public OPModulePort(final short id, final String name, final String desc) {
         this.id = id;
         this.name = name;
         this.desc = desc;

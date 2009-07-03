@@ -10,6 +10,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+
 import org.pzgui.Constants;
 import org.pzgui.Drawable;
 import org.pzgui.DrawableEventListener;
@@ -333,28 +337,92 @@ public class OPConnectionHandler extends ConnectionHandler
             if(srcN.equals(n))
                 return;
             
-            // create the link add/del message to the backend
-            OFGMessage msg;
-            org.openflow.gui.net.protocol.Link[] link;
-            org.openflow.gui.net.protocol.Node src = new org.openflow.gui.net.protocol.Node(srcN.getType(), srcN.getID());
-            org.openflow.gui.net.protocol.Node dst = new org.openflow.gui.net.protocol.Node(n.getType(), n.getID());
-            short p = 0;
-            link = new org.openflow.gui.net.protocol.Link[] {new org.openflow.gui.net.protocol.Link(LinkType.WIRE, src, p, dst, p)};
-            if(add)
-                msg = new LinksAdd(link);
-            else
-                msg = new LinksDel(link);
-            
-            // send it
-            try {
-                getConnection().sendMessage(msg);
-            }
-            catch(IOException ex) {
-                System.err.println("Error: failed to send (" + ex.getMessage() + "): " + msg);
-            }
+            tryLinkAddDel(add, srcN, n);
         }
     }
+
+    /**
+     * Try adding/deleting a link. This will pop up a dialog if the source has more than one port.
+     *
+     * @param add		-- boolean indicating whether we are adding a link
+     * @param srcNode	-- src node of the link
+     * @param dstNode	-- destination node of the link
+     */
+    protected void tryLinkAddDel(boolean add,
+            OPNodeWithNameAndPorts srcNode,
+            OPNodeWithNameAndPorts dstNode) {
+        short srcPort = 0;
+        short dstPort = 0;
+
+        // Query the source port if the source has multiple ports
+        if (srcNode instanceof OPModule) {
+            OPModule srcModule = (OPModule)srcNode;
+            OPModulePort ports[] = srcModule.getPorts();
+            if (ports.length > 1) {
+                Object items[] = new Object[ports.length + 1];
+                items[0] = "Please select which port(s) of " + srcNode.getName() + " to connect to " + dstNode.getName();
+                for (int i = 0; i < ports.length; i++)
+                    items[i + 1] = new JCheckBox(ports[i].getName() + " (" + ports[i].getDesc() + ")");
+
+                int result = JOptionPane.OK_OPTION;
+                boolean itemSelected = false;
+                while (result == JOptionPane.OK_OPTION && !itemSelected) {
+                    result = JOptionPane.showConfirmDialog(null, items, "Add links", JOptionPane.OK_CANCEL_OPTION);
+                    if (result == JOptionPane.OK_OPTION) {
+                        for (int i = 0; i < ports.length; i++) {
+                            JCheckBox cb = (JCheckBox)items[i + 1];
+                            itemSelected |= cb.isSelected();
+                        }
+                    }
+                }
+
+                // Send the actual link messages
+                if (result == JOptionPane.OK_OPTION) {
+                    for (int i = 0; i < ports.length; i++) {
+                        JCheckBox cb = (JCheckBox)items[i + 1];
+                        if (cb.isSelected())
+                            sendLinkAddDelMsg(add, srcNode, ports[i].getId(), dstNode, dstPort);
+                    }
+                }
+
+                return;
+            }
+        }
+        sendLinkAddDelMsg(add, srcNode, srcPort, dstNode, dstPort);
+    }
     
+    /**
+     * Send a link add/delete message to the backed
+     *
+     * @param add		-- boolean indicating whether we are adding a link
+     * @param srcNode	-- src node of the link
+     * @param srcPort	-- src port
+     * @param dstNode	-- destination node of the link
+     * @param dstPort	-- destination port
+     */
+    protected void sendLinkAddDelMsg(boolean add,
+            OPNodeWithNameAndPorts srcNode, short srcPort,
+            OPNodeWithNameAndPorts dstNode, short dstPort) {
+        // create the link add/del message to the backend
+        OFGMessage msg;
+        org.openflow.gui.net.protocol.Link[] link;
+        org.openflow.gui.net.protocol.Node src = new org.openflow.gui.net.protocol.Node(srcNode.getType(), srcNode.getID());
+        org.openflow.gui.net.protocol.Node dst = new org.openflow.gui.net.protocol.Node(dstNode.getType(), dstNode.getID());
+        link = new org.openflow.gui.net.protocol.Link[] {new org.openflow.gui.net.protocol.Link(LinkType.WIRE, src, srcPort, dst, dstPort)};
+        if(add)
+            msg = new LinksAdd(link);
+        else
+            msg = new LinksDel(link);
+
+        // send it
+        try {
+            getConnection().sendMessage(msg);
+        }
+        catch(IOException ex) {
+            System.err.println("Error: failed to send (" + ex.getMessage() + "): " + msg);
+        }
+    }
+
     /** 
      * Calls super.connectionStateChange() and then does some custom processing.
      */

@@ -8,7 +8,9 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -26,6 +28,7 @@ import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.Topology;
 import org.openflow.gui.op.OPLayoutManager;
 import org.openflow.gui.drawables.LayoutableIcon;
+import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.Node;
 import org.openflow.gui.drawables.OPModule;
 import org.openflow.gui.drawables.OPModulePort;
@@ -358,37 +361,118 @@ public class OPConnectionHandler extends ConnectionHandler
         if (srcNode instanceof OPModule) {
             OPModule srcModule = (OPModule)srcNode;
             OPModulePort ports[] = srcModule.getPorts();
-            if (ports.length > 1) {
-                Object items[] = new Object[ports.length + 1];
-                items[0] = "Please select which port(s) of " + srcNode.getName() + " to connect to " + dstNode.getName();
-                for (int i = 0; i < ports.length; i++)
-                    items[i + 1] = new JCheckBox(ports[i].getName() + " (" + ports[i].getDesc() + ")");
-
-                int result = JOptionPane.OK_OPTION;
-                boolean itemSelected = false;
-                while (result == JOptionPane.OK_OPTION && !itemSelected) {
-                    result = JOptionPane.showConfirmDialog(null, items, "Add links", JOptionPane.OK_CANCEL_OPTION);
-                    if (result == JOptionPane.OK_OPTION) {
-                        for (int i = 0; i < ports.length; i++) {
-                            JCheckBox cb = (JCheckBox)items[i + 1];
-                            itemSelected |= cb.isSelected();
-                        }
-                    }
-                }
-
-                // Send the actual link messages
-                if (result == JOptionPane.OK_OPTION) {
-                    for (int i = 0; i < ports.length; i++) {
-                        JCheckBox cb = (JCheckBox)items[i + 1];
-                        if (cb.isSelected())
-                            sendLinkAddDelMsg(add, srcNode, ports[i].getId(), dstNode, dstPort);
-                    }
-                }
+            if (srcModule.getPorts().length > 1) {
+                if (add)
+                    tryLinkAddMultiPort(srcModule, dstNode);
+                else
+                    tryLinkDelMultiPort(srcModule, dstNode);
 
                 return;
             }
         }
         sendLinkAddDelMsg(add, srcNode, srcPort, dstNode, dstPort);
+    }
+
+    /**
+     * Try adding a link with multiple ports
+     *
+     * @param srcNode	-- src node of the link
+     * @param dstNode	-- destination node of the link
+     */
+    protected void tryLinkAddMultiPort(
+            OPModule srcModule,
+            OPNodeWithNameAndPorts dstNode) {
+        short dstPort = 0;
+
+        OPModulePort ports[] = srcModule.getPorts();
+        Object items[] = new Object[ports.length + 1];
+        items[0] = "Please select which port(s) of " + srcModule.getName() + " to connect to " + dstNode.getName();
+        for (int i = 0; i < ports.length; i++)
+            items[i + 1] = new JCheckBox(ports[i].getName() + " (" + ports[i].getDesc() + ")");
+
+        int result = JOptionPane.OK_OPTION;
+        boolean itemSelected = false;
+        while (result == JOptionPane.OK_OPTION && !itemSelected) {
+            result = JOptionPane.showConfirmDialog(null, items, "Add links", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.CANCEL_OPTION)
+                return;
+
+            for (int i = 0; i < ports.length; i++) {
+                JCheckBox cb = (JCheckBox)items[i + 1];
+                itemSelected |= cb.isSelected();
+            }
+        }
+
+        // Send the actual link messages
+        for (int i = 0; i < ports.length; i++) {
+            JCheckBox cb = (JCheckBox)items[i + 1];
+            if (cb.isSelected())
+                sendLinkAddDelMsg(true, srcModule, ports[i].getId(), dstNode, dstPort);
+        }
+    }
+
+    /**
+     * Try deleting a link with multiple ports
+     *
+     * @param srcNode	-- src node of the link
+     * @param dstNode	-- destination node of the link
+     */
+    protected void tryLinkDelMultiPort(
+            OPModule srcModule,
+            OPNodeWithNameAndPorts dstNode) {
+        short dstPort = 0;
+
+        // Work out what links go from source to dest
+        HashSet<Short> srcPortNums = new HashSet<Short>();
+        Collection<Link> links = srcModule.getLinks();
+        for (Link l: links) {
+            if (l.getDestination() == dstNode) {
+               srcPortNums.add(Short.valueOf(l.getMyPort(srcModule)));
+            }
+        }
+
+        // Do we need to delete multiple ports?
+        if (srcPortNums.size() == 1) {
+            short srcPort = ((Short)(srcPortNums.toArray()[0])).shortValue();
+            sendLinkAddDelMsg(false, srcModule, srcPort, dstNode, dstPort);
+            return;
+        }
+
+        // Work out which OPModulePort elements correspond to the connected ports
+        OPModulePort allSrcPorts[] = srcModule.getPorts();
+        ArrayList<OPModulePort> ports = new ArrayList<OPModulePort>();
+        for (OPModulePort port : allSrcPorts) {
+            if (srcPortNums.contains(Short.valueOf(port.getId())))
+                ports.add(port);
+        }
+
+        // Create the list of ports to show in the dialog
+        Object items[] = new Object[ports.size() + 1];
+        items[0] = "Please select which port(s) of " + srcModule.getName() + " to disconnect from " + dstNode.getName();
+        for (int i = 0; i < ports.size(); i++)
+            items[i + 1] = new JCheckBox(ports.get(i).getName() + " (" + ports.get(i).getDesc() + ")");
+
+        // Display a dialog asking which ports to delete
+        int result = JOptionPane.OK_OPTION;
+        boolean itemSelected = false;
+        while (result == JOptionPane.OK_OPTION && !itemSelected) {
+            result = JOptionPane.showConfirmDialog(null, items, "Delete links", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.CANCEL_OPTION)
+                return;
+
+            // Verify we actually have some ports selected
+            for (int i = 0; i < ports.size(); i++) {
+                JCheckBox cb = (JCheckBox)items[i + 1];
+                itemSelected |= cb.isSelected();
+            }
+        }
+
+        // Send the actual link messages
+        for (int i = 0; i < ports.size(); i++) {
+            JCheckBox cb = (JCheckBox)items[i + 1];
+            if (cb.isSelected())
+                sendLinkAddDelMsg(false, srcModule, ports.get(i).getId(), dstNode, dstPort);
+        }
     }
     
     /**

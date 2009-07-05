@@ -325,6 +325,43 @@ class OPModulePort(object):
         fmt = "OP_MODULE_PORT: id=%d name='%s' desc='%s'"
         return fmt % (self.id, self.name, self.desc)
 
+class OPModuleReg(object):
+    NAME_LEN_MAX = 32
+    DESC_LEN_MAX = 128
+
+    def __init__(self, addr, name, desc, rd_only):
+        self.addr = addr
+        self.name = str(name)[0:OPModuleReg.NAME_LEN_MAX]
+        self.desc = str(desc)[0:OPModuleReg.DESC_LEN_MAX]
+        self.rd_only = rd_only
+
+    def length(self):
+        return 4 + 1 + len(self.name) + 1 + 1 + len(self.desc) + 1 + 1
+
+    def pack(self):
+        name_len = len(self.name) + 1
+        desc_len = len(self.desc) + 1
+        return struct.pack('> I B %us B %us ?' % (name_len, desc_len), self.addr, name_len, self.name, desc_len, self.desc, self.rd_only)
+
+    @staticmethod
+    def unpack(buf):
+        addr = struct.unpack('> I', buf[:4])[0]
+        buf = buf[4:]
+        name_len = struct.unpack('> B', buf[:1])[0]
+        buf = buf[1:]
+        name = struct.unpack('> %us' % name_len, buf[:name_len])[0][:-1]
+        buf = buf[name_len:]
+        desc_len = struct.unpack('> B', buf[:1])[0]
+        buf = buf[1:]
+        desc = struct.unpack('> %us' % desc_len, buf[:desc_len])[0][:-1]
+        buf = buf[desc_len:]
+        rd_only = struct.unpack('> ?', buf[:1])[0]
+        return OPModuleReg(addr, name, desc, rd_only)
+
+    def __str__(self):
+        fmt = "OP_MODULE_REG: addr=0x%08x name='%s' desc='%s' rdonly='%d'"
+        return fmt % (self.addr, self.name, self.desc, self.rd_only)
+
 class OPModuleStatusRequest(OFGMessage):
     @staticmethod
     def get_type():

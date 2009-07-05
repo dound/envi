@@ -37,6 +37,7 @@ public class OPModule extends Node {
     /** name of the module */
     public final String name;
     public final OPModulePort ports[];
+    public final OPModuleReg regs[];
     
     public OPModule(DataInput in) throws IOException {
         super(in);
@@ -46,6 +47,12 @@ public class OPModule extends Node {
         ports = new OPModulePort[num_ports];
         for (int i = 0; i < num_ports; i++) {
             ports[i] = new OPModulePort(in);
+        }
+
+        int num_regs = in.readShort();
+        regs = new OPModuleReg[num_regs];
+        for (int i = 0; i < num_regs; i++) {
+            regs[i] = new OPModuleReg(in);
         }
     }
 
@@ -63,7 +70,17 @@ public class OPModule extends Node {
         for(int i=1; i<ports.length; i++)
             strPorts += ", " + ports[i].toString();
 
+        String strRegs;
+        if(regs.length > 0)
+            strRegs = regs[0].toString();
+        else
+            strRegs = "";
+
+        for(int i=1; i<regs.length; i++)
+            strRegs += ", " + regs[i].toString();
+
+
         return nodeType + "{" + DPIDUtil.toString(extractModuleID(id)) + "}-" + extractCopyID(id) + ":" + name +
-        "-Ports[" + strPorts + "]";
+        "-Ports[" + strPorts + "]" + "-Regs[" + strRegs + "]";
     }
 }

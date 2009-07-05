@@ -193,20 +193,25 @@ class OPModule(Node):
 
         return (cid << 32L) | mid
 
-    def __init__(self, node_type, node_id, name, ports):
+    def __init__(self, node_type, node_id, name, ports, regs):
         Node.__init__(self, node_type, node_id)
         self.name = str(name)
         self.ports = ports
+        self.regs = regs
 
     def length(self):
         port_size = 0
         for p in self.ports:
             port_size += p.length()
-        return OPModule.SIZE + 2 + port_size
+        reg_size = 0
+        for r in self.regs:
+            reg_size += r.length()
+        return OPModule.SIZE + 2 + port_size + 2 + reg_size
 
     def pack(self):
         return Node.pack(self) + struct.pack('> %us H' % OPModule.NAME_LEN, self.name, len(self.ports)) + \
-                ''.join([p.pack() for p in self.ports])
+                ''.join([p.pack() for p in self.ports]) + struct.pack('> H', len(self.regs)) + \
+                ''.join([r.pack() for r in self.regs])
 
     @staticmethod
     def unpack(buf):
@@ -223,10 +228,18 @@ class OPModule(Node):
             port = OPModulePort.unpack(buf)
             ports.append(port)
             buf = buf[port.length():]
-        return OPModule(node_type, node_id, name, ports)
+        num_regs = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+        regs = []
+        for _ in range(num_regs):
+            reg = OPModuleReg.unpack(buf)
+            regs.append(reg)
+            buf = buf[reg.length():]
+        return OPModule(node_type, node_id, name, ports, regs)
 
     def __str__(self):
-        return Node.__str__(self) + ' ports=[%s]' % ''.join([str(p) + ',' for p in self.ports])
+        return Node.__str__(self) + ' ports=[%s]' % ''.join([str(p) + ',' for p in self.ports]) + \
+                ' regs=[%s]' % ''.join([str(r) + ',' for r in self.regs])
 
 class OPModulesList(OFGMessage):
     def __init__(self, modules, xid=0):

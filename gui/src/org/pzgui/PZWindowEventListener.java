@@ -250,6 +250,9 @@ public class PZWindowEventListener implements ComponentListener,
         int x = window.getMX(e);
         int y = window.getMY(e);
         manager.setMousePos(x, y, false);
+
+        Drawable d = manager.getHovered();
+        manager.fireDrawableEvent(d, e, "mouse_moved");
     }
     
     /**

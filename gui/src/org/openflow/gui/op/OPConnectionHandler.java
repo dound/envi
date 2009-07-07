@@ -62,6 +62,12 @@ public class OPConnectionHandler extends ConnectionHandler
     /** shape which will hold test output */
     private final OPNodeWithNameAndPorts testOutput;
     
+    /** module for which a status request was most recently sent */
+    private OPModule currMSRModule;
+
+    /** last requesting component */
+    private JComponent currMSRComponent;
+
     /** 
      * Configuration of the network.  This map tracks which nodes have which 
      * modules (maps type-ID pairs to node-list_of_modules pairs) 
@@ -139,13 +145,32 @@ public class OPConnectionHandler extends ConnectionHandler
             Object src = me.getSource();
             if (src instanceof JComponent) {
                 JComponent c = (JComponent)src;
+                OPModule m = null;
                 if(d instanceof OPModule) {
-                    OPModule m = (OPModule)d;
-                    c.setToolTipText(m.getName());
+                    m = (OPModule)d;
                 }
-                else {
-                    c.setToolTipText(null);
+
+                // Clear the current tooltip if the component changes
+                if (currMSRComponent != c) {
+                    if (currMSRComponent != null) {
+                        currMSRComponent.setToolTipText(null);
+                    }
                 }
+
+                // If the module has changed (or component changed)
+                // request the module status
+                if (currMSRModule != m || currMSRComponent != c) {
+                    if (m == null)
+                        c.setToolTipText(null);
+                    else
+                        c.setToolTipText(m.getName());
+                    if (m != null)
+                        handleModuleStatusRequested(m);
+                }
+
+                // Finally record the current values
+                currMSRComponent = c;
+                currMSRModule = m;
             }
         }
         else if(event.equals(OPWindowEventListener.MODE_CHANGED_EVENT)) {
@@ -677,13 +702,20 @@ public class OPConnectionHandler extends ConnectionHandler
             return;
         }
         else {
+            boolean seenModule = false;
             for(OPModule m : value.b) {
                 if(msg.module.id==m.getID() && msg.module.nodeType==m.getType()) {
-                    m.setStatus(msg.status + " (" + new java.util.Date().toString() + ")");
-                    manager.displayIcon(msg.status, 5000, 18, m.getX(), m.getY());
-                    return;
+                    if (m == currMSRModule) {
+                        if (currMSRComponent != null) {
+                            currMSRComponent.setToolTipText(msg.status);
+                        }
+                        return;
+                    }
+                    seenModule = true;
                 }
             }
+            if (seenModule)
+                return;
         }
         
         System.err.println("Got module status for an unknown module on node " + value.a + ": " + msg);

@@ -134,6 +134,20 @@ public class OPConnectionHandler extends ConnectionHandler
                     handleLinkChange(d, false);
             }
         }
+        else if(event.equals("mouse_moved")) {
+            MouseEvent me = (MouseEvent)e;
+            Object src = me.getSource();
+            if (src instanceof JComponent) {
+                JComponent c = (JComponent)src;
+                if(d instanceof OPModule) {
+                    OPModule m = (OPModule)d;
+                    c.setToolTipText(m.getName());
+                }
+                else {
+                    c.setToolTipText(null);
+                }
+            }
+        }
         else if(event.equals(OPWindowEventListener.MODE_CHANGED_EVENT)) {
             // clear any partial work done in a different mode
             clearLinkEndpoint();

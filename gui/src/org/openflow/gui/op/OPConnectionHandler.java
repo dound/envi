@@ -15,6 +15,7 @@ import java.util.HashSet;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import org.pzgui.Constants;
 import org.pzgui.Drawable;
@@ -160,10 +161,7 @@ public class OPConnectionHandler extends ConnectionHandler
                 // If the module has changed (or component changed)
                 // request the module status
                 if (currMSRModule != m || currMSRComponent != c) {
-                    if (m == null)
-                        c.setToolTipText(null);
-                    else
-                        c.setToolTipText(m.getName());
+                    setToolTip(c, m, null);
                     if (m != null)
                         handleModuleStatusRequested(m);
                 }
@@ -707,7 +705,8 @@ public class OPConnectionHandler extends ConnectionHandler
                 if(msg.module.id==m.getID() && msg.module.nodeType==m.getType()) {
                     if (m == currMSRModule) {
                         if (currMSRComponent != null) {
-                            currMSRComponent.setToolTipText(msg.status);
+                            Runnable updateToolTip = new ToolTipUpdater(currMSRComponent, m, msg.status);
+                            SwingUtilities.invokeLater(updateToolTip);
                         }
                         return;
                     }

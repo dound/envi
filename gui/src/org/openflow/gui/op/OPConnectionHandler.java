@@ -162,13 +162,14 @@ public class OPConnectionHandler extends ConnectionHandler
                 // request the module status
                 if (currMSRModule != m || currMSRComponent != c) {
                     setToolTip(c, m, null);
+                    // Record the current values
+                    currMSRComponent = c;
+                    currMSRModule = m;
+
+                    // Send a ModuleStatusRequest to the backend
                     if (m != null)
                         handleModuleStatusRequested(m);
                 }
-
-                // Finally record the current values
-                currMSRComponent = c;
-                currMSRModule = m;
             }
         }
         else if(event.equals(OPWindowEventListener.MODE_CHANGED_EVENT)) {

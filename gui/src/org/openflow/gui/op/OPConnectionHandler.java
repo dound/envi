@@ -16,6 +16,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 
 import org.pzgui.Constants;
 import org.pzgui.Drawable;
@@ -84,6 +85,9 @@ public class OPConnectionHandler extends ConnectionHandler
     public static final int TEST_BOX_WIDTH  = 500;
     public static final int TEST_BOX_HEIGHT = 50;
     
+    /** How long should tooltips be visible before dismissing them */
+    public static final int TOOLTIP_DISMISS_DELAY = 60 * 1000;
+
     /**
      * Construct the front-end for EXConnectionHandler.
      * 
@@ -114,6 +118,9 @@ public class OPConnectionHandler extends ConnectionHandler
         
         manager.addDrawable(testInput);
         manager.addDrawable(testOutput);
+
+        // Set the tooltip delay
+        ToolTipManager.sharedInstance().setDismissDelay(TOOLTIP_DISMISS_DELAY);
     }
     
     public void drawableEvent(Drawable d, AWTEvent e, String event) {

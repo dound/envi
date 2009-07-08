@@ -162,6 +162,15 @@ public class OPConnectionHandler extends ConnectionHandler
                 // request the module status
                 if (currMSRModule != m || currMSRComponent != c) {
                     setToolTip(c, m, null);
+
+                    // Resend the mouse event to the component. This is
+                    // necessary in instances where the tooltip was
+                    // previously null as the ToolTipManager attaches event
+                    // listeners when the tooltip is set. The ToolTipManager
+                    // needs at least one mouse event to show the tooltip.
+                    if (m != null && currMSRComponent == null)
+                        c.dispatchEvent(me);
+
                     // Record the current values
                     currMSRComponent = c;
                     currMSRModule = m;

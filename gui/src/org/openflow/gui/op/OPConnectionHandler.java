@@ -726,4 +726,41 @@ public class OPConnectionHandler extends ConnectionHandler
         testInput.setName(msg.input);
         testOutput.setName(msg.output);
     }
+
+    private void setToolTip(JComponent c, OPModule m, String status) {
+        // Handle the case of a null component
+        if (m == null) {
+            c.setToolTipText(null);
+            return;
+        }
+
+        // Create the text to display
+        StringBuilder tooltip = new StringBuilder("<html>");
+        tooltip.append("<b>");
+        tooltip.append(m.getName());
+        tooltip.append("</b><br><br>");
+
+        OPModulePort[] ports = m.getPorts();
+        tooltip.append("<b>Ports:</b><br>");
+        if (ports.length == 0) {
+            tooltip.append("None<br>");
+        }
+        else {
+            for (OPModulePort port: ports) {
+                tooltip.append(port.getName());
+                tooltip.append(" -- ");
+                tooltip.append(port.getDesc());
+                tooltip.append("<br>");
+            }
+        }
+
+        if (status != null) {
+            tooltip.append("<br>");
+            tooltip.append("<b>Status:</b><br>");
+            tooltip.append(status);
+        }
+
+        // Finally display the tooltip
+        c.setToolTipText(tooltip.toString());
+    }
 }

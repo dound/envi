@@ -763,4 +763,23 @@ public class OPConnectionHandler extends ConnectionHandler
         // Finally display the tooltip
         c.setToolTipText(tooltip.toString());
     }
+
+    /**
+     * Class to update the tooltip. Used in calls to SwingUtilities.invokeLater
+     */
+    private class ToolTipUpdater implements Runnable {
+        private JComponent comp;
+        private OPModule module;
+        private String status;
+
+        public ToolTipUpdater(JComponent comp, OPModule module, String status) {
+            this.comp = comp;
+            this.module = module;
+            this.status = status;
+        }
+
+        public void run() {
+            OPConnectionHandler.this.setToolTip(comp, module, status);
+        }
+    }
 }

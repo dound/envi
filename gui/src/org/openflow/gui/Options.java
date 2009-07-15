@@ -12,7 +12,7 @@ public final class Options {
     public static final String DEFAULT_SERVER_IP = "127.0.0.1";
     
     /** default port to connect to the server on */
-    public static final short DEFAULT_PORT = 2503;
+    public static final short DEFAULT_PORT = 2505;
     
     /** whether to automatically request link info for all new switches */
     public static final boolean AUTO_REQUEST_LINK_INFO_FOR_NEW_SWITCH = false;

@@ -436,6 +436,306 @@ class OPModuleStatusReply(OFGMessage):
         return fmt % (self.module, self.node, self.status)
 OP_MESSAGES.append(OPModuleStatusReply)
 
+class OPStateVarField(object):
+    NAME_LEN = 16
+
+    def __init__(self, name, desc, readOnly, type):
+        self.name = name[:OPStateVarField.NAME_LEN]
+        self.desc = desc
+        self.readOnly = readOnly
+        self.type = type
+
+    def length(self):
+        return OPStateVarField.NAME_LEN + 1 + len(self.desc) + 1 + self.type.length() + 1
+
+    def pack(self):
+        desc_len = len(self.desc) + 1
+        return struct.pack('> %us B %us B' % (OPStateVarField.NAME_LEN, desc_len),
+                self.name, desc_len, self.desc, self.readOnly) + self.type.pack()
+
+    @staticmethod
+    def unpack(buf):
+        name = struct.unpack('> %us' % OPStateVarField.NAME_LEN, buf[:OPStateVarField.NAME_LEN])[0][:-1]
+        buf = buf[OPStateVarField.NAME_LEN:]
+        desc_len = struct.unpack('> B', buf[:1])[0]
+        buf = buf[1:]
+        desc = struct.unpack('> %us' % desc_len, buf[:desc_len])[0][:-1]
+        buf = buf[desc_len:]
+        readOnly = struct.unpack('> B', buf[:1])[0]
+        buf = buf[1:]
+        type = OPStateVarType.unpack(buf)
+        return OPStateVarField(name, desc, readOnly, type)
+
+    def __str__(self):
+        return "OP_STATE_VAR_FIELD: name=%s desc='%s' read_only=%d type=[%s]"% \
+                (self.name, self.desc, self.readOnly, str(self.type))
+
+class OPStateVarType(object):
+    SIZE = 1
+
+    TYPE_INT = 1
+    TYPE_INT_CHOICE = 2
+    TYPE_TABLE = 3
+
+    def __init__(self, type):
+        self.type = type
+
+    def pack(self):
+        return struct.pack('> B', self.type)
+
+    @staticmethod
+    def unpack(buf):
+        type = struct.unpack('> B', buf[:1])[0]
+        if type == OPStateVarType.TYPE_INT:
+            return OPSVTInt.unpack(buf)
+        elif type == OPStateVarType.TYPE_INT_CHOICE:
+            return OPSVTIntChoice.unpack(buf)
+        elif type == OPStateVarType.TYPE_TABLE:
+            return OPSVTTable.unpack(buf)
+
+    def __str__(self):
+        if self.type == OPStateVarType.TYPE_INT:
+            type = 'int'
+        elif self.type == OPStateVarType.TYPE_INT_CHOICE:
+            type = 'int_choice'
+        elif self.type == OPStateVarType.TYPE_TABLE:
+            type = 'table'
+        return "OP_STATE_VAR_TYPE: type=%s"% type
+
+class OPSVTInt(OPStateVarType):
+    DISP_INT    = 1
+    DISP_IP     = 2
+    DISP_MAC    = 3
+    DISP_BOOL   = 4
+    DISP_CHOICE = 5
+
+    def __init__(self, width, display):
+        OPStateVarType.__init__(self, OPStateVarType.TYPE_INT)
+        self.width = width
+        self.display = display
+
+    def length(self):
+        return OPStateVarType.SIZE + 1 + 1
+
+    def pack(self):
+        hdr = OPStateVarType.pack(self)
+        body = struct.pack('> B B', self.width, self.display)
+        return hdr + body
+
+    @staticmethod
+    def unpack(buf):
+        # Skip the type
+        buf = buf[1:]
+        width = struct.unpack('> B', buf[:1])[0]
+        buf = buf[1:]
+        display = struct.unpack('> B', buf[:1])[0]
+        return OPSVTInt(width, display)
+
+    def __str__(self):
+        if self.display == OPSVTInt.DISP_INT:
+            display = 'int'
+        elif self.display == OPSVTInt.DISP_IP:
+            display = 'IP'
+        elif self.display == OPSVTInt.DISP_MAC:
+            display = 'MAC'
+        elif self.display == OPSVTInt.DISP_BOOL:
+            display = 'boolean'
+        elif self.display == OPSVTInt.DISP_CHOICE:
+            display = 'choice'
+        return OPStateVarType.__str__(self) + " width=%d display=%s"%(
+                self.width, display)
+
+class OPSVTIntChoice(OPSVTInt):
+    CHOICE_LEN = 40
+
+    def __init__(self, choices):
+        OPSVTInt.__init__(self, 32, OPSVTInt.DISP_CHOICE)
+        self.type = OPStateVarType.TYPE_INT_CHOICE
+        self.choices = choices
+
+    def length(self):
+        choice_len = len(self.choices) * (4 + OPSVTIntChoice.CHOICE_LEN)
+        return OPSVTInt.length(self) + 2 + choice_len
+
+    def pack(self):
+        choice_len = len(self.choices) * (4 + OPSVTIntChoice.CHOICE_LEN)
+        hdr = OPSVTInt.pack(self)
+        body = struct.pack('> H', len(self.choices))
+        for (val, choice) in self.choices:
+            body += struct.pack('> I %us' % OPSVTIntChoice.CHOICE_LEN, val, choice)
+        return hdr + body
+
+    @staticmethod
+    def unpack(buf):
+        type = OPSVTInt.unpack(buf)
+        buf = buf[type.length():]
+        num_choices = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+        choices = []
+        for _ in xrange(num_choices):
+            val = struct.unpack('> I', buf[:4])[0]
+            buf = buf[4:]
+            choice = struct.unpack('> %us' % OPSVTIntChoice.CHOICE_LEN, buf[:OPSVTIntChoice.CHOICE_LEN])[0][:-1]
+            buf = buf[OPSVTIntChoice.CHOICE_LEN:]
+            choices.append((val, choice))
+        return OPSVTIntChoice(choices)
+
+    def __str__(self):
+        return OPSVTInt.__str__(self) + " choices=[%s]" % \
+                ''.join(["%d:'%s', "%(v, c) for (v, c) in self.choices])
+
+class OPSVTTable(OPStateVarType):
+    def __init__(self, depth, fields):
+        OPStateVarType.__init__(self, OPStateVarType.TYPE_TABLE)
+        self.depth = depth
+        self.fields = fields
+
+    def length(self):
+        field_len = 0
+        for field in self.fields:
+            field_len += field.length()
+        return OPStateVarType.SIZE + 2 + 2 + field_len
+
+    def pack(self):
+        hdr = OPStateVarType.pack(self)
+        body = struct.pack('> H H', self.depth, len(self.fields))
+        for field in self.fields:
+            body += field.pack()
+        return hdr + body
+
+    @staticmethod
+    def unpack(buf):
+        # Skip the type
+        buf = buf[1:]
+        depth = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+        num_fields = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+        fields = []
+        for _ in xrange(num_fields):
+            field = OPStateVarField.unpack(buf)
+            buf = buf[field.length():]
+            fields.append(field)
+        return OPSVTTable(depth, fields)
+
+    def __str__(self):
+        return OPStateVarType.__str__(self) + " depth=%d fields=[%s]" % \
+                (self.depth, ''.join([str(f) + ',' for f in self.fields]))
+
+
+class OPStateVarValue(object):
+    TYPE_INT = 1
+    TYPE_TABLE_ENTRY = 2
+
+    def __init__(self, name, type):
+        self.name = name
+        self.type = type
+
+    def length(self):
+        return OPStateVarField.NAME_LEN + 1
+
+    def pack(self):
+        return struct.pack('> %us B' % OPStateVarField.NAME_LEN, self.name, self.type)
+
+    @staticmethod
+    def unpack(buf):
+        type = struct.unpack('> B', buf[OPStateVarField.NAME_LEN:OPStateVarField.NAME_LEN+1])[0]
+        if type == OPStateVarValue.TYPE_INT:
+            return OPSVVInt.unpack(buf)
+        elif type == OPStateVarValue.TYPE_TABLE_ENTRY:
+            return OPSVVTableEntry.unpack(buf)
+        else:
+            raise LookupError("Unknown type '%d' while unpacking in OPStateVarValue"%type)
+
+    @staticmethod
+    def partial_unpack(buf):
+        name = struct.unpack('> %us' % OPStateVarField.NAME_LEN, buf[:OPStateVarField.NAME_LEN])[0][:-1]
+        buf = buf[OPStateVarField.NAME_LEN:]
+        type = struct.unpack('> B', buf[:1])[0]
+        buf = buf[1:]
+        return (name, type, buf)
+
+    def __str__(self):
+        if self.type == OPStateVarValue.TYPE_INT:
+            type = "integer"
+        elif self.type == OPStateVarValue.TYPE_TABLE_ENTRY:
+            type = "table_entry"
+        return "OP_STATE_VAR_VALUE: name=%s type=%s" % \
+                (self.name, type)
+
+class OPSVVInt(OPStateVarValue):
+    def __init__(self, name, width, value):
+        OPStateVarValue.__init__(self, name, OPStateVarValue.TYPE_INT)
+        self.width = width
+        self.value = value
+
+    def length(self):
+        return OPStateVarValue.length(self) + 1 + self.width
+
+    def pack(self):
+        hdr = OPStateVarValue.pack(self)
+        body = struct.pack('> B', self.width)
+        if self.width == 4:
+            body += struct.pack('> I', self.value)
+        elif self.width == 8:
+            body += struct.pack('> L', self.value)
+        return hdr + body
+
+    @staticmethod
+    def unpack(buf):
+        (name, type, buf) = OPStateVarValue.partial_unpack(buf)
+        width = struct.unpack('> B', buf[:1])[0]
+        buf = buf[1:]
+        if width == 4:
+            value = struct.unpack('> I', buf[:4])[0]
+            buf = buf[4:]
+        elif width == 8:
+            value = struct.unpack('> L', buf[:8])[0]
+            buf = buf[8:]
+        return OPSVVInt(name, width, value)
+
+    def __str__(self):
+        return OPStateVarValue.__str__(self) + " width=%d value=%d (0x%x)" % \
+                (self.width, self.value, self.value)
+
+class OPSVVTableEntry(OPStateVarValue):
+    def __init__(self, name, entry, values):
+        OPStateVarValue.__init__(self, name, OPStateVarValue.TYPE_TABLE_ENTRY)
+        self.entry = entry
+        self.values = values
+
+    def length(self):
+        val_len = 0
+        for value in self.values:
+            val_len += value.length()
+        return OPStateVarValue.length(self) + 2 + 2 + val_len
+
+    def pack(self):
+        hdr = OPStateVarValue.pack(self)
+        body = struct.pack('> HH', self.entry, len(self.values))
+        for value in self.values:
+            body += value.pack()
+        return hdr + body
+
+    @staticmethod
+    def unpack(buf):
+        (name, type, buf) = OPStateVarValue.partial_unpack(buf)
+        entry = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+        num_values = struct.unpack('> H', buf[:2])[0]
+        buf = buf[2:]
+        values = []
+        for _ in xrange(num_values):
+            value = OPStateVarValue.unpack(buf)
+            buf = buf[value.length():]
+            values.append(value)
+        return OPSVVTableEntry(name, entry, values)
+
+    def __str__(self):
+        return OPStateVarValue.__str__(self) + " entry=%d values=[%s]" % \
+                (self.entry, ''.join([str(v) + ',' for v in self.values]))
+
+
 OP_PROTOCOL = LTProtocol(OFG_MESSAGES + OP_MESSAGES, 'H', 'B')
 
 def run_op_server(port, recv_callback):

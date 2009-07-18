@@ -635,11 +635,11 @@ class OPStateVarValue(object):
         return OPStateVarField.NAME_LEN + 1
 
     def pack(self):
-        return struct.pack('> %us B' % OPStateVarField.NAME_LEN, self.name, self.type)
+        return struct.pack('> B %us' % OPStateVarField.NAME_LEN, self.type, self.name)
 
     @staticmethod
     def unpack(buf):
-        type = struct.unpack('> B', buf[OPStateVarField.NAME_LEN:OPStateVarField.NAME_LEN+1])[0]
+        type = struct.unpack('> B', buf[:1])[0]
         if type == OPStateVarValue.TYPE_INT:
             return OPSVVInt.unpack(buf)
         elif type == OPStateVarValue.TYPE_TABLE_ENTRY:
@@ -649,10 +649,10 @@ class OPStateVarValue(object):
 
     @staticmethod
     def partial_unpack(buf):
-        name = struct.unpack('> %us' % OPStateVarField.NAME_LEN, buf[:OPStateVarField.NAME_LEN])[0][:-1]
-        buf = buf[OPStateVarField.NAME_LEN:]
         type = struct.unpack('> B', buf[:1])[0]
         buf = buf[1:]
+        name = struct.unpack('> %us' % OPStateVarField.NAME_LEN, buf[:OPStateVarField.NAME_LEN])[0][:-1]
+        buf = buf[OPStateVarField.NAME_LEN:]
         return (name, type, buf)
 
     def __str__(self):

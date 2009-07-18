@@ -549,7 +549,7 @@ class OPSVTIntChoice(OPSVTInt):
     CHOICE_LEN = 40
 
     def __init__(self, choices):
-        OPSVTInt.__init__(self, 32, OPSVTInt.DISP_CHOICE)
+        OPSVTInt.__init__(self, 4, OPSVTInt.DISP_CHOICE)
         self.type = OPStateVarType.TYPE_INT_CHOICE
         self.choices = choices
 

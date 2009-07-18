@@ -5,7 +5,6 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
-import org.openflow.gui.net.SocketConnection;
 import org.openflow.gui.net.protocol.Node;
 import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;

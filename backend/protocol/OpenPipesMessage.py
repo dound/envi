@@ -132,8 +132,8 @@ class OPNodesList(OFGMessage):
         num_nodes = len(body) / OPNode.SIZE
         nodes = []
         for _ in range(num_nodes):
-            nodes.append(OPNode.unpack(body[OPNode.SIZE:]))
-            body = body[:OPNode.SIZE]
+            nodes.append(OPNode.unpack(body[:OPNode.SIZE]))
+            body = body[OPNode.SIZE:]
         return OPNodesList(nodes, xid)
 
     def __str__(self):

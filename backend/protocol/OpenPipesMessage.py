@@ -678,7 +678,7 @@ class OPSVVInt(OPStateVarValue):
         if self.width == 4:
             body += struct.pack('> I', self.value)
         elif self.width == 8:
-            body += struct.pack('> L', self.value)
+            body += struct.pack('> Q', self.value)
         return hdr + body
 
     @staticmethod
@@ -690,7 +690,7 @@ class OPSVVInt(OPStateVarValue):
             value = struct.unpack('> I', buf[:4])[0]
             buf = buf[4:]
         elif width == 8:
-            value = struct.unpack('> L', buf[:8])[0]
+            value = struct.unpack('> Q', buf[:8])[0]
             buf = buf[8:]
         return OPSVVInt(name, width, value)
 

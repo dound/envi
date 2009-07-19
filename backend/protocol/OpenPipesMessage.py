@@ -735,6 +735,94 @@ class OPSVVTableEntry(OPStateVarValue):
         return OPStateVarValue.__str__(self) + " entry=%d values=[%s]" % \
                 (self.entry, ''.join([str(v) + ',' for v in self.values]))
 
+class OPReadStateVarValues(OPNodesList):
+    NAME_LEN = 16
+
+    @staticmethod
+    def get_type():
+        return 0xF8
+
+    def __init__(self, module, values, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.module = module
+        self.values = values
+
+    def length(self):
+        return OFGMessage.SIZE + Node.SIZE + \
+                len(self.values) * OPReadStateVarValues.NAME_LEN
+
+    def pack(self):
+        valuesStr = ''
+        for v in self.values:
+            valuesStr += struct.pack('> %us'%OPReadStateVarValues.NAME_LEN, v)
+        return OFGMessage.pack(self) + self.module.pack() + valuesStr
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        module = Node.unpack(body[:Node.SIZE])
+        body = body[Node.SIZE:]
+        num_values = len(body) / OPReadStateVarValues.NAME_LEN
+        values = []
+        for _ in xrange(num_values):
+            value = struct.unpack('> %us' % OPReadStateVarValues.NAME_LEN, body[:OPReadStateVarValues.NAME_LEN])[0][:-1]
+            values.append(value)
+            body = body[OPReadStateVarValues.NAME_LEN:]
+        return OPReadStateVarValues(module, values, xid)
+
+    def __str__(self):
+        return 'OP_READ_STATE_VAR_VALUES: ' + OFGMessage.__str__(self) + \
+                ' module=%s values=[%s]' % \
+                (str(self.module), ''.join([v + ',' for v in self.values]))
+
+OFG_MESSAGES.append(OPReadStateVarValues)
+
+
+class OPSetStateVarValues(OPNodesList):
+    @staticmethod
+    def get_type():
+        return 0xF9
+
+    def __init__(self, module, values, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.module = module
+        self.values = values
+
+    def getValuesLength():
+        valuesLen = 0
+        for v in self.values:
+            valuesLen += v.length()
+
+    def length(self):
+        return OFGMessage.SIZE + Node.SIZE + 2 + self.getValuesLength()
+
+    def pack(self):
+        return OFGMessage.pack(self) + self.module.pack() + \
+                struct.pack('> H', len(self.values)) + \
+                ''.join([v.pack() for v in self.values])
+
+    @staticmethod
+    def unpack(body):
+        xid = struct.unpack('> I', body[:4])[0]
+        body = body[4:]
+        module = Node.unpack(body[:Node.SIZE])
+        body = body[Node.SIZE:]
+        num_values = struct.unpack('> H', body[:2])[0]
+        body = body[2:]
+        values = []
+        for _ in xrange(num_values):
+            value = OPStateVarValue.unpack(body)
+            values.append(value)
+            body = body[value.length():]
+        return OPSetStateVarValues(module, values, xid)
+
+    def __str__(self):
+        return "OP_SET_STATE_VAR_VALUES: " + OFGMessage.__str__(self) + ' module=%s values=[%s]' % \
+                (str(self.module), ''.join([str(v) + ',' for v in self.values]))
+
+OFG_MESSAGES.append(OPSetStateVarValues)
+
 
 OP_PROTOCOL = LTProtocol(OFG_MESSAGES + OP_MESSAGES, 'H', 'B')
 

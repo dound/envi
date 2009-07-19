@@ -735,7 +735,7 @@ class OPSVTableEntry(OPStateValue):
         return OPStateValue.__str__(self) + " entry=%d values=[%s]" % \
                 (self.entry, ''.join([str(v) + ',' for v in self.values]))
 
-class OPReadStateValues(OPNodesList):
+class OPReadStateValues(OFGMessage):
     NAME_LEN = 16
 
     @staticmethod
@@ -779,7 +779,7 @@ class OPReadStateValues(OPNodesList):
 OFG_MESSAGES.append(OPReadStateValues)
 
 
-class OPSetStateValues(OPNodesList):
+class OPSetStateValues(OFGMessage):
     @staticmethod
     def get_type():
         return 0xF9

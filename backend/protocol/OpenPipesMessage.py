@@ -467,7 +467,7 @@ class OPStateField(object):
         return OPStateField(name, desc, readOnly, type)
 
     def __str__(self):
-        return "OP_STATE_VAR_FIELD: name=%s desc='%s' read_only=%d type=[%s]"% \
+        return "OP_STATE_FIELD: name=%s desc='%s' read_only=%d type=[%s]"% \
                 (self.name, self.desc, self.readOnly, str(self.type))
 
 class OPStateType(object):
@@ -500,7 +500,7 @@ class OPStateType(object):
             type = 'int_choice'
         elif self.type == OPStateType.TYPE_TABLE:
             type = 'table'
-        return "OP_STATE_VAR_TYPE: type=%s"% type
+        return "OP_STATE_TYPE: type=%s"% type
 
 class OPSTInt(OPStateType):
     DISP_INT    = 1
@@ -660,7 +660,7 @@ class OPStateValue(object):
             type = "integer"
         elif self.type == OPStateValue.TYPE_TABLE_ENTRY:
             type = "table_entry"
-        return "OP_STATE_VAR_VALUE: name=%s type=%s" % \
+        return "OP_STATE_VALUE: name=%s type=%s" % \
                 (self.name, type)
 
 class OPSVInt(OPStateValue):
@@ -772,7 +772,7 @@ class OPReadStateValues(OPNodesList):
         return OPReadStateValues(module, values, xid)
 
     def __str__(self):
-        return 'OP_READ_STATE_VAR_VALUES: ' + OFGMessage.__str__(self) + \
+        return 'OP_READ_STATE_VALUES: ' + OFGMessage.__str__(self) + \
                 ' module=%s values=[%s]' % \
                 (str(self.module), ''.join([v + ',' for v in self.values]))
 
@@ -818,7 +818,7 @@ class OPSetStateValues(OPNodesList):
         return OPSetStateValues(module, values, xid)
 
     def __str__(self):
-        return "OP_SET_STATE_VAR_VALUES: " + OFGMessage.__str__(self) + ' module=%s values=[%s]' % \
+        return "OP_SET_STATE_VALUES: " + OFGMessage.__str__(self) + ' module=%s values=[%s]' % \
                 (str(self.module), ''.join([str(v) + ',' for v in self.values]))
 
 OFG_MESSAGES.append(OPSetStateValues)

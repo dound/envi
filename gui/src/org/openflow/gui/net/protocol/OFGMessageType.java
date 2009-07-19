@@ -107,6 +107,12 @@ public enum OFGMessageType {
     /** Reply about a module's status */
     OP_MODULE_STATUS_REPLY((byte)0xF7),
     
+    /** Read a modules state */
+    OP_READ_STATE_VALUES((byte)0xF8),
+    
+    /** Set a modules state */
+    OP_SET_STATE_VALUES((byte)0xF9),
+    
     ;
 
     /** the special value used to identify messages of this type */

@@ -681,10 +681,7 @@ public class OPConnectionHandler extends ConnectionHandler
             ports = new OPModulePort[m.ports.length];
             for (int i = 0; i < m.ports.length; i++)
                 ports[i] = new OPModulePort(m.ports[i].id, m.ports[i].name, m.ports[i].desc);
-            regs = new OPModuleReg[m.regs.length];
-            for (int i = 0; i < m.regs.length; i++)
-                regs[i] = new OPModuleReg(m.regs[i].addr, m.regs[i].name, m.regs[i].desc, m.regs[i].rdOnly);
-            return new OPModule(true, name, n.id, icon, ports, regs);
+            return new OPModule(true, name, n.id, icon, ports, m.stateFields);
         
         case TYPE_MODULE_SW:
             icon = new ShapeIcon(new Ellipse2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_BLUE, Color.BLACK);
@@ -693,10 +690,7 @@ public class OPConnectionHandler extends ConnectionHandler
             ports = new OPModulePort[m.ports.length];
             for (int i = 0; i < m.ports.length; i++)
                 ports[i] = new OPModulePort(m.ports[i].id, m.ports[i].name, m.ports[i].desc);
-            regs = new OPModuleReg[m.regs.length];
-            for (int i = 0; i < m.regs.length; i++)
-                regs[i] = new OPModuleReg(m.regs[i].addr, m.regs[i].name, m.regs[i].desc, m.regs[i].rdOnly);
-            return new OPModule(false, name, n.id, icon, ports, regs);
+            return new OPModule(false, name, n.id, icon, ports, m.stateFields);
             
         default:
             return super.processNodeAdd(n);

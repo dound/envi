@@ -4,22 +4,23 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 
 import org.openflow.gui.net.protocol.NodeType;
+import org.openflow.gui.net.protocol.op.OPStateField;
 import org.pzgui.icon.Icon;
 
 public class OPModule extends OPNodeWithNameAndPorts {
     /** List of ports associated with the module */
     private OPModulePort ports[];
 
-    /** List of registers associated with the module */
-    private OPModuleReg regs[];
+    /** List of state fields associated with the module */
+    private OPStateField stateFields[];
 
     /**
      * Creates a new "original" module (isOriginal() will return true).
      */
-    public OPModule(boolean hw, String name, long id, Icon icon, OPModulePort ports[], OPModuleReg regs[]) {
+    public OPModule(boolean hw, String name, long id, Icon icon, OPModulePort ports[], OPStateField stateFields[]) {
         super(hw ? NodeType.TYPE_MODULE_HW : NodeType.TYPE_MODULE_SW, name, id, icon);
         this.ports = ports;
-        this.regs = regs;
+        this.stateFields = stateFields;
         if(getCopyID() != 0)
             throw new Error("Error: copy ID should be 0 for original modules!  Got: " + getCopyID());
         setNameColor(Color.WHITE);
@@ -39,7 +40,7 @@ public class OPModule extends OPNodeWithNameAndPorts {
     public OPModule(OPModule mToCopy, long newID) {
         super(mToCopy.getType(), mToCopy.getName(), newID, mToCopy.getIcon());
         ports = mToCopy.ports;
-        regs = mToCopy.regs;
+        stateFields = mToCopy.stateFields;
         original = false;
         setNameColor(Color.YELLOW);
     }
@@ -198,7 +199,7 @@ public class OPModule extends OPNodeWithNameAndPorts {
         return ports;
     }
 
-    public OPModuleReg[] getRegs() {
-        return regs;
+    public OPStateField[] getStateFields() {
+        return stateFields;
     }
 }

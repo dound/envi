@@ -37,22 +37,22 @@ public class OPModule extends Node {
     /** name of the module */
     public final String name;
     public final OPModulePort ports[];
-    public final OPModuleReg regs[];
+    public final OPStateField stateFields[];
     
     public OPModule(DataInput in) throws IOException {
         super(in);
         name = SocketConnection.readString(in, NAME_LEN);
 
-        int num_ports = in.readShort();
-        ports = new OPModulePort[num_ports];
-        for (int i = 0; i < num_ports; i++) {
+        int numPorts = in.readShort();
+        ports = new OPModulePort[numPorts];
+        for (int i = 0; i < numPorts; i++) {
             ports[i] = new OPModulePort(in);
         }
 
-        int num_regs = in.readShort();
-        regs = new OPModuleReg[num_regs];
-        for (int i = 0; i < num_regs; i++) {
-            regs[i] = new OPModuleReg(in);
+        int numStateFields = in.readShort();
+        stateFields = new OPStateField[numStateFields];
+        for (int i = 0; i < numStateFields; i++) {
+            stateFields[i] = new OPStateField(in);
         }
     }
 
@@ -70,17 +70,17 @@ public class OPModule extends Node {
         for(int i=1; i<ports.length; i++)
             strPorts += ", " + ports[i].toString();
 
-        String strRegs;
-        if(regs.length > 0)
-            strRegs = regs[0].toString();
+        String strStateFields;
+        if(stateFields.length > 0)
+            strStateFields = stateFields[0].toString();
         else
-            strRegs = "";
+            strStateFields = "";
 
-        for(int i=1; i<regs.length; i++)
-            strRegs += ", " + regs[i].toString();
+        for(int i=1; i<stateFields.length; i++)
+            strStateFields += ", " + stateFields[i].toString();
 
 
         return nodeType + "{" + DPIDUtil.toString(extractModuleID(id)) + "}-" + extractCopyID(id) + ":" + name +
-        "-Ports[" + strPorts + "]" + "-Regs[" + strRegs + "]";
+        "-Ports[" + strPorts + "]" + "-StateFields[" + strStateFields + "]";
     }
 }

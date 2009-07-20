@@ -105,6 +105,38 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
             super();
             this.window = w;
         }
+        protected void paintComponent(Graphics g) {
+            // update the title of the GUI
+            if(getCustomTitle() == null) {
+                int id = manager.getWindowIndex(window);
+                if(id != 0)
+                    setTitle(getTitle() + " (view " + (id+1) + ")");
+                else
+                    setTitle(getTitle());
+            }
+
+            synchronized(imgLock) {
+                // redraw the scene
+                manager.preRedraw(window);
+                manager.redraw(window);
+
+                // copy the image buffer into the JLabel on the JFrame
+                Graphics cg = g;//lblCanvas.getGraphics();
+                if(cg != null)
+                    cg.drawImage(img, 0, 0, null);
+
+                // save a screenshot if one was requested
+                if(saveScreenshotName != null) {
+                    try {
+                        ImageIO.write(img, "png", new java.io.File(saveScreenshotName));
+                    }
+                    catch(java.io.IOException e) {
+                        DialogHelper.displayError("Screenshot could not be saved: " + e);
+                    }
+                    saveScreenshotName = null;
+                }
+            }
+        }
     }
     
     /** canvas to draw the scene on */

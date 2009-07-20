@@ -542,7 +542,8 @@ public class PZManager extends Thread {
                         first = false;
 
                     // redraw the window's content
-                    display.redraw();
+                    //display.redraw();
+                    display.repaint();
 
                     // save this display's position and size in case the next window docks to it
                     prevPos.set(curPos);

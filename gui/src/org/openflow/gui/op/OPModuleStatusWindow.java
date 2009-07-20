@@ -20,7 +20,9 @@ import org.openflow.gui.drawables.OPModule;
 import org.openflow.gui.net.protocol.op.OPSTInt;
 import org.openflow.gui.net.protocol.op.OPSTIntChoice;
 import org.openflow.gui.net.protocol.op.OPSVInt;
+import org.openflow.gui.net.protocol.op.OPSetStateValues;
 import org.openflow.gui.net.protocol.op.OPStateField;
+import org.openflow.gui.net.protocol.op.OPStateValue;
 import org.openflow.util.Pair;
 
 /**
@@ -237,5 +239,91 @@ public class OPModuleStatusWindow {
         SpringLayout layout = (SpringLayout) parent.getLayout();
         Component c = parent.getComponent(row * cols + col);
         return layout.getConstraints(c);
+    }
+
+    /** Update the status values */
+    public void setStatusValues(OPSetStateValues msg) {
+        System.out.println(msg.module.toString());
+        System.out.println(module.toString());
+        if (module.getType() == msg.module.nodeType && module.getID() == msg.module.id) {
+            // Walk through the list of values and update them in the GUI
+            for (OPStateValue v : msg.values) {
+                if (v instanceof OPSVInt) {
+                    OPSVInt intVal = (OPSVInt)v;
+                    String name = intVal.name;
+                    Pair<OPStateField, JComponent> p = fieldMap.get(name);
+                    OPStateField f = p.a;
+                    JComponent c = p.b;
+                    if (c == null)
+                        throw new UnsupportedOperationException("WARNING: Unknown field '" + name + "'");
+
+                    updateIntField(intVal, f, c);
+                }
+                else {
+                    throw new UnsupportedOperationException("WARNING: Unimplemented value type encountered");
+                }
+            }
+        }
+    }
+
+    /** update an integer field */
+    private void updateIntField(OPSVInt intVal, OPStateField f, JComponent c) {
+        if (c instanceof JLabel) {
+            ((JLabel) c).setText(intValToStr(intVal, f, false));
+        }
+        else if (c instanceof JTextField) {
+            ((JTextField) c).setText(intValToStr(intVal, f, true));
+        }
+        else if (c instanceof JComboBox) {
+            ((JComboBox) c).setSelectedIndex(intValToIndex(intVal, f));
+        }
+        else if (c instanceof JCheckBox) {
+            ((JCheckBox) c).setSelected(intVal.value != 0);
+        }
+    }
+
+    private int intValToIndex(OPSVInt intVal, OPStateField f) {
+        OPSTIntChoice type = (OPSTIntChoice)f.type;
+        for (int i = 0; i < type.choices.size(); i++) {
+            Pair<Integer, String> p = type.choices.get(i);
+            if (p.a.longValue() == intVal.value) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    private String intValToStr(OPSVInt intVal, OPStateField f, boolean longDisplay) {
+        OPSTInt type = (OPSTInt)f.type;
+        switch (type.display) {
+            case OPSTInt.DISP_INT:
+                if (longDisplay) {
+                    if (type.width <= 4)
+                        return String.format("%d (0x%04x)", intVal.value, intVal.value);
+                    else
+                        return String.format("%d (0x%08x)", intVal.value, intVal.value);
+                }
+                else
+                    return String.format("%d", intVal.value);
+
+            case OPSTInt.DISP_IP:
+                int ipOctet[] = new int[4];
+                for (int i = 0; i < 4; i++) {
+                    ipOctet[i] = (int)((intVal.value >> ((3 - i) * 8)) & 0xff);
+                }
+                return String.format("%d.%d.%d.%d", ipOctet[0], ipOctet[1], ipOctet[2], ipOctet[3]);
+
+            case OPSTInt.DISP_MAC:
+                int macOctet[] = new int[8];
+                for (int i = 0; i < 8; i++) {
+                    macOctet[i] = (int)((intVal.value >> ((7 - i) * 8)) & 0xff);
+                }
+                return String.format("%02x:%02x:%02x:%02x:%02x:%02x",
+                        macOctet[2], macOctet[3], macOctet[4],
+                        macOctet[5], macOctet[6], macOctet[7]);
+
+            default:
+                return String.format("%d", intVal.value);
+        }
     }
 }

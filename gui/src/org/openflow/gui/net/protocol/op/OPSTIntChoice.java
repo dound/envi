@@ -23,7 +23,11 @@ public class OPSTIntChoice extends OPSTInt {
     public OPSTIntChoice(DataInput in) throws IOException {
         super(4, DISP_CHOICE);
         
-        int numChoices = in.readInt();
+        // Read the width and the display
+        int width = in.readByte();
+        int display = in.readByte();
+        
+        int numChoices = in.readShort();
         choices = new ArrayList<Pair<Integer, String>>();
 
         for (int i = 0; i < numChoices; i++) {

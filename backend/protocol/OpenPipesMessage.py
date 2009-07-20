@@ -193,25 +193,25 @@ class OPModule(Node):
 
         return (cid << 32L) | mid
 
-    def __init__(self, node_type, node_id, name, ports, regs):
+    def __init__(self, node_type, node_id, name, ports, state_fields):
         Node.__init__(self, node_type, node_id)
         self.name = str(name)
         self.ports = ports
-        self.regs = regs
+        self.state_fields = state_fields
 
     def length(self):
         port_size = 0
         for p in self.ports:
             port_size += p.length()
-        reg_size = 0
-        for r in self.regs:
-            reg_size += r.length()
-        return OPModule.SIZE + 2 + port_size + 2 + reg_size
+        state_size = 0
+        for s in self.state_fields:
+            state_size += s.length()
+        return OPModule.SIZE + 2 + port_size + 2 + state_size
 
     def pack(self):
         return Node.pack(self) + struct.pack('> %us H' % OPModule.NAME_LEN, self.name, len(self.ports)) + \
-                ''.join([p.pack() for p in self.ports]) + struct.pack('> H', len(self.regs)) + \
-                ''.join([r.pack() for r in self.regs])
+                ''.join([p.pack() for p in self.ports]) + struct.pack('> H', len(self.state_fields)) + \
+                ''.join([s.pack() for s in self.state_fields])
 
     @staticmethod
     def unpack(buf):
@@ -228,18 +228,18 @@ class OPModule(Node):
             port = OPModulePort.unpack(buf)
             ports.append(port)
             buf = buf[port.length():]
-        num_regs = struct.unpack('> H', buf[:2])[0]
+        num_state_vars = struct.unpack('> H', buf[:2])[0]
         buf = buf[2:]
-        regs = []
-        for _ in range(num_regs):
-            reg = OPModuleReg.unpack(buf)
-            regs.append(reg)
-            buf = buf[reg.length():]
-        return OPModule(node_type, node_id, name, ports, regs)
+        state_fields = []
+        for _ in range(num_state_vars):
+            field = OPStateField.unpack(buf)
+            state_fields.append(field)
+            buf = buf[field.length():]
+        return OPModule(node_type, node_id, name, ports, state_fields)
 
     def __str__(self):
         return Node.__str__(self) + ' ports=[%s]' % ''.join([str(p) + ',' for p in self.ports]) + \
-                ' regs=[%s]' % ''.join([str(r) + ',' for r in self.regs])
+                ' state_fields=[%s]' % ''.join([str(s) + ',' for s in self.state_fields])
 
 class OPModulesList(OFGMessage):
     def __init__(self, modules, xid=0):

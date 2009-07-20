@@ -32,6 +32,7 @@ import org.openflow.util.Pair;
 public class OPModuleStatusWindow {
     public static final String TITLE = "Module State Inspector";
     public static final Dimension DEFAULT_SIZE = new Dimension(400, 300);
+    public static final int PREFERRED_COMP_WIDTH = 200;
     
     /** window in which to display the module status */
     private JFrame window;
@@ -129,12 +130,16 @@ public class OPModuleStatusWindow {
                     else {
                         throw new UnsupportedOperationException("WARNING: Unimplemented field type encountered");
                     }
-                    
+
+                    Dimension d = c.getPreferredSize();
+                    d.setSize(PREFERRED_COMP_WIDTH, d.height);
+                    c.setPreferredSize(d);
+
                     l.setLabelFor(c);
                     fieldPane.add(c);
                     fieldMap.put(f.name, new Pair<OPStateField, JComponent>(f, c));
                 }
-                
+
                 makeCompactGrid(fieldPane, rows, 2, 6, 6, 6, 6);
                 window.setContentPane(contentPane);
                 window.validate();

@@ -9,6 +9,7 @@ import org.openflow.gui.net.protocol.op.OPModulesDel;
 import org.openflow.gui.net.protocol.op.OPMoveModule;
 import org.openflow.gui.net.protocol.op.OPNodesAdd;
 import org.openflow.gui.net.protocol.op.OPNodesDel;
+import org.openflow.gui.net.protocol.op.OPSetStateValues;
 import org.openflow.gui.net.protocol.op.OPTestInfo;
 import org.openflow.gui.net.protocol.auth.*;
 import org.openflow.protocol.StatsType;
@@ -204,6 +205,9 @@ public enum OFGMessageType {
 
             case OP_MOVE_MODULE:
                 return new OPMoveModule(len, xid, in);
+
+            case OP_SET_STATE_VALUES:
+                return new OPSetStateValues(len, xid, in);
 
             case ECHO_REQUEST:
             case ECHO_REPLY:

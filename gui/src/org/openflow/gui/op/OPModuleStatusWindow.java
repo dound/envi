@@ -41,7 +41,7 @@ public class OPModuleStatusWindow {
     private JPanel contentPane;
     
     /** Map of components to fields */
-    private HashMap<OPStateField, JComponent> fieldMap;
+    private HashMap<String, Pair<OPStateField, JComponent>> fieldMap;
     
     public OPModuleStatusWindow() {
         window = new JFrame();
@@ -91,7 +91,7 @@ public class OPModuleStatusWindow {
                 gl.setHorizontalGroup(horizGrp);
                 gl.setVerticalGroup(vertGrp);
                 
-                fieldMap = new HashMap<OPStateField, JComponent>();
+                fieldMap = new HashMap<String, Pair<OPStateField, JComponent>>();
                 int rows = 0;
                 for (OPStateField f : fields) {
                     rows++;
@@ -122,7 +122,7 @@ public class OPModuleStatusWindow {
                     
                     l.setLabelFor(c);
                     fieldPane.add(c);
-                    fieldMap.put(f, c);
+                    fieldMap.put(f.name, new Pair<OPStateField, JComponent>(f, c));
                 }
                 
                 makeCompactGrid(fieldPane, rows, 2, 6, 6, 6, 6);

@@ -26,10 +26,10 @@ public class OPSetStateValues extends OFGMessage {
 
     public OPSetStateValues(final int len, final int xid, DataInput in) throws IOException {
         super(OFGMessageType.OP_SET_STATE_VALUES, xid);
-        
+
         module = new Node(in);
-        
-        int numValues = in.readInt();
+
+        int numValues = in.readShort();
         values = new OPStateValue[numValues];
         
         for (int i = 0; i < numValues; i++)

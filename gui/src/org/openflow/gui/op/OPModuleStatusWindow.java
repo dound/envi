@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.util.HashMap;
 
 import javax.swing.GroupLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -18,6 +19,7 @@ import javax.swing.SpringLayout;
 import org.openflow.gui.drawables.OPModule;
 import org.openflow.gui.net.protocol.op.OPSTInt;
 import org.openflow.gui.net.protocol.op.OPSTIntChoice;
+import org.openflow.gui.net.protocol.op.OPSVInt;
 import org.openflow.gui.net.protocol.op.OPStateField;
 import org.openflow.util.Pair;
 
@@ -111,10 +113,18 @@ public class OPModuleStatusWindow {
                             c.setEnabled(false);
                     }
                     else if (f.type instanceof OPSTInt) {
-                        if (f.readOnly)
-                            c = new JLabel();
-                        else
-                            c = new JTextField();
+                        OPSTInt intType = (OPSTInt)f.type;
+                        if (intType.display == OPSTInt.DISP_BOOL) {
+                            c = new JCheckBox();
+                            c.setEnabled(!f.readOnly);
+                        }
+                        else {
+                            if (f.readOnly)
+                                c = new JLabel();
+                            else {
+                                c = new JTextField();
+                            }
+                        }
                     }
                     else {
                         throw new UnsupportedOperationException("WARNING: Unimplemented field type encountered");

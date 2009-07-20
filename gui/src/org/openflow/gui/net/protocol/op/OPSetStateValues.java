@@ -17,14 +17,14 @@ import org.openflow.gui.net.protocol.OFGMessageType;
  * @author grg
  *
  */
-public class OFSetStateValues extends OFGMessage {
+public class OPSetStateValues extends OFGMessage {
     /** the module on which to set state */
     public final Node module;
     
     /** List of state values */
     public final OPStateValue[] values;
 
-    public OFSetStateValues(final int len, final int xid, DataInput in) throws IOException {
+    public OPSetStateValues(final int len, final int xid, DataInput in) throws IOException {
         super(OFGMessageType.OP_SET_STATE_VALUES, xid);
         
         module = new Node(in);

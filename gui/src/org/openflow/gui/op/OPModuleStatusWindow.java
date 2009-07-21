@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
@@ -19,6 +20,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.Spring;
@@ -458,7 +460,32 @@ public class OPModuleStatusWindow {
                 System.out.println(f.name + " set to " + value);
             }
             catch (NumberFormatException nfe) {
-                throw nfe;
+                String displayStr;
+                if (type.display == OPSTInt.DISP_IP)
+                    displayStr = "IP address";
+                else if (type.display == OPSTInt.DISP_MAC)
+                    displayStr = "MAC address";
+                else
+                    displayStr = "integer";
+
+                // Temporarily remove all focus listeners, display a warning
+                // then restore the focus listeners
+                FocusListener[] listeners = tf.getFocusListeners();
+                for (FocusListener listener : listeners)
+                    tf.removeFocusListener(listener);
+                JOptionPane.showMessageDialog(window,
+                        "'" + valStr + "' is not a valid " + displayStr,
+                        "Invalid input", JOptionPane.ERROR_MESSAGE);
+                for (FocusListener listener : listeners)
+                    tf.addFocusListener(listener);
+
+                // Reset the text and set focus to the component
+                if (v != null)
+                    tf.setText(intValToStr((OPSVInt)v, f, false));
+                else
+                    tf.setText("");
+                tf.selectAll();
+                tf.requestFocusInWindow();
             }
         }
         else {

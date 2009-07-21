@@ -47,6 +47,7 @@ import org.openflow.gui.net.protocol.op.OPModulesAdd;
 import org.openflow.gui.net.protocol.op.OPMoveModule;
 import org.openflow.gui.net.protocol.op.OPNodesAdd;
 import org.openflow.gui.net.protocol.op.OPNodesDel;
+import org.openflow.gui.net.protocol.op.OPSetStateValues;
 import org.openflow.gui.net.protocol.op.OPTestInfo;
 import org.openflow.util.Pair;
 
@@ -69,6 +70,9 @@ public class OPConnectionHandler extends ConnectionHandler
 
     /** last requesting component */
     private JComponent currMSRComponent;
+
+    /** Module status window */
+    private OPModuleStatusWindow statusWindow;
 
     /** 
      * Configuration of the network.  This map tracks which nodes have which 
@@ -118,6 +122,10 @@ public class OPConnectionHandler extends ConnectionHandler
         
         manager.addDrawable(testInput);
         manager.addDrawable(testOutput);
+
+        // Create a the module status window
+        statusWindow = new OPModuleStatusWindow();
+        statusWindow.setVisible(true);
 
         // Set the tooltip delay
         ToolTipManager.sharedInstance().setDismissDelay(TOOLTIP_DISMISS_DELAY);
@@ -322,6 +330,9 @@ public class OPConnectionHandler extends ConnectionHandler
         if(n == null)
             return;
         
+        // Set the module who's status we're showing
+        statusWindow.showModule(m);
+
         // send a request for the module's status
         org.openflow.gui.net.protocol.Node msgN = new org.openflow.gui.net.protocol.Node(n.getType(), n.getID());
         org.openflow.gui.net.protocol.Node msgM = new org.openflow.gui.net.protocol.Node(m.getType(), m.getID());
@@ -604,6 +615,10 @@ public class OPConnectionHandler extends ConnectionHandler
         case OP_MOVE_MODULE:
             moveModule((OPMoveModule)msg);
             break;
+            
+        case OP_SET_STATE_VALUES:
+            setStateValues((OPSetStateValues)msg);
+            break;
         
         default:
             super.process(msg);
@@ -731,6 +746,11 @@ public class OPConnectionHandler extends ConnectionHandler
         System.err.println("Got module status for an unknown module on node " + value.a + ": " + msg);
     }
     
+    private void setStateValues(OPSetStateValues msg) {
+        Runnable updateModuleStatusWindow = new ModuleStatusWindowUpdater(statusWindow, msg);
+        SwingUtilities.invokeLater(updateModuleStatusWindow);
+    }
+
     /** handles displaying test info */
     private void processTestInfo(OPTestInfo msg) {
         testInput.setName(msg.input);
@@ -790,6 +810,24 @@ public class OPConnectionHandler extends ConnectionHandler
 
         public void run() {
             OPConnectionHandler.this.setToolTip(comp, module, status);
+        }
+    }
+    
+    /**
+     * Class to update the module status window. 
+     * Used in calls to SwingUtilities.invokeLater
+     */
+    private class ModuleStatusWindowUpdater implements Runnable {
+        private OPModuleStatusWindow window;
+        private OPSetStateValues msg;
+
+        public ModuleStatusWindowUpdater(OPModuleStatusWindow w, OPSetStateValues msg) {
+            this.window = w;
+            this.msg = msg;
+        }
+
+        public void run() {
+            window.setStatusValues(msg);
         }
     }
 }

@@ -183,7 +183,7 @@ public class OPModuleStatusWindow {
                 makeCompactGrid(fieldPane, rows, 2, 6, 6, 6, 6);
                 window.setContentPane(contentPane);
                 window.validate();
-//                window.pack();
+                //                window.pack();
             }
         }
         else {
@@ -242,9 +242,9 @@ public class OPModuleStatusWindow {
      * @param yPad y padding between cells
      */
     private void makeCompactGrid(Container parent,
-                                       int rows, int cols,
-                                       int initialX, int initialY,
-                                       int xPad, int yPad) {
+            int rows, int cols,
+            int initialX, int initialY,
+            int xPad, int yPad) {
         SpringLayout layout;
         try {
             layout = (SpringLayout)parent.getLayout();
@@ -259,12 +259,12 @@ public class OPModuleStatusWindow {
             Spring width = Spring.constant(0);
             for (int r = 0; r < rows; r++) {
                 width = Spring.max(width,
-                                   getConstraintsForCell(r, c, parent, cols).
-                                       getWidth());
+                        getConstraintsForCell(r, c, parent, cols).
+                        getWidth());
             }
             for (int r = 0; r < rows; r++) {
                 SpringLayout.Constraints constraints =
-                        getConstraintsForCell(r, c, parent, cols);
+                    getConstraintsForCell(r, c, parent, cols);
                 constraints.setX(x);
                 constraints.setWidth(width);
             }
@@ -277,12 +277,12 @@ public class OPModuleStatusWindow {
             Spring height = Spring.constant(0);
             for (int c = 0; c < cols; c++) {
                 height = Spring.max(height,
-                                    getConstraintsForCell(r, c, parent, cols).
-                                        getHeight());
+                        getConstraintsForCell(r, c, parent, cols).
+                        getHeight());
             }
             for (int c = 0; c < cols; c++) {
                 SpringLayout.Constraints constraints =
-                        getConstraintsForCell(r, c, parent, cols);
+                    getConstraintsForCell(r, c, parent, cols);
                 constraints.setY(y);
                 constraints.setHeight(height);
             }
@@ -297,9 +297,9 @@ public class OPModuleStatusWindow {
 
     /* Used by makeCompactGrid. */
     private SpringLayout.Constraints getConstraintsForCell(
-                                                int row, int col,
-                                                Container parent,
-                                                int cols) {
+            int row, int col,
+            Container parent,
+            int cols) {
         SpringLayout layout = (SpringLayout) parent.getLayout();
         Component c = parent.getComponent(row * cols + col);
         return layout.getConstraints(c);
@@ -310,9 +310,10 @@ public class OPModuleStatusWindow {
         if (module.getType() == msg.module.nodeType && module.getID() == msg.module.id) {
             // Walk through the list of values and update them in the GUI
             for (OPStateValue v : msg.values) {
+                String name = v.name;
+                fieldValues.put(name, v);
                 if (v instanceof OPSVInt) {
                     OPSVInt intVal = (OPSVInt)v;
-                    String name = intVal.name;
                     OPStateField f = fieldMap.get(name);
                     JComponent c = fieldComps.get(name);
                     if (c == null)

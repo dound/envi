@@ -6,7 +6,6 @@ package org.openflow.gui.net.protocol.op;
 import java.io.DataInput;
 import java.io.IOException;
 
-import org.openflow.gui.net.SocketConnection;
 import org.openflow.gui.net.protocol.Node;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.OFGMessageType;

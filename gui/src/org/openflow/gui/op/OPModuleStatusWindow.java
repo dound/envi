@@ -171,6 +171,7 @@ public class OPModuleStatusWindow {
                     Dimension d = c.getPreferredSize();
                     d.setSize(PREFERRED_COMP_WIDTH, d.height);
                     c.setPreferredSize(d);
+                    addUpdateListeners(c);
 
                     l.setLabelFor(c);
                     fieldPane.add(c);
@@ -188,6 +189,32 @@ public class OPModuleStatusWindow {
         else {
             window.setTitle(TITLE);
             createEmptyContentPane("No selected module");
+        }
+    }
+
+    /**
+     * Add listeners to a component to ensure that messages
+     * are sent to the backend
+     *
+     * @param c Component to attach listeners to
+     */
+    private void addUpdateListeners(JComponent c) {
+        if (!c.isEnabled())
+            // Don't need to do anything if the component is not enabled.
+            // In this case the user can't modify it.
+            return;
+
+        if (c instanceof JLabel) {
+            // Do nothing -- no listeners needed
+        }
+        else if (c instanceof JTextField) {
+            JTextField tf = (JTextField)c;
+        }
+        else if (c instanceof JComboBox) {
+            JComboBox cb = (JComboBox)c;
+        }
+        else if (c instanceof JCheckBox) {
+            JCheckBox cb = (JCheckBox)c;
         }
     }
 

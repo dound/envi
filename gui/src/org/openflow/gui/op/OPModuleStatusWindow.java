@@ -3,9 +3,14 @@ package org.openflow.gui.op;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.HashMap;
 
 import javax.swing.GroupLayout;
@@ -18,7 +23,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.Spring;
 import javax.swing.SpringLayout;
-
 import org.openflow.gui.drawables.OPModule;
 import org.openflow.gui.net.protocol.op.OPSTInt;
 import org.openflow.gui.net.protocol.op.OPSTIntChoice;
@@ -214,12 +218,40 @@ public class OPModuleStatusWindow {
         }
         else if (c instanceof JTextField) {
             JTextField tf = (JTextField)c;
+            tf.addFocusListener(new FocusAdapter() {
+                public void focusLost(FocusEvent e) {
+                    validateTextField((JTextField)e.getComponent());
+                }
+            });
+            tf.addKeyListener(new KeyAdapter() {
+                public void keyPressed(KeyEvent e) {
+                    int key = e.getKeyCode();
+                    if (key == KeyEvent.VK_ENTER)
+                        validateTextField((JTextField)e.getComponent());
+                    else if (key == KeyEvent.VK_ESCAPE)
+                        resetTextField((JTextField)e.getComponent());
+                }
+            });
         }
         else if (c instanceof JComboBox) {
             JComboBox cb = (JComboBox)c;
+            cb.addActionListener(new ActionListener() {
+                
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    processComboBoxChange((JComboBox)e.getSource());
+                }
+            });
         }
         else if (c instanceof JCheckBox) {
             JCheckBox cb = (JCheckBox)c;
+            cb.addItemListener(new ItemListener() {
+                
+                @Override
+                public void itemStateChanged(ItemEvent e) {
+                    processCheckBoxChange((JCheckBox)e.getSource());
+                }
+            });
         }
     }
 
@@ -411,40 +443,60 @@ public class OPModuleStatusWindow {
         }
     }
 
-    private class TextFieldFocusListener implements FocusListener {
+    private void validateTextField(JTextField tf) {
+        String valStr = tf.getText();
 
-        @Override
-        public void focusGained(FocusEvent arg0) {
-            // Don't do anything
+        // Get the StateField and StateValue
+        OPStateField f = compsToFields.get(tf);
+        OPStateValue v = fieldValues.get(f.name);
 
-        }
-
-        @Override
-        public void focusLost(FocusEvent e) {
-            // Get the component
-            JTextField tf = (JTextField)e.getComponent();
-            String valStr = tf.getText();
-
-            // Get the StateField and StateValue
-            OPStateField f = compsToFields.get(tf);
-            OPStateValue v = fieldValues.get(f.name);
-
-            // If the text is non-empty then convert and send a message
-            if (!valStr.equals("")) {
-                OPSTInt type = (OPSTInt)f.type;
-                try {
-                    long value = strToIntVal(valStr, type);
-                }
-                catch (NumberFormatException nfe) {
-
-                }
+        // If the text is non-empty then convert and send a message
+        if (!valStr.equals("")) {
+            OPSTInt type = (OPSTInt)f.type;
+            try {
+                long value = strToIntVal(valStr, type);
+                System.out.println(f.name + " set to " + value);
             }
-            else {
-                if (v != null) {
-                    OPSVInt intVal = (OPSVInt)v;
-                    tf.setText(intValToStr(intVal, f, false));
-                }
+            catch (NumberFormatException nfe) {
+                throw nfe;
             }
         }
+        else {
+            if (v != null) {
+                OPSVInt intVal = (OPSVInt)v;
+                tf.setText(intValToStr(intVal, f, false));
+            }
+        }
+    }
+    
+    private void resetTextField(JTextField tf) {
+        // Get the StateField and StateValue
+        OPStateField f = compsToFields.get(tf);
+        OPStateValue v = fieldValues.get(f.name);
+
+        // If the text is non-empty then convert and send a message
+        if (v != null) {
+            OPSVInt intVal = (OPSVInt)v;
+            tf.setText(intValToStr(intVal, f, false));
+        }
+        else {
+            tf.setText("");
+        }
+    }
+    
+    private void processComboBoxChange(JComboBox cb) {
+        OPStateField f = compsToFields.get(cb);
+        OPSTIntChoice intChoice = (OPSTIntChoice)f.type;
+        
+        Pair<Integer, String> choice = intChoice.choices.get(cb.getSelectedIndex());
+        System.out.println(f.name + " set to " + choice.b + " (" + choice.a + ")");
+    }
+
+    private void processCheckBoxChange(JCheckBox cb) {
+        // Get the StateField
+        OPStateField f = compsToFields.get(cb);
+        
+        System.out.println(f.name + " " + (cb.isSelected() ? "selected" : "deselected"));
+        
     }
 }

@@ -243,8 +243,6 @@ public class OPModuleStatusWindow {
 
     /** Update the status values */
     public void setStatusValues(OPSetStateValues msg) {
-        System.out.println(msg.module.toString());
-        System.out.println(module.toString());
         if (module.getType() == msg.module.nodeType && module.getID() == msg.module.id) {
             // Walk through the list of values and update them in the GUI
             for (OPStateValue v : msg.values) {

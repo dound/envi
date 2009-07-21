@@ -45,8 +45,17 @@ public class OPModuleStatusWindow {
     /** Panel to use as the content pane */
     private JPanel contentPane;
     
+    /** Map of names to components */
+    private HashMap<String, OPStateField> fieldMap;
+    
+    /** Map of names to components */
+    private HashMap<String, JComponent> fieldComps;
+    
+    /** Map of names to values */
+    private HashMap<String, OPStateValue> fieldValues;
+    
     /** Map of components to fields */
-    private HashMap<String, Pair<OPStateField, JComponent>> fieldMap;
+    private HashMap<JComponent, OPStateField> compsToFields;
     
     public OPModuleStatusWindow() {
         window = new JFrame();
@@ -60,18 +69,45 @@ public class OPModuleStatusWindow {
         
         module = m;
         if (window.isVisible()) {
+            updateInternalState();
             updateDisplay();
         }
     }
     
     public void setVisible(boolean visible) {
         if (window.isVisible() != visible) {
-            if (visible)
+            if (visible) {
+                updateInternalState();
                 updateDisplay();
+            }
             window.setVisible(visible);
         }
     }
 
+    /**
+     * Update the internal state
+     */
+    private void updateInternalState() {
+        if (module != null) {
+            // Create new maps
+            fieldMap = new HashMap<String, OPStateField>();
+            fieldComps = new HashMap<String, JComponent>();
+            fieldValues = new HashMap<String, OPStateValue>();
+            compsToFields = new HashMap<JComponent, OPStateField>();
+
+            // Populate the field map
+            for (OPStateField f : module.getStateFields()) {
+                fieldMap.put(f.name, f);
+            }
+        }
+        else {
+            fieldMap = null;
+            fieldComps = null;
+            fieldValues = null;
+            compsToFields = null;
+        }
+    }
+    
     /**
      * Update the display to reflect the currently displayed module
      */
@@ -96,7 +132,6 @@ public class OPModuleStatusWindow {
                 gl.setHorizontalGroup(horizGrp);
                 gl.setVerticalGroup(vertGrp);
                 
-                fieldMap = new HashMap<String, Pair<OPStateField, JComponent>>();
                 int rows = 0;
                 for (OPStateField f : fields) {
                     rows++;
@@ -139,7 +174,9 @@ public class OPModuleStatusWindow {
 
                     l.setLabelFor(c);
                     fieldPane.add(c);
-                    fieldMap.put(f.name, new Pair<OPStateField, JComponent>(f, c));
+                    fieldMap.put(f.name, f);
+                    fieldComps.put(f.name, c);
+                    compsToFields.put(c, f);
                 }
 
                 makeCompactGrid(fieldPane, rows, 2, 6, 6, 6, 6);

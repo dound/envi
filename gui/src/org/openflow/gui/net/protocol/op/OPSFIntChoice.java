@@ -14,14 +14,14 @@ import org.openflow.util.Pair;
  * @author grg
  *
  */
-public class OPSTIntChoice extends OPSTInt {
+public class OPSFIntChoice extends OPSFInt {
     public static final int CHOICE_LEN = 40;
     
     /** List of choices */
     public final ArrayList<Pair<Integer, String>> choices;
     
-    public OPSTIntChoice(DataInput in) throws IOException {
-        super(4, DISP_CHOICE);
+    public OPSFIntChoice(String name, String desc, boolean readOnly, DataInput in) throws IOException {
+        super(name, desc, readOnly, 4, DISP_CHOICE);
         
         // Read the width and the display
         int width = in.readByte();

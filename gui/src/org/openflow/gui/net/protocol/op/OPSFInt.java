@@ -12,7 +12,7 @@ import java.io.IOException;
  * @author grg
  *
  */
-public class OPSTInt extends OPStateType {
+public class OPSFInt extends OPStateField {
     public static final int DISP_INT 	= 1;
     public static final int DISP_IP 	= 2;
     public static final int DISP_MAC 	= 3;
@@ -25,12 +25,14 @@ public class OPSTInt extends OPStateType {
     /** How should the variable be displayed */
     public final int display;
     
-    protected OPSTInt(int width, int display) {
+    protected OPSFInt(String name, String desc, boolean readOnly, int width, int display) {
+        super(name, desc, readOnly);
         this.width = width;
         this.display = display;
     }
     
-    public OPSTInt(DataInput in) throws IOException {
+    public OPSFInt(String name, String desc, boolean readOnly, DataInput in) throws IOException {
+        super(name, desc, readOnly);
         width = in.readByte();
         display = in.readByte();
     }
@@ -46,6 +48,7 @@ public class OPSTInt extends OPStateType {
             default:		displayStr = "unknown";
         }
 
-        return "OP_STATE_TYPE: type=int width=" + width + " display=" + displayStr; 
+        return super.toString() +
+            " type=int width=" + width + " display=" + displayStr;
     }	
 }

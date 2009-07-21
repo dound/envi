@@ -10,21 +10,23 @@ import java.io.IOException;
  * @author grg
  *
  */
-public class OPSTTable extends OPStateType {
+public class OPSFTable extends OPStateField {
     /** Depth of table */
     public final int depth;
     
     /** List of fields */
     public final OPStateField[] fields;
 
-    public OPSTTable(DataInput in) throws IOException {
+    public OPSFTable(String name, String desc, boolean readOnly, DataInput in) throws IOException {
+        super(name, desc, readOnly);
+
         depth = in.readShort();
         
         int numFields = in.readShort();
         fields = new OPStateField[numFields];
         
         for (int i = 0; i < numFields; i++)
-            fields[i] = new OPStateField(in);
+            fields[i] = OPStateField.createFieldFromStream(in);
     }
 
     public String toString() {
@@ -35,7 +37,7 @@ public class OPSTTable extends OPStateType {
             fieldsStr += f.toString();
         }
 
-        return "OP_STATE_TYPE: type=table depth=" + depth + 
+        return super.toString() + " type=table depth=" + depth +
             " fields=[" + fieldsStr + "]"; 
     }
 }

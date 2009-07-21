@@ -28,8 +28,8 @@ import javax.swing.SpringLayout;
 
 import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.drawables.OPModule;
-import org.openflow.gui.net.protocol.op.OPSTInt;
-import org.openflow.gui.net.protocol.op.OPSTIntChoice;
+import org.openflow.gui.net.protocol.op.OPSFInt;
+import org.openflow.gui.net.protocol.op.OPSFIntChoice;
 import org.openflow.gui.net.protocol.op.OPSVInt;
 import org.openflow.gui.net.protocol.op.OPSetStateValues;
 import org.openflow.gui.net.protocol.op.OPStateField;
@@ -157,20 +157,20 @@ public class OPModuleStatusWindow {
                     JLabel l = new JLabel(f.desc, JLabel.TRAILING);
                     fieldPane.add(l);
                     JComponent c;
-                    if (f.type instanceof OPSTIntChoice) {
-                        OPSTIntChoice ic = (OPSTIntChoice)f.type;
-                        String[] choices = new String[ic.choices.size()];
+                    if (f instanceof OPSFIntChoice) {
+                        OPSFIntChoice fIntChoice = (OPSFIntChoice)f;
+                        String[] choices = new String[fIntChoice.choices.size()];
                         int pos = 0;
-                        for (Pair<Integer, String> p : ic.choices) {
+                        for (Pair<Integer, String> p : fIntChoice.choices) {
                             choices[pos++] = p.b;
                         }
                         c = new JComboBox(choices);
                         if (f.readOnly)
                             c.setEnabled(false);
                     }
-                    else if (f.type instanceof OPSTInt) {
-                        OPSTInt intType = (OPSTInt)f.type;
-                        if (intType.display == OPSTInt.DISP_BOOL) {
+                    else if (f instanceof OPSFInt) {
+                        OPSFInt fInt = (OPSFInt)f;
+                        if (fInt.display == OPSFInt.DISP_BOOL) {
                             c = new JCheckBox();
                             c.setEnabled(!f.readOnly);
                         }
@@ -391,9 +391,9 @@ public class OPModuleStatusWindow {
     }
 
     private int intValToIndex(OPSVInt intVal, OPStateField f) {
-        OPSTIntChoice type = (OPSTIntChoice)f.type;
-        for (int i = 0; i < type.choices.size(); i++) {
-            Pair<Integer, String> p = type.choices.get(i);
+        OPSFIntChoice fIntChoice = (OPSFIntChoice)f;
+        for (int i = 0; i < fIntChoice.choices.size(); i++) {
+            Pair<Integer, String> p = fIntChoice.choices.get(i);
             if (p.a.longValue() == intVal.value) {
                 return i;
             }
@@ -402,11 +402,11 @@ public class OPModuleStatusWindow {
     }
 
     private String intValToStr(OPSVInt intVal, OPStateField f, boolean longDisplay) {
-        OPSTInt type = (OPSTInt)f.type;
-        switch (type.display) {
-            case OPSTInt.DISP_INT:
+        OPSFInt fInt = (OPSFInt)f;
+        switch (fInt.display) {
+            case OPSFInt.DISP_INT:
                 if (longDisplay) {
-                    if (type.width <= 4)
+                    if (fInt.width <= 4)
                         return String.format("%d (0x%04x)", intVal.value, intVal.value);
                     else
                         return String.format("%d (0x%08x)", intVal.value, intVal.value);
@@ -414,14 +414,14 @@ public class OPModuleStatusWindow {
                 else
                     return String.format("%d", intVal.value);
 
-            case OPSTInt.DISP_IP:
+            case OPSFInt.DISP_IP:
                 int ipOctet[] = new int[4];
                 for (int i = 0; i < 4; i++) {
                     ipOctet[i] = (int)((intVal.value >> ((3 - i) * 8)) & 0xff);
                 }
                 return String.format("%d.%d.%d.%d", ipOctet[0], ipOctet[1], ipOctet[2], ipOctet[3]);
 
-            case OPSTInt.DISP_MAC:
+            case OPSFInt.DISP_MAC:
                 int macOctet[] = new int[8];
                 for (int i = 0; i < 8; i++) {
                     macOctet[i] = (int)((intVal.value >> ((7 - i) * 8)) & 0xff);
@@ -435,17 +435,17 @@ public class OPModuleStatusWindow {
         }
     }
 
-    public long strToIntVal(String valStr, OPSTInt type) {
-        switch (type.display) {
-            case OPSTInt.DISP_IP:
+    public long strToIntVal(String valStr, OPSFInt fInt) {
+        switch (fInt.display) {
+            case OPSFInt.DISP_IP:
                 return IPUtil.stringToIP(valStr);
 
-            case OPSTInt.DISP_MAC:
+            case OPSFInt.DISP_MAC:
                 return DPIDUtil.hexToDPID(valStr);
 
             default:
-            case OPSTInt.DISP_INT:
-                if (type.width <= 4)
+            case OPSFInt.DISP_INT:
+                if (fInt.width <= 4)
                     return Integer.valueOf(valStr);
                 else
                     return Long.valueOf(valStr);
@@ -456,21 +456,20 @@ public class OPModuleStatusWindow {
         String valStr = tf.getText();
 
         // Get the StateField and StateValue
-        OPStateField f = compsToFields.get(tf);
-        OPStateValue v = fieldValues.get(f.name);
+        OPSFInt fInt = (OPSFInt)compsToFields.get(tf);
+        OPStateValue v = fieldValues.get(fInt.name);
 
         // If the text is non-empty then convert and send a message
         if (!valStr.equals("")) {
-            OPSTInt type = (OPSTInt)f.type;
             try {
-                long value = strToIntVal(valStr, type);
-                System.out.println(f.name + " set to " + value);
+                long value = strToIntVal(valStr, fInt);
+                System.out.println(fInt.name + " set to " + value);
             }
             catch (NumberFormatException nfe) {
                 String displayStr;
-                if (type.display == OPSTInt.DISP_IP)
+                if (fInt.display == OPSFInt.DISP_IP)
                     displayStr = "IP address";
-                else if (type.display == OPSTInt.DISP_MAC)
+                else if (fInt.display == OPSFInt.DISP_MAC)
                     displayStr = "MAC address";
                 else
                     displayStr = "integer";
@@ -488,7 +487,7 @@ public class OPModuleStatusWindow {
 
                 // Reset the text and set focus to the component
                 if (v != null)
-                    tf.setText(intValToStr((OPSVInt)v, f, false));
+                    tf.setText(intValToStr((OPSVInt)v, fInt, false));
                 else
                     tf.setText("");
                 tf.selectAll();
@@ -498,7 +497,7 @@ public class OPModuleStatusWindow {
         else {
             if (v != null) {
                 OPSVInt intVal = (OPSVInt)v;
-                tf.setText(intValToStr(intVal, f, false));
+                tf.setText(intValToStr(intVal, fInt, false));
             }
         }
     }
@@ -519,11 +518,10 @@ public class OPModuleStatusWindow {
     }
     
     private void processComboBoxChange(JComboBox cb) {
-        OPStateField f = compsToFields.get(cb);
-        OPSTIntChoice intChoice = (OPSTIntChoice)f.type;
+        OPSFIntChoice fIntChoice = (OPSFIntChoice) compsToFields.get(cb);
         
-        Pair<Integer, String> choice = intChoice.choices.get(cb.getSelectedIndex());
-        System.out.println(f.name + " set to " + choice.b + " (" + choice.a + ")");
+        Pair<Integer, String> choice = fIntChoice.choices.get(cb.getSelectedIndex());
+        System.out.println(fIntChoice.name + " set to " + choice.b + " (" + choice.a + ")");
     }
 
     private void processCheckBoxChange(JCheckBox cb) {

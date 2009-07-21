@@ -52,7 +52,7 @@ public class OPModule extends Node {
         int numStateFields = in.readShort();
         stateFields = new OPStateField[numStateFields];
         for (int i = 0; i < numStateFields; i++) {
-            stateFields[i] = new OPStateField(in);
+            stateFields[i] = OPStateField.createFieldFromStream(in);
         }
     }
 

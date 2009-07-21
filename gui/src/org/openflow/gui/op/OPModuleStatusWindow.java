@@ -25,6 +25,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.Spring;
 import javax.swing.SpringLayout;
+
+import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.drawables.OPModule;
 import org.openflow.gui.net.protocol.op.OPSTInt;
 import org.openflow.gui.net.protocol.op.OPSTIntChoice;
@@ -68,7 +70,12 @@ public class OPModuleStatusWindow {
     /** Map of components to fields */
     private HashMap<JComponent, OPStateField> compsToFields;
 
-    public OPModuleStatusWindow() {
+    /** Connection handler to be used for sending messages */
+    private ConnectionHandler conn;
+
+    public OPModuleStatusWindow(ConnectionHandler conn) {
+        this.conn = conn;
+
         window = new JFrame();
         window.setAlwaysOnTop(true);
         window.setSize(DEFAULT_SIZE);

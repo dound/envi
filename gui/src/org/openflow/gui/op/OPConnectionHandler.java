@@ -124,7 +124,7 @@ public class OPConnectionHandler extends ConnectionHandler
         manager.addDrawable(testOutput);
 
         // Create a the module status window
-        statusWindow = new OPModuleStatusWindow();
+        statusWindow = new OPModuleStatusWindow(this);
         statusWindow.setVisible(true);
 
         // Set the tooltip delay

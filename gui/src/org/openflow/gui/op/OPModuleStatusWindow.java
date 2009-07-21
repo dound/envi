@@ -27,7 +27,7 @@ import org.openflow.util.Pair;
 
 /**
  * Module status window for OpenPipes
- * 
+ *
  * @author grg
  *
  */
@@ -35,45 +35,45 @@ public class OPModuleStatusWindow {
     public static final String TITLE = "Module State Inspector";
     public static final Dimension DEFAULT_SIZE = new Dimension(400, 300);
     public static final int PREFERRED_COMP_WIDTH = 200;
-    
+
     /** window in which to display the module status */
     private JFrame window;
-    
+
     /** module being displayed */
     private OPModule module;
-    
+
     /** Panel to use as the content pane */
     private JPanel contentPane;
-    
+
     /** Map of names to components */
     private HashMap<String, OPStateField> fieldMap;
-    
+
     /** Map of names to components */
     private HashMap<String, JComponent> fieldComps;
-    
+
     /** Map of names to values */
     private HashMap<String, OPStateValue> fieldValues;
-    
+
     /** Map of components to fields */
     private HashMap<JComponent, OPStateField> compsToFields;
-    
+
     public OPModuleStatusWindow() {
         window = new JFrame();
         window.setAlwaysOnTop(true);
         window.setSize(DEFAULT_SIZE);
     }
-    
+
     public void showModule(OPModule m) {
         if (module == m)
             return;
-        
+
         module = m;
         if (window.isVisible()) {
             updateInternalState();
             updateDisplay();
         }
     }
-    
+
     public void setVisible(boolean visible) {
         if (window.isVisible() != visible) {
             if (visible) {
@@ -107,7 +107,7 @@ public class OPModuleStatusWindow {
             compsToFields = null;
         }
     }
-    
+
     /**
      * Update the display to reflect the currently displayed module
      */
@@ -131,11 +131,11 @@ public class OPModuleStatusWindow {
                         GroupLayout.PREFERRED_SIZE);
                 gl.setHorizontalGroup(horizGrp);
                 gl.setVerticalGroup(vertGrp);
-                
+
                 int rows = 0;
                 for (OPStateField f : fields) {
                     rows++;
-                    
+
                     JLabel l = new JLabel(f.desc, JLabel.TRAILING);
                     fieldPane.add(l);
                     JComponent c;
@@ -225,7 +225,7 @@ public class OPModuleStatusWindow {
         contentPane.doLayout();
         window.setContentPane(contentPane);
     }
-    
+
     /**
      * Aligns the first <code>rows</code> * <code>cols</code>
      * components of <code>parent</code> in

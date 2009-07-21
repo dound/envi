@@ -3,6 +3,9 @@ package org.openflow.gui.op;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.HashMap;
 
 import javax.swing.GroupLayout;
@@ -24,6 +27,8 @@ import org.openflow.gui.net.protocol.op.OPSetStateValues;
 import org.openflow.gui.net.protocol.op.OPStateField;
 import org.openflow.gui.net.protocol.op.OPStateValue;
 import org.openflow.util.Pair;
+import org.openflow.util.string.DPIDUtil;
+import org.openflow.util.string.IPUtil;
 
 /**
  * Module status window for OpenPipes
@@ -386,6 +391,60 @@ public class OPModuleStatusWindow {
 
             default:
                 return String.format("%d", intVal.value);
+        }
+    }
+
+    public long strToIntVal(String valStr, OPSTInt type) {
+        switch (type.display) {
+            case OPSTInt.DISP_IP:
+                return IPUtil.stringToIP(valStr);
+
+            case OPSTInt.DISP_MAC:
+                return DPIDUtil.hexToDPID(valStr);
+
+            default:
+            case OPSTInt.DISP_INT:
+                if (type.width <= 4)
+                    return Integer.valueOf(valStr);
+                else
+                    return Long.valueOf(valStr);
+        }
+    }
+
+    private class TextFieldFocusListener implements FocusListener {
+
+        @Override
+        public void focusGained(FocusEvent arg0) {
+            // Don't do anything
+
+        }
+
+        @Override
+        public void focusLost(FocusEvent e) {
+            // Get the component
+            JTextField tf = (JTextField)e.getComponent();
+            String valStr = tf.getText();
+
+            // Get the StateField and StateValue
+            OPStateField f = compsToFields.get(tf);
+            OPStateValue v = fieldValues.get(f.name);
+
+            // If the text is non-empty then convert and send a message
+            if (!valStr.equals("")) {
+                OPSTInt type = (OPSTInt)f.type;
+                try {
+                    long value = strToIntVal(valStr, type);
+                }
+                catch (NumberFormatException nfe) {
+
+                }
+            }
+            else {
+                if (v != null) {
+                    OPSVInt intVal = (OPSVInt)v;
+                    tf.setText(intValToStr(intVal, f, false));
+                }
+            }
         }
     }
 }

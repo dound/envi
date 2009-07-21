@@ -313,9 +313,8 @@ public class OPModuleStatusWindow {
                 if (v instanceof OPSVInt) {
                     OPSVInt intVal = (OPSVInt)v;
                     String name = intVal.name;
-                    Pair<OPStateField, JComponent> p = fieldMap.get(name);
-                    OPStateField f = p.a;
-                    JComponent c = p.b;
+                    OPStateField f = fieldMap.get(name);
+                    JComponent c = fieldComps.get(name);
                     if (c == null)
                         throw new UnsupportedOperationException("WARNING: Unknown field '" + name + "'");
 

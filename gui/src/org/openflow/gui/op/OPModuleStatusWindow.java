@@ -504,6 +504,13 @@ public class OPModuleStatusWindow {
     }
     
     private void sendSetStateValueInt(OPSFInt fInt, long value) {
+        // Check to see if the state has actually changed
+        if (fieldValues.containsKey(fInt.name)) {
+            OPSVInt currVal = (OPSVInt) fieldValues.get(fInt.name);
+            if (currVal.value == value)
+                return;
+        }
+
         // Create a new OPStateValue
         OPSVInt[] intValues = new OPSVInt[1];
         intValues[0] = new OPSVInt(fInt, value);
@@ -514,7 +521,7 @@ public class OPModuleStatusWindow {
                     intValues);
             conn.getConnection().sendMessage(setSVMsg);
 
-            System.out.println(fInt.name + " set to " + value);
+            fieldValues.put(fInt.name, intValues[0]);
         }
         catch(IOException e) {
             System.err.println("Error: failed to set value on " + fInt.name + " install module due to network error: " + e.getMessage());

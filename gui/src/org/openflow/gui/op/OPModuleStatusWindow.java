@@ -12,6 +12,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.HashMap;
 
 import javax.swing.GroupLayout;
@@ -463,7 +464,7 @@ public class OPModuleStatusWindow {
         if (!valStr.equals("")) {
             try {
                 long value = strToIntVal(valStr, fInt);
-                System.out.println(fInt.name + " set to " + value);
+                sendSetStateValueInt(fInt, value);
             }
             catch (NumberFormatException nfe) {
                 String displayStr;
@@ -502,6 +503,24 @@ public class OPModuleStatusWindow {
         }
     }
     
+    private void sendSetStateValueInt(OPSFInt fInt, long value) {
+        // Create a new OPStateValue
+        OPSVInt[] intValues = new OPSVInt[1];
+        intValues[0] = new OPSVInt(fInt, value);
+
+        try {
+            OPSetStateValues setSVMsg = new OPSetStateValues(
+                    new org.openflow.gui.net.protocol.Node(module.getType(), module.getID()),
+                    intValues);
+            conn.getConnection().sendMessage(setSVMsg);
+
+            System.out.println(fInt.name + " set to " + value);
+        }
+        catch(IOException e) {
+            System.err.println("Error: failed to set value on " + fInt.name + " install module due to network error: " + e.getMessage());
+        }
+    }
+
     private void resetTextField(JTextField tf) {
         // Get the StateField and StateValue
         OPStateField f = compsToFields.get(tf);
@@ -521,14 +540,13 @@ public class OPModuleStatusWindow {
         OPSFIntChoice fIntChoice = (OPSFIntChoice) compsToFields.get(cb);
         
         Pair<Integer, String> choice = fIntChoice.choices.get(cb.getSelectedIndex());
-        System.out.println(fIntChoice.name + " set to " + choice.b + " (" + choice.a + ")");
+        sendSetStateValueInt(fIntChoice, choice.a);
     }
 
     private void processCheckBoxChange(JCheckBox cb) {
         // Get the StateField
-        OPStateField f = compsToFields.get(cb);
+        OPSFInt fInt = (OPSFInt) compsToFields.get(cb);
         
-        System.out.println(f.name + " " + (cb.isSelected() ? "selected" : "deselected"));
-        
+        sendSetStateValueInt(fInt, cb.isSelected() ? 1 : 0);
     }
 }

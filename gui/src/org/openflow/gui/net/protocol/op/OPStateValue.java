@@ -4,6 +4,7 @@
 package org.openflow.gui.net.protocol.op;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import org.openflow.gui.net.SocketConnection;
@@ -41,6 +42,13 @@ public abstract class OPStateValue {
         this.name = name;
     }
     
+    public void write(DataOutput out) throws IOException {
+        out.writeByte(getType());
+        SocketConnection.writeString(out, name, NAME_LEN);
+    }
+
+    protected abstract int getType();
+
     public String toString() {
         return "OP_STATE_VALUE name=" + name;
     }

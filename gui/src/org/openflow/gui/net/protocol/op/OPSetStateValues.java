@@ -4,6 +4,7 @@
 package org.openflow.gui.net.protocol.op;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import org.openflow.gui.net.protocol.Node;
@@ -48,5 +49,13 @@ public class OPSetStateValues extends OFGMessage {
             valuesLen += v.length();
         
         return super.length() + Node.SIZEOF + 2 + valuesLen;
+    }
+
+    public void write(DataOutput out) throws IOException {
+        super.write(out);
+        module.write(out);
+        out.writeShort(values.length);
+        for (OPStateValue v : values)
+            v.write(out);
     }
 }

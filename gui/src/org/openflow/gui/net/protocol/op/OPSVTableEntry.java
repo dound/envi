@@ -4,6 +4,7 @@
 package org.openflow.gui.net.protocol.op;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 /**
@@ -39,6 +40,19 @@ public class OPSVTableEntry extends OPStateValue {
         return super.length() + 2 + 2 + valuesLen;
     }
     
+    public void write(DataOutput out) throws IOException {
+        super.write(out);
+        out.writeShort(entry);
+        out.writeShort(values.length);
+        for (OPStateValue v : values)
+            v.write(out);
+    }
+
+    @Override
+    protected int getType() {
+        return TYPE_TABLE_ENTRY;
+    }
+
     public String toString() {
         String valuesStr = null;
         for (OPStateValue v : values) {

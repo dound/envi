@@ -4,6 +4,7 @@
 package org.openflow.gui.net.protocol.op;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import org.openflow.gui.net.SocketConnection;
@@ -43,5 +44,11 @@ public class OPReadStateValues extends OFGMessage {
     /** Get the length */
     public int length() {
         return super.length() + Node.SIZEOF + values.length * NAME_LEN;
+    }
+
+    public void write(DataOutput out) throws IOException {
+        super.write(out);
+        for (String v: values)
+            SocketConnection.writeString(out, v, NAME_LEN);
     }
 }

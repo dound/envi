@@ -4,7 +4,10 @@
 package org.openflow.gui.net.protocol.op;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
+
+import org.openflow.gui.net.SocketConnection;
 
 /**
  * Integer value of a state variable
@@ -44,8 +47,22 @@ public class OPSVInt extends OPStateValue {
         return super.length() + 1 + ((width <= 4) ? 4 : 8);
     }
 
+    public void write(DataOutput out) throws IOException {
+        super.write(out);
+        out.writeByte(width);
+        if (width <= 4)
+            out.writeInt((int)value);
+        else
+            out.writeLong(value);
+    }
+
+    @Override
+    protected int getType() {
+        return TYPE_INT;
+    }
+
     public String toString() {
         return super.toString() + "type=int width=" + width + 
             " value=" + value + " (" + Long.toHexString(value) + ")"; 
-    }	
+    }
 }

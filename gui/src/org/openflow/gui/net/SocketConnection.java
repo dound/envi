@@ -147,6 +147,38 @@ public class SocketConnection implements DataInput, DataOutput {
         return readNullTerminatedString(in);
     }
     
+    /**
+     * Writes the specified number of bytes from the string to out.
+     * Padding bytes (zeros) will be added to strings to extend the
+     * string to the required length.
+     *
+     * @param out          	buffer to write from
+     * @param str          	string to write
+     * @param bytesToWrite  number of bytes to write
+     */
+    public static void writeString(DataOutput out, String str, int bytesToWrite) throws IOException {
+        // Convert the string to a sequence of bytes
+        byte[] buf = str.getBytes();
+
+        int minLen = Math.min(buf.length, bytesToWrite);
+        out.write(buf, 0, minLen);
+
+        for (int i = 0; i < bytesToWrite - minLen; i++)
+            out.writeByte(0);
+    }
+
+    /**
+     * Writes the specified number of bytes from the string to out.
+     * Padding bytes (zeros) will be added to strings to extend the
+     * string to the required length.
+     *
+     * @param str          	string to write
+     * @param bytesToWrite  number of bytes to write
+     */
+    public void writeString(String str, int bytesToWrite) throws IOException {
+        SocketConnection.writeString(out, str, bytesToWrite);
+    }
+
     public long getBytesRead()                                           { return in.getBytesRead(); }
     public void readFully(byte b[])                   throws IOException { in.readFully(b); }
     public void readFully(byte b[], int off, int len) throws IOException { in.readFully(b, off, len); }

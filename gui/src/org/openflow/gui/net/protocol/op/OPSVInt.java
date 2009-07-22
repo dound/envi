@@ -19,6 +19,18 @@ public class OPSVInt extends OPStateValue {
     /** value of field */
     public final long value;
     
+    public OPSVInt(String name, int width, long value){
+        super(name);
+        this.width = width;
+        this.value = value;
+    }
+
+    public OPSVInt(OPSFInt intField, long value){
+        super(intField.name);
+        this.width = intField.width;
+        this.value = value;
+    }
+
     protected OPSVInt(String name, DataInput in) throws IOException {
         super(name);
         width = in.readByte();

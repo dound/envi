@@ -23,6 +23,12 @@ public class OPSetStateValues extends OFGMessage {
     /** List of state values */
     public final OPStateValue[] values;
 
+    public OPSetStateValues(Node module, OPStateValue[] values) {
+        super(OFGMessageType.OP_SET_STATE_VALUES, 0);
+        this.module = module;
+        this.values = values;
+    }
+
     public OPSetStateValues(final int len, final int xid, DataInput in) throws IOException {
         super(OFGMessageType.OP_SET_STATE_VALUES, xid);
 

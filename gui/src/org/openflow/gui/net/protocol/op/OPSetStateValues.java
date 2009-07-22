@@ -47,6 +47,6 @@ public class OPSetStateValues extends OFGMessage {
         for (OPStateValue v : values)
             valuesLen += v.length();
         
-        return super.length() + Node.SIZEOF + valuesLen;
+        return super.length() + Node.SIZEOF + 2 + valuesLen;
     }
 }

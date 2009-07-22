@@ -41,7 +41,7 @@ public class OPSVInt extends OPStateValue {
     }
     
     public int length() {
-        return super.length() + 4 + ((width <= 4) ? 4 : 8);
+        return super.length() + 1 + ((width <= 4) ? 4 : 8);
     }
 
     public String toString() {

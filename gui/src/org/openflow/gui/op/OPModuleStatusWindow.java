@@ -103,6 +103,10 @@ public class OPModuleStatusWindow {
         }
     }
 
+    public boolean isVisible() {
+        return window.isVisible();
+    }
+
     /**
      * Update the internal state
      */

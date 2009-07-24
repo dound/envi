@@ -8,6 +8,8 @@ import org.pzgui.PZWindowEventListener;
 public class OPWindowEventListener extends PZWindowEventListener {
     public static final String MODE_CHANGED_EVENT = "mode_changed";
     
+    public static final String TOGGLE_STATE_DIALOG_EVENT = "toggle_state_dialog";
+
     /** the global link add mode */
     private static boolean linkAddMode = false;
     
@@ -41,6 +43,13 @@ public class OPWindowEventListener extends PZWindowEventListener {
         w.getManager().fireDrawableEvent(null, null, MODE_CHANGED_EVENT);
     }
     
+    /**
+     * Notifies the window to toggle the state dialog
+     */
+    private void toggleStateDialog(PZWindow w) {
+        w.getManager().fireDrawableEvent(null, null, TOGGLE_STATE_DIALOG_EVENT);
+    }
+
     /** returns a string representation of the current mode */
     private static String getModeName() {
         if(isLinkAddMode())
@@ -68,6 +77,9 @@ public class OPWindowEventListener extends PZWindowEventListener {
             linkDeleteMode = !linkDeleteMode;
             linkAddMode = false;
             modeChanged(getWindow(e));
+        }
+        else if (e.getKeyCode() == KeyEvent.VK_I) {
+            toggleStateDialog(getWindow(e));
         }
         else
             super.keyReleased(e);

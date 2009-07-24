@@ -12,6 +12,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -74,12 +76,17 @@ public class OPModuleStatusWindow {
     /** Connection handler to be used for sending messages */
     private ConnectionHandler conn;
 
+    /** Is this window being made visible */
+    private boolean makingVisible;
+
     public OPModuleStatusWindow(ConnectionHandler conn) {
         this.conn = conn;
 
         window = new JFrame();
         window.setAlwaysOnTop(true);
         window.setSize(DEFAULT_SIZE);
+
+        addWindowFocusListener();
     }
 
     public void showModule(OPModule m) {
@@ -99,6 +106,7 @@ public class OPModuleStatusWindow {
                 updateInternalState();
                 updateDisplay();
             }
+            makingVisible = visible;
             window.setVisible(visible);
         }
     }
@@ -559,5 +567,22 @@ public class OPModuleStatusWindow {
         OPSFInt fInt = (OPSFInt) compsToFields.get(cb);
         
         sendSetStateValueInt(fInt, cb.isSelected() ? 1 : 0);
+    }
+
+    private void addWindowFocusListener() {
+        window.addWindowFocusListener(new WindowFocusListener() {
+
+            @Override
+            public void windowLostFocus(WindowEvent e) {
+            }
+
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+                if (makingVisible)
+                    if (e.getOppositeWindow() != null)
+                        e.getOppositeWindow().toFront();
+                makingVisible = false;
+            }
+        });
     }
 }

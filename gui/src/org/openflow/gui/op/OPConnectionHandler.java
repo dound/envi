@@ -200,6 +200,9 @@ public class OPConnectionHandler extends ConnectionHandler
             // clear any partial work done in a different mode
             clearLinkEndpoint();
         }
+        else if (event.equals(OPWindowEventListener.TOGGLE_STATE_DIALOG_EVENT)) {
+            statusWindow.setVisible(!statusWindow.isVisible());
+        }
     }
     
     /** define a filter which accepts anything but OPModule objects */

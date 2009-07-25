@@ -1,7 +1,10 @@
 package org.openflow.gui.op;
 
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 
+import org.pzgui.Drawable;
+import org.pzgui.PZManager;
 import org.pzgui.PZWindow;
 import org.pzgui.PZWindowEventListener;
 
@@ -83,5 +86,14 @@ public class OPWindowEventListener extends PZWindowEventListener {
         }
         else
             super.keyReleased(e);
+    }
+
+    public void mouseClicked(MouseEvent e) {
+        PZWindow window = getWindow(e);
+        PZManager manager = window.getManager();
+
+        Drawable d = manager.getHovered();
+        if(d != null)
+            manager.fireDrawableEvent(d, e, "mouse_clicked");
     }
 }

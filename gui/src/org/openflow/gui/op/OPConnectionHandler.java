@@ -47,6 +47,7 @@ import org.openflow.gui.net.protocol.op.OPModulesAdd;
 import org.openflow.gui.net.protocol.op.OPMoveModule;
 import org.openflow.gui.net.protocol.op.OPNodesAdd;
 import org.openflow.gui.net.protocol.op.OPNodesDel;
+import org.openflow.gui.net.protocol.op.OPReadStateValues;
 import org.openflow.gui.net.protocol.op.OPSetStateValues;
 import org.openflow.gui.net.protocol.op.OPTestInfo;
 import org.openflow.util.Pair;
@@ -131,7 +132,17 @@ public class OPConnectionHandler extends ConnectionHandler
     }
     
     public void drawableEvent(Drawable d, AWTEvent e, String event) {
-        if(event.equals("mouse_released")) {
+        if (event.equals("mouse_clicked")) {
+            MouseEvent me = (MouseEvent)e;
+            if(d instanceof OPModule) {
+                OPModule m = (OPModule)d;
+
+                if (me.getButton() == MouseEvent.BUTTON1) {
+                    showModuleState(m);
+                }
+            }
+        }
+        else if(event.equals("mouse_released")) {
             MouseEvent me = (MouseEvent)e;
             if(d instanceof OPModule) {
                 OPModule m = (OPModule)d;
@@ -140,8 +151,10 @@ public class OPConnectionHandler extends ConnectionHandler
                 if(me.getButton() == MouseEvent.BUTTON1)
                     handleModulePlaced(m, me);
                 else {
-                    if(OPWindowEventListener.isModuleStatusMode())
-                        handleModuleStatusRequested(m);
+                    if(OPWindowEventListener.isModuleStatusMode()) {
+                        // Don't do anything
+                        // handleModuleStatusRequested(m);
+                    }
                     else if(OPWindowEventListener.isLinkAddMode())
                         handleLinkChange(m, true);
                     else
@@ -177,6 +190,23 @@ public class OPConnectionHandler extends ConnectionHandler
         }
     }
     
+    private void showModuleState(OPModule m) {
+        // Only update the status of this module is an instance
+        if (m.isOriginal())
+            return;
+
+        statusWindow.showModule(m);
+        if (statusWindow.isVisible()) {
+            org.openflow.gui.net.protocol.Node module = new org.openflow.gui.net.protocol.Node(m.getType(), m.getID());
+            OPReadStateValues req = new OPReadStateValues(module);
+            try {
+                this.getConnection().sendMessage(req);
+            } catch (IOException ex) {
+                System.err.println("Error: unable to send state request: " + req);
+            }
+        }
+    }
+
     private void displayToolTip(MouseEvent me, JComponent c, OPModule m) {
         // Clear the current tooltip if the component changes
         if (currMSRComponent != c) {

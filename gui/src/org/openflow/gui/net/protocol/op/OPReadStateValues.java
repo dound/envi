@@ -40,7 +40,18 @@ public class OPReadStateValues extends OFGMessage {
         for (int i = 0; i < numValues; i++)
             values[i] = SocketConnection.readString(in, NAME_LEN);
     }
-    
+
+    public OPReadStateValues(Node module, String[] values) {
+        super(OFGMessageType.OP_READ_STATE_VALUES, 0);
+
+        this.module = module;
+        this.values = values;
+    }
+
+    public OPReadStateValues(Node module) {
+        this(module, new String[0]);
+    }
+
     /** Get the length */
     public int length() {
         return super.length() + Node.SIZEOF + values.length * NAME_LEN;

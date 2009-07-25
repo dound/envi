@@ -167,7 +167,7 @@ public class OPModuleStatusWindow {
                 for (OPStateField f : fields) {
                     rows++;
 
-                    JLabel l = new JLabel(f.desc, JLabel.TRAILING);
+                    JLabel l = new JLabel(f.desc + ":", JLabel.TRAILING);
                     fieldPane.add(l);
                     JComponent c;
                     if (f instanceof OPSFIntChoice) {
@@ -390,10 +390,10 @@ public class OPModuleStatusWindow {
     /** update an integer field */
     private void updateIntField(OPSVInt intVal, OPStateField f, JComponent c) {
         if (c instanceof JLabel) {
-            ((JLabel) c).setText(intValToStr(intVal, f, false));
+            ((JLabel) c).setText(intValToStr(intVal, f, true));
         }
         else if (c instanceof JTextField) {
-            ((JTextField) c).setText(intValToStr(intVal, f, true));
+            ((JTextField) c).setText(intValToStr(intVal, f, false));
         }
         else if (c instanceof JComboBox) {
             ((JComboBox) c).setSelectedIndex(intValToIndex(intVal, f));

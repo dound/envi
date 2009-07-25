@@ -48,6 +48,7 @@ public class OPReadStateValues extends OFGMessage {
 
     public void write(DataOutput out) throws IOException {
         super.write(out);
+        module.write(out);
         for (String v: values)
             SocketConnection.writeString(out, v, NAME_LEN);
     }

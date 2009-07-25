@@ -215,6 +215,8 @@ public class PZWindowEventListener implements ComponentListener,
         int y = window.getMY(e);
         manager.setMousePos(x, y, true);
 
+        int button1mask = MouseEvent.BUTTON1_DOWN_MASK;
+
         Drawable selNode = manager.getSelected();
         if(selNode == null) {
             if(e.getButton() == MouseEvent.BUTTON1 && e.isAltDown()) {
@@ -225,7 +227,7 @@ public class PZWindowEventListener implements ComponentListener,
                 return;
             }
         }
-        else {
+        else if ((e.getModifiersEx() & button1mask) == button1mask) {
             // if a node is selected, handle dragging it (only on ctrl-click
             // for non-modules)
             if(e.isControlDown() || isEasilyDraggable(selNode))

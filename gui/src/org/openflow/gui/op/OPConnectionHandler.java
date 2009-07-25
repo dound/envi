@@ -125,7 +125,6 @@ public class OPConnectionHandler extends ConnectionHandler
 
         // Create a the module status window
         statusWindow = new OPModuleStatusWindow(this);
-        statusWindow.setVisible(true);
 
         // Set the tooltip delay
         ToolTipManager.sharedInstance().setDismissDelay(TOOLTIP_DISMISS_DELAY);

@@ -815,12 +815,13 @@ public class OPConnectionHandler extends ConnectionHandler
         StringBuilder tooltip = new StringBuilder("<html>");
         tooltip.append("<b>");
         tooltip.append(n.getName());
-        tooltip.append("</b><br><br>");
+        tooltip.append("</b><br>");
 
         if (n instanceof OPModule) {
             OPModule m = (OPModule) n;
 
             OPModulePort[] ports = m.getPorts();
+            tooltip.append("<br>");
             tooltip.append("<b>Ports:</b><br>");
             if (ports.length == 0) {
                 tooltip.append("None<br>");
@@ -833,6 +834,11 @@ public class OPConnectionHandler extends ConnectionHandler
                     tooltip.append("<br>");
                 }
             }
+        }
+        else if (n instanceof OPOpenFlowSwitch) {
+            OPOpenFlowSwitch ofs = (OPOpenFlowSwitch) n;
+            
+            tooltip.append(ofs.getDesc());
         }
 
         if (status != null) {

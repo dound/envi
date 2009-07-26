@@ -220,7 +220,11 @@ public class OPConnectionHandler extends ConnectionHandler
         // If the module has changed (or component changed)
         // request the module status
         if (currTTNode != n || currTTComponent != c) {
-            setToolTip(c, n, null);
+            if (n instanceof OPOpenFlowSwitch || 
+                n instanceof OPModule)
+                setToolTip(c, n, null);
+            else
+                setToolTip(c, null, null);
 
             // Record the current values
             currTTComponent = c;

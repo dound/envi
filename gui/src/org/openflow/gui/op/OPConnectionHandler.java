@@ -32,6 +32,7 @@ import org.openflow.gui.op.OPLayoutManager;
 import org.openflow.gui.drawables.LayoutableIcon;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.Node;
+import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.OPModule;
 import org.openflow.gui.drawables.OPModulePort;
 import org.openflow.gui.drawables.OPModuleReg;
@@ -68,10 +69,10 @@ public class OPConnectionHandler extends ConnectionHandler
     private final OPNodeWithNameAndPorts testOutput;
     
     /** module for which a status request was most recently sent */
-    private OPModule currMSRModule;
+    private NodeWithPorts currTTNode;
 
     /** last requesting component */
-    private JComponent currMSRComponent;
+    private JComponent currTTComponent;
 
     /** Module status window */
     private OPModuleStatusWindow statusWindow;
@@ -174,12 +175,12 @@ public class OPConnectionHandler extends ConnectionHandler
             Object src = me.getSource();
             if (src instanceof JComponent) {
                 JComponent c = (JComponent)src;
-                OPModule m = null;
-                if(d instanceof OPModule) {
-                    m = (OPModule)d;
+                NodeWithPorts n = null;
+                if(d instanceof NodeWithPorts) {
+                    n = (NodeWithPorts)d;
                 }
 
-                displayToolTip(me, c, m);
+                displayToolTip(me, c, n);
             }
         }
         else if(event.equals(OPWindowEventListener.MODE_CHANGED_EVENT)) {
@@ -208,30 +209,30 @@ public class OPConnectionHandler extends ConnectionHandler
         }
     }
 
-    private void displayToolTip(MouseEvent me, JComponent c, OPModule m) {
+    private void displayToolTip(MouseEvent me, JComponent c, NodeWithPorts n) {
         // Clear the current tooltip if the component changes
-        if (currMSRComponent != c) {
-            if (currMSRComponent != null) {
-                currMSRComponent.setToolTipText(null);
+        if (currTTComponent != c) {
+            if (currTTComponent != null) {
+                currTTComponent.setToolTipText(null);
             }
         }
 
         // If the module has changed (or component changed)
         // request the module status
-        if (currMSRModule != m || currMSRComponent != c) {
-            setToolTip(c, m, null);
+        if (currTTNode != n || currTTComponent != c) {
+            setToolTip(c, n, null);
+
+            // Record the current values
+            currTTComponent = c;
+            currTTNode = n;
 
             // Resend the mouse event to the component. This is
             // necessary in instances where the tooltip was
             // previously null as the ToolTipManager attaches event
             // listeners when the tooltip is set. The ToolTipManager
             // needs at least one mouse event to show the tooltip.
-            if (m != null && currMSRComponent == null)
+            if (n != null && currTTComponent == null)
                 c.dispatchEvent(me);
-
-            // Record the current values
-            currMSRComponent = c;
-            currMSRModule = m;
 
             // Send a ModuleStatusRequest to the backend
             //if (m != null)
@@ -771,9 +772,9 @@ public class OPConnectionHandler extends ConnectionHandler
             boolean seenModule = false;
             for(OPModule m : value.b) {
                 if(msg.module.id==m.getID() && msg.module.nodeType==m.getType()) {
-                    if (m == currMSRModule) {
-                        if (currMSRComponent != null) {
-                            Runnable updateToolTip = new ToolTipUpdater(currMSRComponent, m, msg.status);
+                    if (m == currTTNode) {
+                        if (currTTComponent != null) {
+                            Runnable updateToolTip = new ToolTipUpdater(currTTComponent, m, msg.status);
                             SwingUtilities.invokeLater(updateToolTip);
                         }
                         return;
@@ -799,9 +800,9 @@ public class OPConnectionHandler extends ConnectionHandler
         testOutput.setName(msg.output);
     }
 
-    private void setToolTip(JComponent c, OPModule m, String status) {
+    private void setToolTip(JComponent c, NodeWithPorts n, String status) {
         // Handle the case of a null component
-        if (m == null) {
+        if (n == null) {
             c.setToolTipText(null);
             return;
         }
@@ -809,20 +810,24 @@ public class OPConnectionHandler extends ConnectionHandler
         // Create the text to display
         StringBuilder tooltip = new StringBuilder("<html>");
         tooltip.append("<b>");
-        tooltip.append(m.getName());
+        tooltip.append(n.getName());
         tooltip.append("</b><br><br>");
 
-        OPModulePort[] ports = m.getPorts();
-        tooltip.append("<b>Ports:</b><br>");
-        if (ports.length == 0) {
-            tooltip.append("None<br>");
-        }
-        else {
-            for (OPModulePort port: ports) {
-                tooltip.append(port.getName());
-                tooltip.append(" -- ");
-                tooltip.append(port.getDesc());
-                tooltip.append("<br>");
+        if (n instanceof OPModule) {
+            OPModule m = (OPModule) n;
+
+            OPModulePort[] ports = m.getPorts();
+            tooltip.append("<b>Ports:</b><br>");
+            if (ports.length == 0) {
+                tooltip.append("None<br>");
+            }
+            else {
+                for (OPModulePort port: ports) {
+                    tooltip.append(port.getName());
+                    tooltip.append(" -- ");
+                    tooltip.append(port.getDesc());
+                    tooltip.append("<br>");
+                }
             }
         }
 

@@ -36,6 +36,7 @@ import org.openflow.gui.drawables.OPModule;
 import org.openflow.gui.drawables.OPModulePort;
 import org.openflow.gui.drawables.OPModuleReg;
 import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
+import org.openflow.gui.drawables.OPOpenFlowSwitch;
 import org.openflow.gui.net.protocol.LinkType;
 import org.openflow.gui.net.protocol.LinksAdd;
 import org.openflow.gui.net.protocol.LinksDel;
@@ -696,6 +697,7 @@ public class OPConnectionHandler extends ConnectionHandler
         Icon icon;
         String name = "";
         org.openflow.gui.net.protocol.op.OPModule m;
+        org.openflow.gui.net.protocol.op.OPNode opn;
         OPModulePort ports[];
         OPModuleReg regs[];
         
@@ -742,7 +744,11 @@ public class OPConnectionHandler extends ConnectionHandler
             for (int i = 0; i < m.ports.length; i++)
                 ports[i] = new OPModulePort(m.ports[i].id, m.ports[i].name, m.ports[i].desc);
             return new OPModule(false, name, n.id, icon, ports, m.stateFields);
-            
+
+        case OPENFLOW_SWITCH:
+            opn = (org.openflow.gui.net.protocol.op.OPNode) n;
+            return new OPOpenFlowSwitch(opn.name, opn.desc, opn.id);
+
         default:
             return super.processNodeAdd(n);
         }

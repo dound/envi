@@ -597,14 +597,18 @@ public class OPConnectionHandler extends ConnectionHandler
             OPNodeWithNameAndPorts dstNode, short dstPort) {
         // create the link add/del message to the backend
         OFGMessage msg;
-        org.openflow.gui.net.protocol.Link[] link;
         org.openflow.gui.net.protocol.Node src = new org.openflow.gui.net.protocol.Node(srcNode.getType(), srcNode.getID());
         org.openflow.gui.net.protocol.Node dst = new org.openflow.gui.net.protocol.Node(dstNode.getType(), dstNode.getID());
-        link = new org.openflow.gui.net.protocol.Link[] {new org.openflow.gui.net.protocol.Link(LinkType.WIRE, src, srcPort, dst, dstPort)};
-        if(add)
+        if(add) {
+            org.openflow.gui.net.protocol.LinkSpec[] link;
+            link = new org.openflow.gui.net.protocol.LinkSpec[] {new org.openflow.gui.net.protocol.LinkSpec(LinkType.WIRE, src, srcPort, dst, dstPort)};
             msg = new LinksAdd(link);
-        else
+        }
+        else {
+            org.openflow.gui.net.protocol.Link[] link;
+            link = new org.openflow.gui.net.protocol.Link[] {new org.openflow.gui.net.protocol.Link(LinkType.WIRE, src, srcPort, dst, dstPort)};
             msg = new LinksDel(link);
+        }
 
         // send it
         try {

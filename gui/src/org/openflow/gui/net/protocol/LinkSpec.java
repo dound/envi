@@ -19,6 +19,11 @@ public class LinkSpec extends Link {
         this.capacity_bps = in.readLong();
     }
     
+    public LinkSpec(LinkType linkType, Node srcNode, short srcPort, Node dstNode, short dstPort) {
+        super(linkType, srcNode, srcPort, dstNode, dstPort);
+        this.capacity_bps = 0;
+    }
+
     public void write(DataOutput out) throws IOException {
         super.write(out);
         out.writeLong(capacity_bps);

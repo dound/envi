@@ -2,10 +2,14 @@ package org.openflow.gui.drawables;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.Polygon;
+import java.util.LinkedList;
 import java.util.Vector;
 
-import org.openflow.util.NodePortPair;
+import org.openflow.gui.net.protocol.FlowType;
+import org.openflow.util.FlowHop;
+import org.openflow.util.Pair;
 import org.pzgui.AbstractDrawable;
 import org.pzgui.Constants;
 import org.pzgui.math.Vector2f;
@@ -16,21 +20,78 @@ import org.pzgui.math.Vector2f;
  * @author David Underhill
  */
 public class Flow extends AbstractDrawable {
-    /** the nodes/ports from the flow's source to its destination */
-    private Vector<NodePortPair> path;
+    /** whether flows may be selected or highlighted */
+    public static boolean ALLOW_FLOW_SELECTION = false;
+    
+    private FlowType type;
+    private int flowID;
+    
+    /** the nodes from the flow's source to its destination */
+    private FlowHop[] path;
+    
+    /** 
+     * Segments of the flow which should not be drawn (a segment is defined as 
+     * the link between two adjacent hops.
+     */
+    private LinkedList<Pair<FlowHop, FlowHop>> segmentsToIgnore = new LinkedList<Pair<FlowHop, FlowHop>>();
     
     /** 
      * Creates a flow between two endpoints.
      * 
      * @param path  the path being taken by this flow from src to dst
      */
-    public Flow(Vector<NodePortPair>  path) {
+    public Flow(FlowType type, int flowID, FlowHop[]  path) {
+        this.type = type;
+        this.flowID = flowID;
         this.path = path;
     }
     
+    /** Gets the type of this flow */
+    public FlowType getType() {
+        return type;
+    }
+    
+    /** Gets the ID of this flow */
+    public int getID() {
+        return flowID;
+    }
+    
     /** Gets the path of this flow */
-    public Vector<NodePortPair> getPath() {
+    public FlowHop[] getPath() {
         return path;
+    }
+    
+    /** whether a flow contains a particular segment */
+    
+    /** whether to draw a given segment */
+    private boolean shouldDrawSegment(FlowHop from, FlowHop to) {
+        for(Pair<FlowHop, FlowHop> p : segmentsToIgnore)
+            if(p.a.equals(from) && p.b.equals(to))
+                return false;
+        
+        return true;
+    }
+    
+    /** whether this flow contains a particular segment */
+    public boolean hasSegment(Pair<FlowHop, FlowHop> s) {
+        for(int i=0; i<path.length-1; i++) {
+            FlowHop a = path[i];
+            FlowHop b = path[i];
+            if(s.a.equals(a) && s.b.equals(b))
+                return true;
+        }
+        
+        return false;
+    }
+    
+    /** add a segment to ignore */
+    public void ignoreSegment(Pair<FlowHop, FlowHop> s) {
+        segmentsToIgnore.add(s);
+    }
+
+    /** stop ignoring a particular segment */
+    public void unignoreSegment(Pair<FlowHop, FlowHop> s) {
+        segmentsToIgnore.remove(s);
     }
     
     
@@ -40,7 +101,7 @@ public class Flow extends AbstractDrawable {
     public static final boolean ANIMATE = true;
     
     /** radius of circles which make up the flow */
-    private static final int POINT_SIZE = 20;
+    public static final int POINT_SIZE = 20;
     
     /** gap between points */
     private static final int GAP_BETWEEN_POINTS = POINT_SIZE;
@@ -55,7 +116,7 @@ public class Flow extends AbstractDrawable {
     private long lastRedraw = System.currentTimeMillis();
     
     /** color of the interior of the circles making up the flow */
-    private Color colorConn = Color.BLUE;
+    private Paint paintConn = Color.BLUE;
     
     /** color of the exterior of the circles making up the flow */
     private Color colorConnBorder = Color.BLACK;
@@ -63,7 +124,7 @@ public class Flow extends AbstractDrawable {
     /** Draw the flow */
     public void drawObject(Graphics2D gfx) {
         // ignore paths which doesn't have at least a start and endpoint
-        if(path == null || path.size() <= 1 )
+        if(path.length <= 1 )
            return;
                 
         // determine the offset to make the line appear to be moving
@@ -87,12 +148,18 @@ public class Flow extends AbstractDrawable {
         // draw the flow
         int prevPathEltOn = 0;
         Vector2f to = null;
-        for(int pathEltOn=1; pathEltOn<path.size(); pathEltOn++) {
-            NodePortPair prev = path.get(pathEltOn-1);
-            NodePortPair next = path.get(pathEltOn);
+        for(int pathEltOn=1; pathEltOn<path.length; pathEltOn++) {
+            FlowHop prev = path[pathEltOn-1];
+            FlowHop next = path[pathEltOn];
             
             // only need to draw legs of non-zero distance
             if(prev.node == next.node) {
+                boundingBoxesNew.add(null); // placeholder bounding box
+                continue;
+            }
+            
+            // skip segments we aren't supposed to draw
+            if(!shouldDrawSegment(prev, next)) {
                 boundingBoxesNew.add(null); // placeholder bounding box
                 continue;
             }
@@ -141,10 +208,16 @@ public class Flow extends AbstractDrawable {
     private void drawLine(Graphics2D gfx, 
                           Vector2f actualFrom, Vector2f actualTo, 
                           int startPathIndex, int endPathIndex) {
+        // do not draw lines smaller than one dot
+        if(Vector2f.distanceSq(actualFrom.x, actualFrom.y, actualTo.x, actualTo.y) < Flow.POINT_SIZE*Flow.POINT_SIZE) {
+            boundingBoxesNew.add(null); // placeholder bounding box
+            return;
+        }
+        
         // nudge from and to so the points are centered on the line between from and to
         Vector2f from = new Vector2f(actualFrom.x - getPointSize()/2, actualFrom.y - getPointSize()/2);
         Vector2f to = new Vector2f(actualTo.x - getPointSize()/2, actualTo.y - getPointSize()/2);
-        Vector2f dir = Vector2f.subtract(actualFrom, actualTo);
+        Vector2f dir = Vector2f.subtract(actualTo, actualFrom);
         
         // determine vector to take us from point to point
         int d = getPointSize() + GAP_BETWEEN_POINTS;
@@ -209,7 +282,7 @@ public class Flow extends AbstractDrawable {
     private void drawCircle(Graphics2D gfx, double x, double y) {
         int size = getPointSize();
         
-        gfx.setPaint(colorConn);
+        gfx.setPaint(paintConn);
         gfx.fillOval((int)x, (int)y, size, size);
 
         gfx.setPaint(colorConnBorder);
@@ -221,9 +294,14 @@ public class Flow extends AbstractDrawable {
         return POINT_SIZE;
     }
     
-    /** Gets the color of this flow */
-    public Color getColor() {
-        return colorConn;
+    /** Gets the paint for this flow */
+    public Paint getPaint() {
+        return paintConn;
+    }
+    
+    /** Sets the paint for this flow */
+    public void setPaint(Paint p) {
+        paintConn = p;
     }
     
     
@@ -353,15 +431,18 @@ public class Flow extends AbstractDrawable {
      * @return  true if x,y is in the area covered by the flow
      */
     public boolean isWithin(int x, int y, boolean select) {
+        if(!ALLOW_FLOW_SELECTION)
+            return false; 
+        
         // test to see if a rectangle around x, y intersects the bounding lines
         // at the center of the flow graphic
-        for( int i=0; i<boundingBoxes.size() && i<path.size()-1; i++ ) {
+        for( int i=0; i<boundingBoxes.size() && i<path.length-1; i++ ) {
             PathInfoPolygon bb = boundingBoxes.get(i);
             if(bb!=null && bb.contains(x, y)) {
                 // select at a node if we are over a node, otherwise select the flow between nodes
-                if(path.get(bb.endPathIndex-1).node.contains(x, y))
+                if(path[bb.endPathIndex-1].node.contains(x, y))
                     selNow.selectAtNode(bb.startPathIndex, x, y);
-                else if(path.get(bb.endPathIndex).node.contains(x, y))
+                else if(path[bb.endPathIndex].node.contains(x, y))
                     selNow.selectAtNode(bb.endPathIndex-1, x, y);
                 else
                     selNow.selectBetweenNodes(bb.startPathIndex, bb.endPathIndex, x, y);

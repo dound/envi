@@ -55,7 +55,7 @@ public class PortStatsRates extends PortStats {
      * @param w  will be clamped to the range of 0.0 to 1.0 inclusive
      */
     public void setWeightOfNew(double w) {
-        this.weightOfNew = Math.min(0.0, Math.max(1.0, w));
+        this.weightOfNew = Math.max(0.0, Math.min(1.0, w));
     }
     
     /** update the rates directly */
@@ -76,7 +76,7 @@ public class PortStatsRates extends PortStats {
         double pDiff = packetCount - numPackets;
         double bDiff = 8 * (byteCount - numBytes);
         double fDiff = flowCount - numFlows;
-        double tDiff = when - updateTime;
+        double tDiff = (when - updateTime) / 1000.0; // tDiff is in seconds
         
         if(tDiff > 0) {
             double weightOfOld = 1.0 - weightOfNew;

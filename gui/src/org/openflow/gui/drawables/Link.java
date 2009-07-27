@@ -47,7 +47,7 @@ import org.pzgui.math.Vector2i;
  */
 public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** how to color the link when it is negatively utilized (probably a special signal or error) */
-    public static Color USAGE_COLOR_NEG = Color.BLUE;
+    public static Color USAGE_COLOR_NEG = Color.BLACK;
     
     /** how to color the link when it is completely unutilized */
     public static Color USAGE_COLOR_0 = Color.BLACK;
@@ -68,6 +68,12 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         }
     }
     
+    /** 
+     * Used to ensure new links are created sequentially to ensure link exists
+     * exceptions can be properly generated.
+     */
+    private static final Object ONE_AT_A_TIME = new Object();
+    
     /**
      * Constructs a new link between src and dst.
      * 
@@ -80,18 +86,20 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      * @throws LinkExistsException  thrown if the link already exists
      */
     public Link(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
-        // do not re-create existing links
-        if(src.getDirectedLinkTo(srcPort, dst, dstPort, true) != null)
-            throw new LinkExistsException("Link construction error: link already exists");
-        
-        this.type = linkType;
-        this.src = src;
-        this.dst = dst;
-        this.srcPort = srcPort;
-        this.dstPort = dstPort;
-        
-        src.addLink(this);
-        dst.addLink(this);
+        synchronized(ONE_AT_A_TIME) {
+            // do not re-create existing links
+            if(src.getDirectedLinkTo(srcPort, dst, dstPort, true) != null)
+                throw new LinkExistsException("Link construction error: link already exists");
+            
+            this.type = linkType;
+            this.src = src;
+            this.dst = dst;
+            this.srcPort = srcPort;
+            this.dstPort = dstPort;
+            
+            src.addLink(this);
+            dst.addLink(this);
+        }
     }
     
     
@@ -272,6 +280,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     /** Draws the link */
     public void drawObject(Graphics2D gfx) {
+        if(this.isDrawn())
+            return;
+        else
+            this.setDrawn();
+        
         // draw nothing if there is no current draw color for the link
         if(curDrawColor == null)
             return;
@@ -764,8 +777,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      */
     private static Color computeUsageColor(float usage) {
         if(usage < 0.0f)
-            return Color.BLUE;
+            return Link.USAGE_COLOR_NEG;
         else {
+            if(usage==0.0f)
+                return Link.USAGE_COLOR_0;
+            
             float mid = 1.5f / 3.0f;
             
             if(usage < mid) {

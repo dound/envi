@@ -5,12 +5,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.Link.LinkExistsException;
 import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.protocol.LinkType;
 import org.openflow.gui.net.protocol.OFGMessage;
+import org.openflow.util.FlowHop;
+import org.openflow.util.Pair;
 import org.openflow.util.RefTrack;
 import org.pzgui.PZManager;
 
@@ -74,27 +77,30 @@ public class Topology {
      *          topology (not necessarily this one)
      */
     public boolean addNode(BackendConnection<OFGMessage> owner, NodeWithPorts n) {
+        boolean ret = false;
         Long id = n.getID();
         NodeRefTrack localR = nodesMap.get(id);
         if(localR == null) {
-            nodesMap.put(id, new NodeRefTrack(n, owner));
-            nodesList.add(id);
-            addNodeToManager(n);
-            
             synchronized(globalNodesWriterLock) {
                 NodeRefTrack r = globalNodes.get(id);
                 if(r == null) {
                     globalNodes.put(id, new NodeRefTrack(n, owner));
-                    return true;
+                    ret = true;
                 }
-                else
+                else {
                     r.addRef(owner);
+                    n = r.obj; // use the existing node
+                }
             }
+            
+            nodesMap.put(id, new NodeRefTrack(n, owner));
+            nodesList.add(id);
+            addNodeToManager(n);
         }
         else
             localR.addRef(owner);
         
-        return false;
+        return ret;
     }
     
     /**
@@ -307,5 +313,62 @@ public class Topology {
             removeNodeFromManager(r.obj);
         
         return virtualNodes.remove(dpid) != null;
+    }
+
+    
+    /** flows in the topology */
+    private final ConcurrentHashMap<Integer, Flow[]> flowsMap = new ConcurrentHashMap<Integer, Flow[]>();
+    
+    /** add a flow to the topology */
+    public void addFlow(Flow newFlow) {
+        Flow[] flows = flowsMap.get(newFlow.getID());
+        if(flows == null)
+            flowsMap.put(newFlow.getID(), new Flow[]{newFlow});
+        else {
+            // flow(s) with this ID already exist; add it to the list
+            Flow[] newFlows = new Flow[flows.length + 1];
+            System.arraycopy(flows, 0, newFlows, 0, flows.length);
+            newFlows[flows.length] =  newFlow;
+            
+            // ignore new flow segments which overlap with others that share its ID
+            for(Flow f : flows) {
+                for(int i=0; i<f.getPath().length-1; i++) {
+                    Pair<FlowHop, FlowHop> segment = new Pair<FlowHop, FlowHop>(f.getPath()[i], f.getPath()[i+1]);
+                    if(newFlow.hasSegment(segment))
+                        newFlow.ignoreSegment(segment);
+                }
+            }
+        }
+        manager.addDrawable(newFlow);
+    }
+    
+    /**
+     * Gets the set of flow(s) with the specified ID, if any such flow(s) exist
+     * in this topology.
+     * 
+     * @return the Flows with the requested ID, or null if no such flows exist
+     */
+    public Flow[] getFlow(Integer id) {
+        return flowsMap.get(id);
+    }
+    
+    /** Gets the set of flow IDs currently in the topology */
+    public Set<Integer> getFlowIDs() {
+        return flowsMap.keySet();
+    }
+
+    /**
+     * Gets whether this topology has a flow with the specified ID.
+     */
+    public boolean hasFlow(Integer id) {
+        return getFlow(id) != null;
+    }
+
+    /** remove a flow from the topology */
+    public void removeFlowByID(int id) {
+        Flow[] flows = flowsMap.remove(id);
+        if(flows != null)
+            for(Flow f : flows)
+                manager.removeDrawable(f);
     }
 }

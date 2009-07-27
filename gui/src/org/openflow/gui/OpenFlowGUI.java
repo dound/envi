@@ -2,6 +2,7 @@ package org.openflow.gui;
 
 import java.util.ArrayList;
 
+import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.openflow.util.Pair;
 import org.pzgui.DialogHelper;
 import org.pzgui.PZManager;
@@ -32,6 +33,9 @@ public final class OpenFlowGUI {
         // layout the nodes with the spring algorithm by default
         gm.setLayout(new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(gm.getGraph()));
         
+        // leave a small 10-pixel border around the edge of the screen
+        gm.setBorderSize(OpenFlowSwitch.DEFAULT_SIZE / 2 + 10);
+        
         // create a manager to handle the connection itself
         ConnectionHandler cm = makeDefaultConnection(gm, server, port, true, true);
         
@@ -41,7 +45,9 @@ public final class OpenFlowGUI {
     }
     
     /**
-     * Creates a connection which will populate a new topology.
+     * Creates a connection which will populate a new topology.  The connection
+     * handler is registered as a closing listener with manager so that it can
+     * be cleanly torn down when the GUI closes.
      * 
      * @param manager            the manager of the GUI elements
      * @param server             the IP or hostname where the back-end is located
@@ -53,7 +59,9 @@ public final class OpenFlowGUI {
                                                           String server, Short port,
                                                           boolean subscribeSwitches,
                                                           boolean subscribeLinks) {
-        return new ConnectionHandler(new Topology(manager), server, port, subscribeSwitches, subscribeLinks);
+        ConnectionHandler ch = new ConnectionHandler(new Topology(manager), server, port, subscribeSwitches, subscribeLinks);
+        manager.addClosingListener(ch);
+        return ch;
     }
     
     /**

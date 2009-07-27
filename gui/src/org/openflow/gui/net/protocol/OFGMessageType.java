@@ -66,10 +66,10 @@ public enum OFGMessageType {
     FLOWS_REQUEST((byte)0x16),
 
     /** List of flows to add. */
-    FLOWS_ADD((byte)0x17),
+    FLOWS_ADD((byte)0x18),
 
     /** List of flows to delete. */
-    FLOWS_DELETE((byte)0x18),
+    FLOWS_DELETE((byte)0x19),
     
     /**
      * Statistics request.  Body is book_stat_message, with osr_body as defined 

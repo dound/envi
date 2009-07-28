@@ -417,14 +417,14 @@ class LinksList(OFGMessage):
         return hdr + ''.join([link.pack() for link in self.links])
 
     @staticmethod
-    def unpack_child(clz, body):
+    def unpack_child(clz, link_clz, body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
         num_links = len(body) / Link.SIZE
         links = []
         for _ in range(num_links):
-            links.append(Link.unpack(body[:Link.SIZE]))
-            body = body[Link.SIZE:]
+            links.append(link_clz.unpack(body[:link_clz.SIZE]))
+            body = body[link_clz.SIZE:]
         return clz(links, xid)
 
     def links_to_string(self):
@@ -450,7 +450,7 @@ class LinksAdd(LinkSpecsList):
 
     @staticmethod
     def unpack(body):
-        return LinkSpecsList.unpack_child(LinksAdd, body)
+        return LinkSpecsList.unpack_child(LinksAdd, LinkSpec, body)
 
     def __str__(self):
         return 'LINKS_ADD: ' + LinkSpecsList.__str__(self)
@@ -466,7 +466,7 @@ class LinksDel(LinksList):
 
     @staticmethod
     def unpack(body):
-        return LinksList.unpack_child(LinksDel, body)
+        return LinksList.unpack_child(LinksDel, Link, body)
 
     def __str__(self):
         return 'LINKS_DEL: ' + LinksList.__str__(self)

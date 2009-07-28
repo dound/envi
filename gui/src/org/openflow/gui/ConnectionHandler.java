@@ -320,9 +320,9 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
             
             try {
                 Link l = topology.addLink(x.linkType, dst, x.dstPort, src, x.srcPort);
-                l.setMaximumDataRate(x.capacity_bps);
                 if(l == null)
                     continue;
+                l.setMaximumDataRate(x.capacity_bps);
                 
                 if(!Options.AUTO_TRACK_STATS_FOR_NEW_LINK)
                     continue;

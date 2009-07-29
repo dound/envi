@@ -141,9 +141,11 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
             
         case ECHO_REQUEST:
             processEchoRequest(msg.xid);
-            
+            break;
+
         case ECHO_REPLY:
             processEchoReply(msg.xid);
+	    break;
             
         case NODES_ADD:
             processNodesAdd((NodesAdd)msg);

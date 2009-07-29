@@ -76,7 +76,7 @@ public class Flow extends AbstractDrawable {
     public boolean hasSegment(Pair<FlowHop, FlowHop> s) {
         for(int i=0; i<path.length-1; i++) {
             FlowHop a = path[i];
-            FlowHop b = path[i];
+            FlowHop b = path[i+1];
             if(s.a.equals(a) && s.b.equals(b))
                 return true;
         }

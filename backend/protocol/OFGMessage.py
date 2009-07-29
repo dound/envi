@@ -781,7 +781,7 @@ class _Test():
     def print_ltm(self, _, ltm):
         if ltm is not None:
             print 'recv: %s' % str(ltm)
-            if ltm.get_type() == NodesRequest.get_type():
+            if ltm.get_type() == NodesRequest.get_type() and ltm.request_type == Request.TYPE_ONETIME:
                 nodes = [Node(Node.TYPE_OPENFLOW_SWITCH, i+1) for i in range(self.num_nodes)]
                 c = 1000*1000*1000
                 links = [LinkSpec(i % 2 + 1, nodes[i], 0, nodes[i+1], 1, c) for i in range(self.num_nodes-1)]

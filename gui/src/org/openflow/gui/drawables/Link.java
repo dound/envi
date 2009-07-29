@@ -947,4 +947,12 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     public String toString() {
         return src.toString() + " ===> " + dst.toString();
     }
+    
+    private boolean isInTopologyBeingDrawn = false;
+    public boolean isInTopologyBeingDrawn() {
+        return isInTopologyBeingDrawn;
+    }
+    public void setInTopologyBeingDrawn(boolean b) {
+        isInTopologyBeingDrawn = b;
+    }
 }

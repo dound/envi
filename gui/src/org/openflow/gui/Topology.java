@@ -27,6 +27,7 @@ public class Topology {
     /** Construct a new, empty Topology. */
     public Topology(final PZManager manager) {
         nodesMap = new ConcurrentHashMap<Long, NodeRefTrack>();
+        linksMap = new ConcurrentHashMap<Link, Boolean>();
         nodesList = new CopyOnWriteArrayList<Long>();
         virtualNodes = new ConcurrentHashMap<Long, VirtualSwitchSpecification>();
         this.manager = manager;
@@ -207,6 +208,9 @@ public class Topology {
     
     // ---------------- Link Tracking --------------- //
     
+    /** links in this topology as keys (values of this map are meaningless) */
+    private final ConcurrentHashMap<Link, Boolean> linksMap;
+    
     public Link addLink(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
         VirtualSwitchSpecification vDst = virtualNodes.get(dst.getID());
         if(vDst != null) {
@@ -223,6 +227,7 @@ public class Topology {
         }
         
         Link l = new Link(linkType, dst, dstPort, src, srcPort);
+        linksMap.put(l, Boolean.TRUE);
         return l;
     }
     
@@ -246,6 +251,8 @@ public class Topology {
         
         Link existingLink = dstNode.getLinkTo(dstPort, srcNode, srcPort);
         if(existingLink != null) {
+            linksMap.remove(existingLink);
+            
             try {
                 existingLink.disconnect(conn);
             } 
@@ -257,6 +264,13 @@ public class Topology {
         }
         else
             return -3;
+    }
+    
+    /**
+     * Gets whether this topology contains the specified link.
+     */
+    public boolean hasLink(Link l) {
+        return linksMap.get(l) != null;
     }
     
     

@@ -40,7 +40,7 @@ public abstract class FlowsList extends OFGMessage {
             Node dstNode = new Node(in);
             short dstPort = in.readShort();
             short pathLen = in.readShort();
-            if(left < pathLen * 12)
+            if(left < pathLen * (2 + Node.SIZEOF + 2))
                 throw new IOException("Body of flows has a bad length (not enough for a flow)");
             
             FlowHop[] path = new FlowHop[pathLen];

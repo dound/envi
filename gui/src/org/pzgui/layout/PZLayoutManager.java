@@ -23,6 +23,9 @@ public class PZLayoutManager extends org.pzgui.PZManager {
     /** the graph to layout */
     private final Graph<Vertex, Edge> graph = new DirectedSparseGraph<Vertex, Edge>();
     
+    /** size of the border area around the layout area where nodes should not be placed */
+    private int border = 0;
+    
     /** maximum size of the layout area */
     private Dimension maxLayoutSize = new Dimension(500, 500);
     
@@ -103,7 +106,7 @@ public class PZLayoutManager extends org.pzgui.PZManager {
                     layout.setLocation(v, v.getPos());
                 }
                 else
-                    v.setPos((int)pt.getX(), (int)pt.getY());
+                    v.setPos((int)pt.getX() + border, (int)pt.getY() + border, false);
             }
         }
     }
@@ -128,7 +131,7 @@ public class PZLayoutManager extends org.pzgui.PZManager {
             return;
         
         this.layout.setGraph(graph);
-        this.layout.setSize(maxLayoutSize);
+        updateLayoutSize();
         this.layout.reset();
         
         for(Vertex v : graph.getVertices()) {
@@ -165,11 +168,34 @@ public class PZLayoutManager extends org.pzgui.PZManager {
         return maxLayoutSize.width;
     }
     
+    /** 
+     * Gets the size (in pixels) of the border to leave clear on each side of 
+     * the layout. 
+     */
+    public int getBorderSize() {
+        return border; 
+    }
+
+    /** 
+     * Sets the size (in pixels) of the border to leave clear on each side of  
+     * the layout. 
+     */
+    public void setBorderSize(int border) {
+        this.border = border;
+        updateLayoutSize();
+    }
+    
     /** Set the maximum size the layout engine will use for laying out elements. */
     public void setLayoutSize(int width, int height) {
         maxLayoutSize.setSize(width, height);
+        updateLayoutSize();   
+    }
+    
+    /** updates the size of the current layout after taking border into account */
+    private void updateLayoutSize() {
         if(layout != null)
-            layout.setSize(maxLayoutSize);
+            layout.setSize(new Dimension(maxLayoutSize.width  - 2*border,
+                                         maxLayoutSize.height - 2*border));
     }
 
     /** 

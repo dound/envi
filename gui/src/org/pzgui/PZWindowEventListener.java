@@ -136,7 +136,6 @@ public class PZWindowEventListener implements ComponentListener,
             manager.displayIcon("<V> Reset View!", 2000);
         }
         else if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-            System.out.println("Goodbye");
             manager.exit(0);
         }
         else if(e.getKeyCode() == KeyEvent.VK_PAGE_UP) {

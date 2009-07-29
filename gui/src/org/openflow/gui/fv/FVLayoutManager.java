@@ -177,7 +177,7 @@ public class FVLayoutManager extends PZLayoutManager {
      * whether or not it is in the ds slice.
      */
     private void flagBySlice(DisplaySlice ds, Drawable d, boolean before) {
-        // mark all nodes as NOT being in this slice
+        // mark all nodes and links as NOT being in this slice
         Topology.flagAllNodesAsInAnotherTopology();
         
         // explicitly mark nodes which are in this slice
@@ -186,8 +186,13 @@ public class FVLayoutManager extends PZLayoutManager {
             if(ds.hasTopology(t)) {
                 for(Long id : t.getNodeIDs()) {
                     NodeWithPorts n = t.getNode(id);
-                    if(n != null)
+                    if(n != null) {
                         n.setInTopologyBeingDrawn(true);
+                    
+                        for(Link l : n.getLinks())
+                            if(t.hasLink(l))
+                                l.setInTopologyBeingDrawn(true);
+                    }
                 }
             }
         }

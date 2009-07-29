@@ -52,6 +52,9 @@ public abstract class NodeWithPorts extends Node {
             if(!link.getSource().isInTopologyBeingDrawn || !link.getDestination().isInTopologyBeingDrawn)
                 continue;
             
+            if(!link.isInTopologyBeingDrawn())
+                continue;
+            
             LongPair lp = new LongPair(link.getSource().getID(),
                                        link.getDestination().getID());
             
@@ -179,5 +182,9 @@ public abstract class NodeWithPorts extends Node {
     }
     public void setInTopologyBeingDrawn(boolean b) {
         isInTopologyBeingDrawn = b;
+        
+        if(!b)
+            for(Link l : links)
+                l.setInTopologyBeingDrawn(false);
     }
 }

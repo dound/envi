@@ -12,6 +12,7 @@ import org.openflow.util.FlowHop;
 import org.openflow.util.Pair;
 import org.pzgui.AbstractDrawable;
 import org.pzgui.Constants;
+import org.pzgui.math.Line;
 import org.pzgui.math.Vector2f;
 
 /**
@@ -166,6 +167,7 @@ public class Flow extends AbstractDrawable {
             
             Vector2f from = (to != null) ? to : new Vector2f(prev.node.getX(), prev.node.getY());
             to = new Vector2f(next.node.getX(), next.node.getY());
+            Link link = prev.node.getLinkTo(next.node);
             
             // if the flow is being dragged off the "to" node, then relocate "to" 
             // to the location it has been dragged to
@@ -176,15 +178,15 @@ public class Flow extends AbstractDrawable {
             
             // draw the leg between the two current endpoints
             if(selNow.isSelectedBetween(prevPathEltOn)) {
-                drawLine(gfx, from, selNow.dragPos, prevPathEltOn, pathEltOn);
-                drawLine(gfx, selNow.dragPos, to, prevPathEltOn, pathEltOn);
+                drawLine(gfx, from, selNow.dragPos, prevPathEltOn, pathEltOn, link);
+                drawLine(gfx, selNow.dragPos, to, prevPathEltOn, pathEltOn, link);
             }
             else if(selSlidingBack.isSelectedBetween(prevPathEltOn)) {
-                drawLine(gfx, from, selSlidingBack.dragPos, prevPathEltOn, pathEltOn);
-                drawLine(gfx, selSlidingBack.dragPos, to, prevPathEltOn, pathEltOn);
+                drawLine(gfx, from, selSlidingBack.dragPos, prevPathEltOn, pathEltOn, link);
+                drawLine(gfx, selSlidingBack.dragPos, to, prevPathEltOn, pathEltOn, link);
             }
             else
-                drawLine(gfx, from, to, prevPathEltOn, pathEltOn);
+                drawLine(gfx, from, to, prevPathEltOn, pathEltOn, link);
             
             prevPathEltOn = pathEltOn;
         }
@@ -204,10 +206,11 @@ public class Flow extends AbstractDrawable {
      * @param actualTo        finishing point of the line
      * @param startPathIndex  index of the element in path which starts this line
      * @param endPathIndex    index of the element in path which ends this line
+     * @param link            the link this line is drawn along
      */
     private void drawLine(Graphics2D gfx, 
                           Vector2f actualFrom, Vector2f actualTo, 
-                          int startPathIndex, int endPathIndex) {
+                          int startPathIndex, int endPathIndex, Link link) {
         // do not draw lines smaller than one dot
         if(Vector2f.distanceSq(actualFrom.x, actualFrom.y, actualTo.x, actualTo.y) < Flow.POINT_SIZE*Flow.POINT_SIZE) {
             boundingBoxesNew.add(null); // placeholder bounding box
@@ -218,6 +221,18 @@ public class Flow extends AbstractDrawable {
         Vector2f from = new Vector2f(actualFrom.x - getPointSize()/2, actualFrom.y - getPointSize()/2);
         Vector2f to = new Vector2f(actualTo.x - getPointSize()/2, actualTo.y - getPointSize()/2);
         Vector2f dir = Vector2f.subtract(actualTo, actualFrom);
+        
+        // offset links from one another
+        if(link != null) {
+            int offsetLength = link.reserveSpace(getPointSize(), getPointSize());
+            
+            // compute a normal unit vector to the link line
+            Vector2f offset = new Line(from.getX(), from.getY(), 
+                                       to.getX(),   to.getY()).normal().multiply(offsetLength);
+            
+            from.add(offset);
+            to.add(offset);
+        }
         
         // determine vector to take us from point to point
         int d = getPointSize() + GAP_BETWEEN_POINTS;

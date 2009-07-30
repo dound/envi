@@ -34,7 +34,7 @@ public class Topology {
     }
     
     
-    // -------------- Global Node Tracking ------------- //
+    // --------------- Global Tracking -------------- //
     
     /** 
      * Simple extension of RefTrack for the particular set of parameters used
@@ -59,6 +59,20 @@ public class Topology {
      * adding new ones.  
      */
     private static final Object globalNodesWriterLock = new Object();
+    
+    /**
+     * A global list of all links in all topologies as keys (values of this map
+     * are reference counts) 
+     */
+    private static final ConcurrentHashMap<Link, Integer> globalLinks;
+    static { globalLinks = new ConcurrentHashMap<Link, Integer>(); }
+    
+    /** 
+     * A lock to prevent a race condition between remove old NodeRefTrack and
+     * adding new ones.  
+     */
+    private static final Object globalLinksWriterLock = new Object();
+    
     
     
     // ---------------- Node Tracking --------------- //
@@ -211,7 +225,7 @@ public class Topology {
     /** links in this topology as keys (values of this map are meaningless) */
     private final ConcurrentHashMap<Link, Boolean> linksMap;
     
-    public Link addLink(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
+    public Link addLink(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) {
         VirtualSwitchSpecification vDst = virtualNodes.get(dst.getID());
         if(vDst != null) {
             dst = vDst.getVirtualSwitchByPort(dstPort);
@@ -226,8 +240,28 @@ public class Topology {
                 return null; /* ignore unvirtualized ports on a display virtualized switch */
         }
         
-        Link l = new Link(linkType, dst, dstPort, src, srcPort);
+        Link l;
+        try {
+            l = new Link(linkType, dst, dstPort, src, srcPort);
+            
+            // no exception, so the link must be new: add it to the global list
+            synchronized(globalLinksWriterLock) {
+                globalLinks.put(l, 1);
+            }
+        }
+        catch(LinkExistsException e) {
+            l = e.getPreExistingLink();
+            
+            // increment the reference count (one more ref to this link)
+            int count = globalLinks.get(l);
+            synchronized(globalLinksWriterLock) {
+                globalLinks.put(l, count + 1);
+            }
+        }
+        
+        // track that the link is in this local topology
         linksMap.put(l, Boolean.TRUE);
+        
         return l;
     }
     
@@ -251,10 +285,19 @@ public class Topology {
         
         Link existingLink = dstNode.getLinkTo(dstPort, srcNode, srcPort);
         if(existingLink != null) {
+            int count = globalLinks.get(existingLink);
+            synchronized(globalLinksWriterLock) {
+                if(count == 0)
+                    globalLinks.remove(existingLink);
+                else
+                    globalLinks.put(existingLink, count - 1);
+            }
+            
             linksMap.remove(existingLink);
             
             try {
-                existingLink.disconnect(conn);
+                if(count == 0)
+                    existingLink.disconnect(conn);
             } 
             catch(IOException e) {
                 // ignore: connection down => polling messages cleared on the backend already
@@ -349,7 +392,7 @@ public class Topology {
                 for(int i=0; i<f.getPath().length-1; i++) {
                     Pair<FlowHop, FlowHop> segment = new Pair<FlowHop, FlowHop>(f.getPath()[i], f.getPath()[i+1]);
                     if(newFlow.hasSegment(segment))
-                        newFlow.ignoreSegment(segment);
+                        f.ignoreSegment(segment);
                 }
             }
         }

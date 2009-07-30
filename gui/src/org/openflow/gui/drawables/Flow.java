@@ -78,7 +78,8 @@ public class Flow extends AbstractDrawable {
         for(int i=0; i<path.length-1; i++) {
             FlowHop a = path[i];
             FlowHop b = path[i+1];
-            if(s.a.equals(a) && s.b.equals(b))
+            if(s.a.node.equals(a.node) && s.a.outport == a.outport &&
+                    s.b.node.equals(b.node) && s.b.inport == b.inport)
                 return true;
         }
         

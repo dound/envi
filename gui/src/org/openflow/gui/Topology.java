@@ -226,9 +226,18 @@ public class Topology {
                 return null; /* ignore unvirtualized ports on a display virtualized switch */
         }
         
-        Link l = new Link(linkType, dst, dstPort, src, srcPort);
-        linksMap.put(l, Boolean.TRUE);
-        return l;
+        try {
+            Link l = new Link(linkType, dst, dstPort, src, srcPort);
+            linksMap.put(l, Boolean.TRUE);
+            return l;
+        }
+        catch(LinkExistsException e) {
+            // still track that the link is in the topology
+            linksMap.put(e.getPreExistingLink(), Boolean.TRUE);
+            
+            // continue raising the exception
+            throw e;
+        }
     }
     
     /** 

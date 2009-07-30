@@ -246,7 +246,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, LINE_WIDTH, new float[]{LINE_WIDTH}, 0.0f);
     
     /** whether to draw port numbers each link is attached to */
-    public static boolean DRAW_PORT_NUMBERS = false;
+    public static boolean DRAW_PORT_NUMBERS = true;
     
     /** distance from the edge of an object to draw port numbers, if enabled */
     public static final int PORT_NUMBERS_OFFSET = ARROW_HEAD_SIZE + 10;

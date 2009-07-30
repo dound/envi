@@ -92,6 +92,14 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
         return topology;
     }
     
+    /**
+     * @deprecated  this method will be removed soon; it has been replaced by
+     *              connectedStateChange(boolean)  
+     */
+    public final void connectionStateChange() {
+        throw new Error("using old connectionStateChange() method");
+    }
+    
     /** Called when the backend has been disconnected or reconnected */
     public void connectionStateChange(boolean connected) {
         if(!connection.isConnected()) {

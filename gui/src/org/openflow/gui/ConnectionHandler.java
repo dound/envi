@@ -93,7 +93,7 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
     }
     
     /** Called when the backend has been disconnected or reconnected */
-    public void connectionStateChange() {
+    public void connectionStateChange(boolean connected) {
         if(!connection.isConnected()) {
             topology.removeAllNodes(connection);
         }

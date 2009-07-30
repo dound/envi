@@ -86,6 +86,7 @@ public class Topology {
                 NodeRefTrack r = globalNodes.get(id);
                 if(r == null) {
                     globalNodes.put(id, new NodeRefTrack(n, owner));
+                    addNodeToManager(n);
                     ret = true;
                 }
                 else {
@@ -96,7 +97,6 @@ public class Topology {
             
             nodesMap.put(id, new NodeRefTrack(n, owner));
             nodesList.add(id);
-            addNodeToManager(n);
         }
         else
             localR.addRef(owner);
@@ -178,7 +178,6 @@ public class Topology {
         if(localR.removeRef(owner)) {
             nodesList.remove(id);
             nodesMap.remove(id);
-            removeNodeFromManager(localR.obj);
             ret = 1; // no referants remain in the local topology
         }
         
@@ -187,6 +186,7 @@ public class Topology {
             NodeRefTrack r = globalNodes.get(id);
             if(r.removeRef(owner)) {
                 globalNodes.remove(id);
+                removeNodeFromManager(localR.obj);
                 
                 // disconnect all links associated with the switch too
                 for(Link l : r.obj.getLinks()) {

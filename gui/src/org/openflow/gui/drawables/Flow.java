@@ -162,6 +162,7 @@ public class Flow extends AbstractDrawable {
             
             // skip segments we aren't supposed to draw
             if(!shouldDrawSegment(prev, next)) {
+            	to = null;
                 boundingBoxesNew.add(null); // placeholder bounding box
                 continue;
             }

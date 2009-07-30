@@ -335,7 +335,7 @@ public class Topology {
                 for(int i=0; i<f.getPath().length-1; i++) {
                     Pair<FlowHop, FlowHop> segment = new Pair<FlowHop, FlowHop>(f.getPath()[i], f.getPath()[i+1]);
                     if(newFlow.hasSegment(segment))
-                        newFlow.ignoreSegment(segment);
+                        f.ignoreSegment(segment);
                 }
             }
         }

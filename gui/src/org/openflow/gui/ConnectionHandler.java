@@ -103,6 +103,8 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
                 if(isSubscribeToSwitchChanges()) {
                     connection.sendMessage(new Request(OFGMessageType.NODES_REQUEST, RequestType.ONETIME));
                     connection.sendMessage(new Request(OFGMessageType.NODES_REQUEST, RequestType.SUBSCRIBE));
+                    connection.sendMessage(new Request(OFGMessageType.FLOWS_REQUEST, RequestType.ONETIME));
+                    connection.sendMessage(new Request(OFGMessageType.FLOWS_REQUEST, RequestType.SUBSCRIBE));
                 }
                 
                 if(subscribeToLinkChanges) {

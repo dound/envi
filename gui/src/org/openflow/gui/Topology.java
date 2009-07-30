@@ -5,12 +5,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.Link.LinkExistsException;
 import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.protocol.LinkType;
 import org.openflow.gui.net.protocol.OFGMessage;
+import org.openflow.util.FlowHop;
+import org.openflow.util.Pair;
 import org.openflow.util.RefTrack;
 import org.pzgui.PZManager;
 
@@ -24,13 +27,14 @@ public class Topology {
     /** Construct a new, empty Topology. */
     public Topology(final PZManager manager) {
         nodesMap = new ConcurrentHashMap<Long, NodeRefTrack>();
+        linksMap = new ConcurrentHashMap<Link, Boolean>();
         nodesList = new CopyOnWriteArrayList<Long>();
         virtualNodes = new ConcurrentHashMap<Long, VirtualSwitchSpecification>();
         this.manager = manager;
     }
     
     
-    // -------------- Global Node Tracking ------------- //
+    // --------------- Global Tracking -------------- //
     
     /** 
      * Simple extension of RefTrack for the particular set of parameters used
@@ -56,6 +60,20 @@ public class Topology {
      */
     private static final Object globalNodesWriterLock = new Object();
     
+    /**
+     * A global list of all links in all topologies as keys (values of this map
+     * are reference counts) 
+     */
+    private static final ConcurrentHashMap<Link, Integer> globalLinks;
+    static { globalLinks = new ConcurrentHashMap<Link, Integer>(); }
+    
+    /** 
+     * A lock to prevent a race condition between remove old NodeRefTrack and
+     * adding new ones.  
+     */
+    private static final Object globalLinksWriterLock = new Object();
+    
+    
     
     // ---------------- Node Tracking --------------- //
     
@@ -74,27 +92,30 @@ public class Topology {
      *          topology (not necessarily this one)
      */
     public boolean addNode(BackendConnection<OFGMessage> owner, NodeWithPorts n) {
+        boolean ret = false;
         Long id = n.getID();
         NodeRefTrack localR = nodesMap.get(id);
         if(localR == null) {
-            nodesMap.put(id, new NodeRefTrack(n, owner));
-            nodesList.add(id);
-            addNodeToManager(n);
-            
             synchronized(globalNodesWriterLock) {
                 NodeRefTrack r = globalNodes.get(id);
                 if(r == null) {
                     globalNodes.put(id, new NodeRefTrack(n, owner));
-                    return true;
+                    addNodeToManager(n);
+                    ret = true;
                 }
-                else
+                else {
                     r.addRef(owner);
+                    n = r.obj; // use the existing node
+                }
             }
+            
+            nodesMap.put(id, new NodeRefTrack(n, owner));
+            nodesList.add(id);
         }
         else
             localR.addRef(owner);
         
-        return false;
+        return ret;
     }
     
     /**
@@ -171,7 +192,6 @@ public class Topology {
         if(localR.removeRef(owner)) {
             nodesList.remove(id);
             nodesMap.remove(id);
-            removeNodeFromManager(localR.obj);
             ret = 1; // no referants remain in the local topology
         }
         
@@ -180,6 +200,7 @@ public class Topology {
             NodeRefTrack r = globalNodes.get(id);
             if(r.removeRef(owner)) {
                 globalNodes.remove(id);
+                removeNodeFromManager(localR.obj);
                 
                 // disconnect all links associated with the switch too
                 for(Link l : r.obj.getLinks()) {
@@ -201,7 +222,10 @@ public class Topology {
     
     // ---------------- Link Tracking --------------- //
     
-    public Link addLink(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
+    /** links in this topology as keys (values of this map are meaningless) */
+    private final ConcurrentHashMap<Link, Boolean> linksMap;
+    
+    public Link addLink(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) {
         VirtualSwitchSpecification vDst = virtualNodes.get(dst.getID());
         if(vDst != null) {
             dst = vDst.getVirtualSwitchByPort(dstPort);
@@ -216,7 +240,28 @@ public class Topology {
                 return null; /* ignore unvirtualized ports on a display virtualized switch */
         }
         
-        Link l = new Link(linkType, dst, dstPort, src, srcPort);
+        Link l;
+        try {
+            l = new Link(linkType, dst, dstPort, src, srcPort);
+            
+            // no exception, so the link must be new: add it to the global list
+            synchronized(globalLinksWriterLock) {
+                globalLinks.put(l, 1);
+            }
+        }
+        catch(LinkExistsException e) {
+            l = e.getPreExistingLink();
+            
+            // increment the reference count (one more ref to this link)
+            int count = globalLinks.get(l);
+            synchronized(globalLinksWriterLock) {
+                globalLinks.put(l, count + 1);
+            }
+        }
+        
+        // track that the link is in this local topology
+        linksMap.put(l, Boolean.TRUE);
+        
         return l;
     }
     
@@ -240,8 +285,19 @@ public class Topology {
         
         Link existingLink = dstNode.getLinkTo(dstPort, srcNode, srcPort);
         if(existingLink != null) {
+            int count = globalLinks.get(existingLink);
+            synchronized(globalLinksWriterLock) {
+                if(count == 0)
+                    globalLinks.remove(existingLink);
+                else
+                    globalLinks.put(existingLink, count - 1);
+            }
+            
+            linksMap.remove(existingLink);
+            
             try {
-                existingLink.disconnect(conn);
+                if(count == 0)
+                    existingLink.disconnect(conn);
             } 
             catch(IOException e) {
                 // ignore: connection down => polling messages cleared on the backend already
@@ -251,6 +307,13 @@ public class Topology {
         }
         else
             return -3;
+    }
+    
+    /**
+     * Gets whether this topology contains the specified link.
+     */
+    public boolean hasLink(Link l) {
+        return linksMap.get(l) != null;
     }
     
     
@@ -307,5 +370,63 @@ public class Topology {
             removeNodeFromManager(r.obj);
         
         return virtualNodes.remove(dpid) != null;
+    }
+
+    
+    /** flows in the topology */
+    private final ConcurrentHashMap<Integer, Flow[]> flowsMap = new ConcurrentHashMap<Integer, Flow[]>();
+    
+    /** add a flow to the topology */
+    public void addFlow(Flow newFlow) {
+        Flow[] flows = flowsMap.get(newFlow.getID());
+        if(flows == null)
+            flowsMap.put(newFlow.getID(), new Flow[]{newFlow});
+        else {
+            // flow(s) with this ID already exist; add it to the list
+            Flow[] newFlows = new Flow[flows.length + 1];
+            System.arraycopy(flows, 0, newFlows, 0, flows.length);
+            newFlows[flows.length] =  newFlow;
+            flowsMap.put(newFlow.getID(), newFlows);
+            
+            // ignore new flow segments which overlap with others that share its ID
+            for(Flow f : flows) {
+                for(int i=0; i<f.getPath().length-1; i++) {
+                    Pair<FlowHop, FlowHop> segment = new Pair<FlowHop, FlowHop>(f.getPath()[i], f.getPath()[i+1]);
+                    if(newFlow.hasSegment(segment))
+                        f.ignoreSegment(segment);
+                }
+            }
+        }
+        manager.addDrawable(newFlow);
+    }
+    
+    /**
+     * Gets the set of flow(s) with the specified ID, if any such flow(s) exist
+     * in this topology.
+     * 
+     * @return the Flows with the requested ID, or null if no such flows exist
+     */
+    public Flow[] getFlow(Integer id) {
+        return flowsMap.get(id);
+    }
+    
+    /** Gets the set of flow IDs currently in the topology */
+    public Set<Integer> getFlowIDs() {
+        return flowsMap.keySet();
+    }
+
+    /**
+     * Gets whether this topology has a flow with the specified ID.
+     */
+    public boolean hasFlow(Integer id) {
+        return getFlow(id) != null;
+    }
+
+    /** remove a flow from the topology */
+    public void removeFlowByID(int id) {
+        Flow[] flows = flowsMap.remove(id);
+        if(flows != null)
+            for(Flow f : flows)
+                manager.removeDrawable(f);
     }
 }

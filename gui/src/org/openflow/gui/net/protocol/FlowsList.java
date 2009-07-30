@@ -3,8 +3,6 @@ package org.openflow.gui.net.protocol;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.LinkedList;
-
 
 /**
  * A list of flows.
@@ -26,27 +24,31 @@ public abstract class FlowsList extends OFGMessage {
     public FlowsList(final int len, final OFGMessageType t, final int xid, final DataInput in) throws IOException {
         super(t, xid);
         int left = len - super.length();
+        if(left < 4)
+            throw new IOException("Body of flows has a bad length (not enough bytes for # of flows field): " + left + "B left, need >=4B");
         
         // read in the flows
-        LinkedList<Flow> flowList = new LinkedList<Flow>();
-        while(left > 0) {
-            if(left < 4)
-                throw new IOException("Body of flows has a bad length (not enough for a flow length)");
+        flows = new Flow[in.readInt()];
+        for(int flowOn=0; flowOn<flows.length; flowOn++) { 
+            if(left < 32)
+                throw new IOException("Body of flows has a bad length (not enough for a flow length): " + left + "B left, need >=32B");
             
             short type = in.readShort();
             int id = in.readInt();
-            int pathLen = in.readInt();
-            if(pathLen == 0)
-                throw new IOException("Body of flows has a zero-length path");
-            else if(left < pathLen * 12)
+            Node srcNode = new Node(in);
+            short srcPort = in.readShort();
+            Node dstNode = new Node(in);
+            short dstPort = in.readShort();
+            short pathLen = in.readShort();
+            if(left < pathLen * (2 + Node.SIZEOF + 2))
                 throw new IOException("Body of flows has a bad length (not enough for a flow)");
             
-            NodePortPair[] path = new NodePortPair[pathLen];
+            FlowHop[] path = new FlowHop[pathLen];
             for(int i=0; i<pathLen; i++)
-                path[i] = new NodePortPair(new Node(in), in.readShort());
+                path[i] = new FlowHop(in.readShort(), new Node(in), in.readShort());
             
-            Flow f = new Flow(FlowType.typeValToMessageType(type), id, path);
-            flowList.add(f);
+            Flow f = new Flow(FlowType.typeValToMessageType(type), id, srcNode, srcPort, dstNode, dstPort, path);
+            flows[flowOn] = f;
             left -= f.length();
         }
     }

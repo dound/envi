@@ -34,6 +34,20 @@ import org.pzgui.math.Vector2i;
  * @author David Underhill
  */
 public class PZManager extends Thread {
+    public PZManager() {
+        // manually handle shutting down (e.g., System.exit() or Ctrl-C)
+        final PZManager me = this;
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+           public void run() {
+               me.notifyClosingListeners();
+               System.out.println("Goodbye");
+               // After this line, the application will stop.  System.exit() 
+               // does not need to be called (and should not be called).
+           }
+        });
+    }
+    
+    
     // ------- GUI Windows (Scene Displayers) ------- //
     // ********************************************** //
 
@@ -106,13 +120,23 @@ public class PZManager extends Thread {
     private void terminateIfNoWindowsLeft() {
         synchronized(windows) {
             if(windows.size()==0) {
-                for(PZClosing x : closingListeners)
-                    x.pzClosing(this);
-
-                System.out.println("Goodbye");
-                System.exit(0);
+                exit(0);
             }
         }
+    }
+    
+    /** notifies the closing listeners that the application is terminating */
+    private void notifyClosingListeners() {
+        for(PZClosing x : closingListeners)
+            x.pzClosing(this);
+    }
+    
+    /** 
+     * Terminates the application.
+     */
+    public void exit(int code) {
+        notifyClosingListeners();
+        System.exit(code);
     }
     
     /**

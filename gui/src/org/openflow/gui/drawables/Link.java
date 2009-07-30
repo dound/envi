@@ -47,7 +47,7 @@ import org.pzgui.math.Vector2i;
  */
 public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** how to color the link when it is negatively utilized (probably a special signal or error) */
-    public static Color USAGE_COLOR_NEG = Color.BLUE;
+    public static Color USAGE_COLOR_NEG = Color.BLACK;
     
     /** how to color the link when it is completely unutilized */
     public static Color USAGE_COLOR_0 = Color.BLACK;
@@ -57,16 +57,24 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      * re-created.
      */
     public static class LinkExistsException extends Exception {
-        /** default constructor */
-        public LinkExistsException() {
-            super();
-        }
+        private final Link preExisting;
         
         /** set the message associated with the exception */
-        public LinkExistsException(String msg) {
-            super(msg);
+        public LinkExistsException(Link preExisting) {
+            super("Link construction error: link already exists");
+            this.preExisting = preExisting;
+        }
+        
+        public Link getPreExistingLink() {
+            return preExisting;
         }
     }
+    
+    /** 
+     * Used to ensure new links are created sequentially to ensure link exists
+     * exceptions can be properly generated.
+     */
+    private static final Object ONE_AT_A_TIME = new Object();
     
     /**
      * Constructs a new link between src and dst.
@@ -80,18 +88,21 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      * @throws LinkExistsException  thrown if the link already exists
      */
     public Link(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
-        // do not re-create existing links
-        if(src.getDirectedLinkTo(srcPort, dst, dstPort, true) != null)
-            throw new LinkExistsException("Link construction error: link already exists");
-        
-        this.type = linkType;
-        this.src = src;
-        this.dst = dst;
-        this.srcPort = srcPort;
-        this.dstPort = dstPort;
-        
-        src.addLink(this);
-        dst.addLink(this);
+        synchronized(ONE_AT_A_TIME) {
+            // do not re-create existing links
+            Link preExisting = src.getDirectedLinkTo(srcPort, dst, dstPort, true);
+            if(preExisting != null)
+                throw new LinkExistsException(preExisting);
+            
+            this.type = linkType;
+            this.src = src;
+            this.dst = dst;
+            this.srcPort = srcPort;
+            this.dstPort = dstPort;
+            
+            src.addLink(this);
+            dst.addLink(this);
+        }
     }
     
     
@@ -270,8 +281,90 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** Bounds the area in which a link is drawn. */
     private Polygon boundingBox = null;
     
+    /** how much space is reserved on the "bottom" side of the link for other drawings */
+    private int reservedPixelsBtm = 0;
+    
+    /** how much space is reserved on the "top" side the link for other drawings */
+    private int reservedPixelsTop = 0;
+    
+    /** resets the drawing state to undrawn */
+    public void unsetDrawn() {
+        this.unsetDrawn(true);
+    }
+    
+    /** 
+     * Resets the drawing state to undrawn.  If resetReservedSpace is true,
+     * then reserved space is cancelled, otherwise it is unchanged.
+     */
+    public void unsetDrawn(boolean resetReservedSpace) {
+        super.unsetDrawn();
+        if(resetReservedSpace) {
+            reservedPixelsBtm = 0;
+            reservedPixelsTop = 0;
+        }
+    }
+    
+    /**
+     * Gets the amount of space reserved on the top side of the link.
+     */
+    public int getReservedSpaceTop() {
+        return reservedPixelsTop;
+    }
+
+    /**
+     * Gets the amount of space reserved on the bottom side of the link.
+     */
+    public int getReservedSpaceBottom() {
+        return reservedPixelsBtm;
+    }
+    
+    /**
+     * Reserves space on the more open side of the Link.
+     * 
+     * @return offset distance from the link (to the middle of the reserved space)
+     */
+    public int reserveSpace(int size, int margin) {
+        return reserveSpace(size, margin,
+                            getReservedSpaceTop() < getReservedSpaceBottom());
+    }
+    
+    /**
+     * Reserves space on the specified side of the Link (if space is available
+     * directly over the link, then that will be given).
+     * 
+     * @return offset distance from the link (to the middle of the reserved space)
+     */
+    public int reserveSpace(int size, int margin, boolean above) {
+        // ignore the request if no space is required
+        if(size == 0)
+            return 0;
+        
+        // reserve space right over the link if we have space
+        int reservationSize = size + margin;
+        if(getReservedSpaceTop() == 0 && getReservedSpaceBottom() == 0) {
+            // half for each
+            reservedPixelsTop = reservedPixelsBtm = reservationSize;
+            return 0;
+        }
+        
+        // reserve space in the requested space
+        if(above) {
+            reservedPixelsTop += reservationSize;
+            return -(reservedPixelsTop - reservationSize);
+        }
+        else {
+            reservedPixelsBtm += reservationSize;
+            return reservedPixelsBtm - reservationSize;
+        }
+    }
+    
     /** Draws the link */
     public void drawObject(Graphics2D gfx) {
+        if(this.isDrawn())
+            return;
+        else
+            this.setDrawn();
+        
         // draw nothing if there is no current draw color for the link
         if(curDrawColor == null)
             return;
@@ -764,8 +857,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      */
     private static Color computeUsageColor(float usage) {
         if(usage < 0.0f)
-            return Color.BLUE;
+            return Link.USAGE_COLOR_NEG;
         else {
+            if(usage==0.0f)
+                return Link.USAGE_COLOR_0;
+            
             float mid = 1.5f / 3.0f;
             
             if(usage < mid) {

@@ -20,6 +20,13 @@ public interface Layoutable {
     /** sets the x and y coordinates of this object */
     public void setPos(int x, int y);
     
+    /** 
+     * sets the x and y coordinates of this object and notes whether 
+     * hasPositionChanged() should return true if x or y are modified by this
+     * call. 
+     */
+    public void setPos(int x, int y, boolean notePositionChanged);
+    
     /** sets the x-coordinate of this object */
     public void setXPos(int x);
     

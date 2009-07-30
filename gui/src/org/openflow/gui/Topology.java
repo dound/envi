@@ -386,6 +386,7 @@ public class Topology {
             Flow[] newFlows = new Flow[flows.length + 1];
             System.arraycopy(flows, 0, newFlows, 0, flows.length);
             newFlows[flows.length] =  newFlow;
+            flowsMap.put(newFlow.getID(), newFlows);
             
             // ignore new flow segments which overlap with others that share its ID
             for(Flow f : flows) {

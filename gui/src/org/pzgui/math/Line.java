@@ -26,14 +26,14 @@ public class Line {
 
     /** returns a unit vector parallel to this line */
     public Vector2f slope() {
-        Vector2f m = new Vector2f(this.y2 - this.y1, this.x2 - this.x1);
+        Vector2f m = new Vector2f(this.x2 - this.x1, this.y2 - this.y1);
         return Vector2f.makeUnit(m);
     }
     
     /** returns a unit vector perpendicular to this line */
     public Vector2f normal() {
         // inverse reciprocal
-        Vector2f normal  = new Vector2f(this.x1 - this.x2, this.y2 - this.y1);
+        Vector2f normal  = new Vector2f(this.y1 - this.y2, this.x2 - this.x1);
         return Vector2f.makeUnit(normal);
     }
 }

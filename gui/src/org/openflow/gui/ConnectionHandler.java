@@ -325,7 +325,6 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
                 continue;
             }
             
-            try {
                 Link l = topology.addLink(x.linkType, dst, x.dstPort, src, x.srcPort);
                 if(l == null)
                     continue;
@@ -342,10 +341,6 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
                     System.err.println("Warning: unable to setup link utilization polling for switch " + 
                             DPIDUtil.toString(x.dstNode.id) + " port " + l.getMyPort(dst));
                 }
-            }
-            catch(LinkExistsException e) {
-                // ignore 
-            }
         }
     }
     

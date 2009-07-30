@@ -27,13 +27,14 @@ public class Topology {
     /** Construct a new, empty Topology. */
     public Topology(final PZManager manager) {
         nodesMap = new ConcurrentHashMap<Long, NodeRefTrack>();
+        linksMap = new ConcurrentHashMap<Link, Boolean>();
         nodesList = new CopyOnWriteArrayList<Long>();
         virtualNodes = new ConcurrentHashMap<Long, VirtualSwitchSpecification>();
         this.manager = manager;
     }
     
     
-    // -------------- Global Node Tracking ------------- //
+    // --------------- Global Tracking -------------- //
     
     /** 
      * Simple extension of RefTrack for the particular set of parameters used
@@ -58,6 +59,20 @@ public class Topology {
      * adding new ones.  
      */
     private static final Object globalNodesWriterLock = new Object();
+    
+    /**
+     * A global list of all links in all topologies as keys (values of this map
+     * are reference counts) 
+     */
+    private static final ConcurrentHashMap<Link, Integer> globalLinks;
+    static { globalLinks = new ConcurrentHashMap<Link, Integer>(); }
+    
+    /** 
+     * A lock to prevent a race condition between remove old NodeRefTrack and
+     * adding new ones.  
+     */
+    private static final Object globalLinksWriterLock = new Object();
+    
     
     
     // ---------------- Node Tracking --------------- //
@@ -85,6 +100,7 @@ public class Topology {
                 NodeRefTrack r = globalNodes.get(id);
                 if(r == null) {
                     globalNodes.put(id, new NodeRefTrack(n, owner));
+                    addNodeToManager(n);
                     ret = true;
                 }
                 else {
@@ -95,7 +111,6 @@ public class Topology {
             
             nodesMap.put(id, new NodeRefTrack(n, owner));
             nodesList.add(id);
-            addNodeToManager(n);
         }
         else
             localR.addRef(owner);
@@ -177,7 +192,6 @@ public class Topology {
         if(localR.removeRef(owner)) {
             nodesList.remove(id);
             nodesMap.remove(id);
-            removeNodeFromManager(localR.obj);
             ret = 1; // no referants remain in the local topology
         }
         
@@ -186,6 +200,7 @@ public class Topology {
             NodeRefTrack r = globalNodes.get(id);
             if(r.removeRef(owner)) {
                 globalNodes.remove(id);
+                removeNodeFromManager(localR.obj);
                 
                 // disconnect all links associated with the switch too
                 for(Link l : r.obj.getLinks()) {
@@ -207,7 +222,10 @@ public class Topology {
     
     // ---------------- Link Tracking --------------- //
     
-    public Link addLink(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
+    /** links in this topology as keys (values of this map are meaningless) */
+    private final ConcurrentHashMap<Link, Boolean> linksMap;
+    
+    public Link addLink(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) {
         VirtualSwitchSpecification vDst = virtualNodes.get(dst.getID());
         if(vDst != null) {
             dst = vDst.getVirtualSwitchByPort(dstPort);
@@ -222,7 +240,28 @@ public class Topology {
                 return null; /* ignore unvirtualized ports on a display virtualized switch */
         }
         
-        Link l = new Link(linkType, dst, dstPort, src, srcPort);
+        Link l;
+        try {
+            l = new Link(linkType, dst, dstPort, src, srcPort);
+            
+            // no exception, so the link must be new: add it to the global list
+            synchronized(globalLinksWriterLock) {
+                globalLinks.put(l, 1);
+            }
+        }
+        catch(LinkExistsException e) {
+            l = e.getPreExistingLink();
+            
+            // increment the reference count (one more ref to this link)
+            int count = globalLinks.get(l);
+            synchronized(globalLinksWriterLock) {
+                globalLinks.put(l, count + 1);
+            }
+        }
+        
+        // track that the link is in this local topology
+        linksMap.put(l, Boolean.TRUE);
+        
         return l;
     }
     
@@ -246,8 +285,19 @@ public class Topology {
         
         Link existingLink = dstNode.getLinkTo(dstPort, srcNode, srcPort);
         if(existingLink != null) {
+            int count = globalLinks.get(existingLink);
+            synchronized(globalLinksWriterLock) {
+                if(count == 0)
+                    globalLinks.remove(existingLink);
+                else
+                    globalLinks.put(existingLink, count - 1);
+            }
+            
+            linksMap.remove(existingLink);
+            
             try {
-                existingLink.disconnect(conn);
+                if(count == 0)
+                    existingLink.disconnect(conn);
             } 
             catch(IOException e) {
                 // ignore: connection down => polling messages cleared on the backend already
@@ -257,6 +307,13 @@ public class Topology {
         }
         else
             return -3;
+    }
+    
+    /**
+     * Gets whether this topology contains the specified link.
+     */
+    public boolean hasLink(Link l) {
+        return linksMap.get(l) != null;
     }
     
     

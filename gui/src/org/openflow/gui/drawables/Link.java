@@ -57,14 +57,16 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      * re-created.
      */
     public static class LinkExistsException extends Exception {
-        /** default constructor */
-        public LinkExistsException() {
-            super();
-        }
+        private final Link preExisting;
         
         /** set the message associated with the exception */
-        public LinkExistsException(String msg) {
-            super(msg);
+        public LinkExistsException(Link preExisting) {
+            super("Link construction error: link already exists");
+            this.preExisting = preExisting;
+        }
+        
+        public Link getPreExistingLink() {
+            return preExisting;
         }
     }
     
@@ -88,8 +90,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     public Link(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
         synchronized(ONE_AT_A_TIME) {
             // do not re-create existing links
-            if(src.getDirectedLinkTo(srcPort, dst, dstPort, true) != null)
-                throw new LinkExistsException("Link construction error: link already exists");
+            Link preExisting = src.getDirectedLinkTo(srcPort, dst, dstPort, true);
+            if(preExisting != null)
+                throw new LinkExistsException(preExisting);
             
             this.type = linkType;
             this.src = src;
@@ -347,7 +350,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         // reserve space in the requested space
         if(above) {
             reservedPixelsTop += reservationSize;
-            return reservedPixelsTop - reservationSize;
+            return -(reservedPixelsTop - reservationSize);
         }
         else {
             reservedPixelsBtm += reservationSize;

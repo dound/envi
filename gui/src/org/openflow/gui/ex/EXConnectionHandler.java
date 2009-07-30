@@ -48,8 +48,8 @@ public class EXConnectionHandler extends ConnectionHandler
     /** 
      * Calls super.connectionStateChange() and then does some custom processing.
      */
-    public void connectionStateChange() {
-        super.connectionStateChange();
+    public void connectionStateChange(boolean connected) {
+        super.connectionStateChange(connected);
         
         if(getConnection().isConnected()) {
             // TODO: we just got connected - maybe send a msg to the backend

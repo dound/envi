@@ -350,7 +350,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         // reserve space in the requested space
         if(above) {
             reservedPixelsTop += reservationSize;
-            return reservedPixelsTop - reservationSize;
+            return -(reservedPixelsTop - reservationSize);
         }
         else {
             reservedPixelsBtm += reservationSize;

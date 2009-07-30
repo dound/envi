@@ -9,7 +9,6 @@ import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.Node;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.OpenFlowSwitch;
-import org.openflow.gui.drawables.Link.LinkExistsException;
 import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.MessageProcessor;
 import org.openflow.gui.net.protocol.FlowsAdd;

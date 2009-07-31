@@ -38,6 +38,7 @@ import org.openflow.gui.drawables.OPModulePort;
 import org.openflow.gui.drawables.OPModuleReg;
 import org.openflow.gui.drawables.OPNodeWithNameAndPorts;
 import org.openflow.gui.drawables.OPOpenFlowSwitch;
+import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.openflow.gui.net.protocol.LinkType;
 import org.openflow.gui.net.protocol.LinksAdd;
 import org.openflow.gui.net.protocol.LinksDel;
@@ -889,6 +890,30 @@ public class OPConnectionHandler extends ConnectionHandler
 
         public void run() {
             window.setStatusValues(msg);
+        }
+    }
+
+    /** add new node to the topology */
+    protected void processDrawableNodeAdd(Node n) {
+        if(n instanceof NodeWithPorts) {
+            Topology topology = getTopology();
+            NodeWithPorts n2 = topology.getNode(n.getID()); 
+            if (n2 != null) {
+                // Update the node's properties
+                n2.setName(n.getName());
+                if (n instanceof OPOpenFlowSwitch) {
+                    OPOpenFlowSwitch o = (OPOpenFlowSwitch) n;
+                    OPOpenFlowSwitch o2 = (OPOpenFlowSwitch) n2;
+                    o2.setDesc(o2.getDesc());
+                }
+            }
+            else {
+                if(!topology.addNode(getConnection(), (NodeWithPorts)n))
+                    return;
+                    
+                if(n instanceof OpenFlowSwitch)
+                    handleNewSwitch((OpenFlowSwitch)n);
+            }
         }
     }
 }

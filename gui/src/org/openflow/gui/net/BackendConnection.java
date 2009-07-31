@@ -237,7 +237,7 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
         
         System.out.println("Now connected to server");
         stats.connected();
-        msgProcessor.connectionStateChange();
+        msgProcessor.connectionStateChange(true);
     }
     
     /** tells the connection to disconnect and then connect again */
@@ -354,7 +354,7 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
         stats.disconnected();
         outstandingStatefulRequests.clear();
         outstandingStatefulPollRequests.clear();
-        msgProcessor.connectionStateChange();
+        msgProcessor.connectionStateChange(false);
     }
     
     /** try to close the connection to the server */

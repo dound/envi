@@ -162,6 +162,7 @@ public class Flow extends AbstractDrawable {
             
             // skip segments we aren't supposed to draw
             if(!shouldDrawSegment(prev, next)) {
+            	to = null;
                 boundingBoxesNew.add(null); // placeholder bounding box
                 continue;
             }
@@ -225,7 +226,7 @@ public class Flow extends AbstractDrawable {
         
         // offset links from one another
         if(link != null) {
-            int offsetLength = link.reserveSpace(getPointSize(), getPointSize());
+            int offsetLength = link.reserveSpace(getPointSize(), getPointSize()/2);
             
             // compute a normal unit vector to the link line
             Vector2f offset = new Line(from.getX(), from.getY(), 

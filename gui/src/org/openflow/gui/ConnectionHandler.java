@@ -9,7 +9,6 @@ import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.Node;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.OpenFlowSwitch;
-import org.openflow.gui.drawables.Link.LinkExistsException;
 import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.MessageProcessor;
 import org.openflow.gui.net.protocol.FlowsAdd;
@@ -92,8 +91,16 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
         return topology;
     }
     
+    /**
+     * @deprecated  this method will be removed soon; it has been replaced by
+     *              connectedStateChange(boolean)  
+     */
+    public final void connectionStateChange() {
+        throw new Error("using old connectionStateChange() method");
+    }
+    
     /** Called when the backend has been disconnected or reconnected */
-    public void connectionStateChange() {
+    public void connectionStateChange(boolean connected) {
         if(!connection.isConnected()) {
             topology.removeAllNodes(connection);
         }

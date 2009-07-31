@@ -8,9 +8,9 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -29,8 +29,8 @@ import org.pzgui.icon.ShapeIcon;
 import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.Topology;
 import org.openflow.gui.op.OPLayoutManager;
+import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.LayoutableIcon;
-import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.Node;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.OPModule;
@@ -531,12 +531,15 @@ public class OPConnectionHandler extends ConnectionHandler
             OPModule dstModule) {
         short dstPort = 0;
 
-        // Work out what links go from source to dest
+        // Work out which flows go between the two modules
         HashSet<Short> srcPortNums = new HashSet<Short>();
-        Collection<Link> links = srcModule.getLinks();
-        for (Link l: links) {
-            if (l.getDestination() == dstModule) {
-               srcPortNums.add(Short.valueOf(l.getMyPort(srcModule)));
+        Set<Integer> flowIDs = getTopology().getFlowIDs();
+        for (Integer i : flowIDs) {
+            Flow[] flows = getTopology().getFlow(i.intValue());
+            for (Flow f : flows) {
+                org.openflow.util.FlowHop[] p = f.getPath();
+                if (p[0].node == srcModule && p[p.length-1].node == dstModule)
+                    srcPortNums.add(Short.valueOf(p[0].outport));
             }
         }
 

@@ -30,15 +30,11 @@ public abstract class FlowsList extends OFGMessage {
         // read in the flows
         flows = new Flow[in.readInt()];
         for(int flowOn=0; flowOn<flows.length; flowOn++) { 
-            if(left < 32)
-                throw new IOException("Body of flows has a bad length (not enough for a flow length): " + left + "B left, need >=32B");
+            if(left < 8)
+                throw new IOException("Body of flows has a bad length (not enough for a flow path length): " + left + "B left, need >=8B");
             
             short type = in.readShort();
             int id = in.readInt();
-            Node srcNode = new Node(in);
-            short srcPort = in.readShort();
-            Node dstNode = new Node(in);
-            short dstPort = in.readShort();
             short pathLen = in.readShort();
             if(left < pathLen * (2 + Node.SIZEOF + 2))
                 throw new IOException("Body of flows has a bad length (not enough for a flow)");
@@ -47,7 +43,7 @@ public abstract class FlowsList extends OFGMessage {
             for(int i=0; i<pathLen; i++)
                 path[i] = new FlowHop(in.readShort(), new Node(in), in.readShort());
             
-            Flow f = new Flow(FlowType.typeValToMessageType(type), id, srcNode, srcPort, dstNode, dstPort, path);
+            Flow f = new Flow(FlowType.typeValToMessageType(type), id, path);
             flows[flowOn] = f;
             left -= f.length();
         }

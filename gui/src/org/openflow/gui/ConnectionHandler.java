@@ -16,6 +16,8 @@ import org.openflow.gui.net.protocol.FlowsDel;
 import org.openflow.gui.net.protocol.LinksAdd;
 import org.openflow.gui.net.protocol.LinksDel;
 import org.openflow.gui.net.protocol.NodeType;
+import org.openflow.gui.net.protocol.NodesAdd;
+import org.openflow.gui.net.protocol.NodesDel;
 import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.gui.net.protocol.OFGMessageType;
 import org.openflow.gui.net.protocol.Request;
@@ -23,8 +25,6 @@ import org.openflow.gui.net.protocol.RequestLinks;
 import org.openflow.gui.net.protocol.RequestType;
 import org.openflow.gui.net.protocol.StatsHeader;
 import org.openflow.gui.net.protocol.SwitchDescriptionRequest;
-import org.openflow.gui.net.protocol.NodesAdd;
-import org.openflow.gui.net.protocol.NodesDel;
 import org.openflow.gui.net.protocol.auth.AuthReply;
 import org.openflow.gui.net.protocol.auth.AuthRequest;
 import org.openflow.gui.net.protocol.auth.AuthStatus;
@@ -360,30 +360,16 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
     
     private void processFlowsAdd(FlowsAdd msg) {
         for(org.openflow.gui.net.protocol.Flow x : msg.flows) {
-            NodeWithPorts src = topology.getNode(x.srcNode.id);
-            if(src == null) {
-                logNodeMissing("FlowAdd", "src", x.srcNode.id);
-                continue;
-            }
+            FlowHop[] hops = new FlowHop[x.path.length];
             
-            NodeWithPorts dst = topology.getNode(x.dstNode.id);
-            if(dst == null) {
-                logNodeMissing("FlowAdd", "dst", x.dstNode.id);
-                continue;
-            }
-            
-            FlowHop[] hops = new FlowHop[x.path.length + 2];
-            hops[0] = new FlowHop((short)-1, src, x.srcPort);
-            hops[hops.length-1] = new FlowHop(x.dstPort, dst, (short)-1);
-            
-            int i = 1;
-            for(org.openflow.gui.net.protocol.FlowHop fh : x.path) {
+            for(int i = 0; i < x.path.length; ++i) {
+                org.openflow.gui.net.protocol.FlowHop fh = x.path[i];
                 NodeWithPorts hop = topology.getNode(fh.node.id);
                 if(hop == null) {
                     logNodeMissing("FlowAdd", "hop" + i, fh.node.id);
                     continue;
                 }
-                hops[i++] = new FlowHop(fh.inport, hop, fh.outport);
+                hops[i] = new FlowHop(fh.inport, hop, fh.outport);
             }
             
             Flow flow = new Flow(x.type, x.id, hops);

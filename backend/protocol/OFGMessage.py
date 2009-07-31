@@ -478,19 +478,13 @@ class FlowHop:
 class Flow:
     TYPE_UNKNOWN = 0
 
-    def __init__(self, flow_type, flow_id, src_node, src_port, dst_node, dst_port, path):
+    def __init__(self, flow_type, flow_id, path):
         self.flow_type = int(flow_type)
         self.flow_id = int(flow_id)
-        self.src_node = src_node
-        self.src_port = int(src_port)
-        self.dst_node = dst_node
-        self.dst_port = int(dst_port)
         self.path = path
 
     def pack(self):
-        src = self.src_node.pack() + struct.pack('> H', self.src_port)
-        dst = self.dst_node.pack() + struct.pack('> H', self.dst_port)
-        header = struct.pack('> H I', self.flow_type, self.flow_id) + src + dst + struct.pack('> H', len(self.path))
+        header = struct.pack('> H I', self.flow_type, self.flow_id) + struct.pack('> H', len(self.path))
         body = ''.join(hop.pack() for hop in self.path)
         return header + body
 
@@ -498,13 +492,6 @@ class Flow:
     def unpack(buf):
         flow_type, flow_id = struct.unpack('> H I', buf[:6])
         buf = buf[6:]
-        src_node = Node.unpack(buf[:Node.SIZE])
-        buf = buf[Node.SIZE:]
-        src_port = struct.unpack('> H', buf[:2])[0]
-        buf = buf[2:]
-        dst_node = Node.unpack(buf[:Node.SIZE])
-        dst_port = struct.unpack('> H', buf[:2])[0]
-        buf = buf[2:]
         num_hops = struct.unpack('> H', buf[:2])[0]
         buf = buf[2:]
 
@@ -513,20 +500,18 @@ class Flow:
             path.append(FlowHop.unpack(buf[:FlowHop.SIZE]))
             buf = buf[FlowHop.SIZE:]
 
-        return Flow(flow_type, flow_id, src_node, src_port, dst_node, dst_port, path)
+        return Flow(flow_type, flow_id, path)
 
     def length(self):
-        return 8 + 2*(2+Node.SIZE) + FlowHop.SIZE * len(self.path)
+        return 8 + FlowHop.SIZE * len(self.path)
 
     @staticmethod
     def type_to_str(flow_type):
         return 'unknown'
 
     def __str__(self):
-        return 'Flow:%s:%u:src=%s:%u{%s}dst=%s:%u' % (Flow.type_to_str(self.flow_type), self.flow_id,
-                                                      str(self.src_node), self.src_port,
-                                                      ','.join(str(hop) for hop in self.path),
-                                                      str(self.dst_node), self.dst_port)
+        return 'Flow:%s:%u:{%s}' % (Flow.type_to_str(self.flow_type), self.flow_id,
+                                    ','.join(str(hop) for hop in self.path))
 
 class FlowsList(OFGMessage):
     def __init__(self, flows, xid=0):
@@ -779,19 +764,21 @@ class _Test():
                 self.server.send(LinksAdd(links))
 
                 if self.test_flow:
-                    hops = [FlowHop(0, nodes[i+1], 1) for i in range(2)]
+                    hops = [FlowHop(0, nodes[i], 1) for i in range(4)]
                     flow_type = 3
                     flow_id = 44
-                    f = Flow(flow_type, flow_id, nodes[0], 0, nodes[3], 1, hops)
+                    f = Flow(flow_type, flow_id, hops)
                     flows = [f]
 
                 # add another flow which simulates bicast of the original flow
                 if self.test_bicast:
-                    hops = [FlowHop(0, nodes[1], 2),
+                    hops = [FlowHop(0, nodes[0], 1),
+                            FlowHop(0, nodes[1], 2),
                             FlowHop(3, nodes[n], 2),
                             FlowHop(3, nodes[n+1], 2),
-                            FlowHop(3, nodes[2], 1)]
-                    f = Flow(flow_type, flow_id, nodes[0], 0, nodes[3], 1, hops)
+                            FlowHop(3, nodes[2], 1),
+                            FlowHop(0, nodes[3], 1)]
+                    f = Flow(flow_type, flow_id, hops)
                     flows.append(f)
 
                 if self.test_flow:

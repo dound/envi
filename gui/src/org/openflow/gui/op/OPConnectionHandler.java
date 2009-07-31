@@ -467,14 +467,14 @@ public class OPConnectionHandler extends ConnectionHandler
         short dstPort = 0;
 
         // Query the source port if the source has multiple ports
-        if (srcNode instanceof OPModule) {
+        if (srcNode instanceof OPModule && dstNode instanceof OPModule) {
             OPModule srcModule = (OPModule)srcNode;
-            OPModulePort ports[] = srcModule.getPorts();
+            OPModule dstModule = (OPModule)dstNode;
             if (srcModule.getPorts().length > 1) {
                 if (add)
-                    tryLinkAddMultiPort(srcModule, dstNode);
+                    tryLinkAddMultiPort(srcModule, dstModule);
                 else
-                    tryLinkDelMultiPort(srcModule, dstNode);
+                    tryLinkDelMultiPort(srcModule, dstModule);
 
                 return;
             }
@@ -486,16 +486,16 @@ public class OPConnectionHandler extends ConnectionHandler
      * Try adding a link with multiple ports
      *
      * @param srcNode	-- src node of the link
-     * @param dstNode	-- destination node of the link
+     * @param dstModule -- destination node of the link
      */
     protected void tryLinkAddMultiPort(
             OPModule srcModule,
-            OPNodeWithNameAndPorts dstNode) {
+            OPModule dstModule) {
         short dstPort = 0;
 
         OPModulePort ports[] = srcModule.getPorts();
         Object items[] = new Object[ports.length + 1];
-        items[0] = "Please select which port(s) of " + srcModule.getName() + " to connect to " + dstNode.getName();
+        items[0] = "Please select which port(s) of " + srcModule.getName() + " to connect to " + dstModule.getName();
         for (int i = 0; i < ports.length; i++)
             items[i + 1] = new JCheckBox(ports[i].getName() + " (" + ports[i].getDesc() + ")");
 
@@ -516,7 +516,7 @@ public class OPConnectionHandler extends ConnectionHandler
         for (int i = 0; i < ports.length; i++) {
             JCheckBox cb = (JCheckBox)items[i + 1];
             if (cb.isSelected())
-                sendLinkAddDelMsg(true, srcModule, ports[i].getId(), dstNode, dstPort);
+                sendLinkAddDelMsg(true, srcModule, ports[i].getId(), dstModule, dstPort);
         }
     }
 
@@ -524,18 +524,18 @@ public class OPConnectionHandler extends ConnectionHandler
      * Try deleting a link with multiple ports
      *
      * @param srcNode	-- src node of the link
-     * @param dstNode	-- destination node of the link
+     * @param dstModule -- destination module of the link
      */
     protected void tryLinkDelMultiPort(
             OPModule srcModule,
-            OPNodeWithNameAndPorts dstNode) {
+            OPModule dstModule) {
         short dstPort = 0;
 
         // Work out what links go from source to dest
         HashSet<Short> srcPortNums = new HashSet<Short>();
         Collection<Link> links = srcModule.getLinks();
         for (Link l: links) {
-            if (l.getDestination() == dstNode) {
+            if (l.getDestination() == dstModule) {
                srcPortNums.add(Short.valueOf(l.getMyPort(srcModule)));
             }
         }
@@ -543,7 +543,7 @@ public class OPConnectionHandler extends ConnectionHandler
         // Do we need to delete multiple ports?
         if (srcPortNums.size() == 1) {
             short srcPort = ((Short)(srcPortNums.toArray()[0])).shortValue();
-            sendLinkAddDelMsg(false, srcModule, srcPort, dstNode, dstPort);
+            sendLinkAddDelMsg(false, srcModule, srcPort, dstModule, dstPort);
             return;
         }
 
@@ -557,7 +557,7 @@ public class OPConnectionHandler extends ConnectionHandler
 
         // Create the list of ports to show in the dialog
         Object items[] = new Object[ports.size() + 1];
-        items[0] = "Please select which port(s) of " + srcModule.getName() + " to disconnect from " + dstNode.getName();
+        items[0] = "Please select which port(s) of " + srcModule.getName() + " to disconnect from " + dstModule.getName();
         for (int i = 0; i < ports.size(); i++)
             items[i + 1] = new JCheckBox(ports.get(i).getName() + " (" + ports.get(i).getDesc() + ")");
 
@@ -580,7 +580,7 @@ public class OPConnectionHandler extends ConnectionHandler
         for (int i = 0; i < ports.size(); i++) {
             JCheckBox cb = (JCheckBox)items[i + 1];
             if (cb.isSelected())
-                sendLinkAddDelMsg(false, srcModule, ports.get(i).getId(), dstNode, dstPort);
+                sendLinkAddDelMsg(false, srcModule, ports.get(i).getId(), dstModule, dstPort);
         }
     }
     

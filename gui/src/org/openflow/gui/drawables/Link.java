@@ -644,11 +644,15 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** sets how many other links between the same endpoints have already been drawn */
     void setOffset(int numOtherLinks) {
         int ocount = ((numOtherLinks + 1) / 2) * 2;
-        if(ocount == numOtherLinks)
+        if (numOtherLinks % 2 == 1)
             ocount = -ocount;
         
-        offsetX = (LINE_WIDTH+2) * ocount;
-        offsetY = (LINE_WIDTH+2) * ocount;
+        // compute a normal unit vector to the link line
+        Vector2f offset = new Line(src.getX(), src.getY(), 
+                                   dst.getX(), dst.getY()).normal().multiply((LINE_WIDTH+2) * ocount);
+
+        offsetX = Math.round(offset.x);
+        offsetY = Math.round(offset.y);
         
         updateBoundingBox(src.getX()+offsetX, src.getY()+offsetY, 
                           dst.getX()+offsetX, dst.getY()+offsetY);

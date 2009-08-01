@@ -27,7 +27,7 @@ public final class Options {
      * Whether links between nodes should be represented using one undirected
      * or two directed links.
      */
-    public static final boolean USE_DIRECTED_LINKS = true;
+    public static final boolean USE_DIRECTED_LINKS = false;
     
     /** whether to use a light or dark color scheme */
     public static final boolean USE_LIGHT_COLOR_SCHEME = true;

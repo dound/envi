@@ -159,14 +159,27 @@ public class Topology {
     
     /**
      * Cleanup state associated only with the specified owner (presumably 
-     * because that connection is no longer connected).
+     * because that connection is no longer connected).  This involves removing
+     * all nodes, links, and flows.
      * 
      * @param owner  the owning connection
      */
-    public void removeAllNodes(BackendConnection<OFGMessage> owner) {
-        // remove all switches when we get disconnected
+    public void removeAll(BackendConnection<OFGMessage> owner) {
+        // remove all nodes, links, and flows associated with this topology
+        
+        // remove links first
+        for(Link l : linksMap.keySet())
+            disconnectLink(owner,
+                           l.getDestination().getID(), l.getMyPort(l.getDestination()),
+                           l.getSource().getID(),      l.getMyPort(l.getSource()));
+        
+        // next remove nodes
         for(Long d : nodesList)
             removeNode(owner, d);
+        
+        // finally remove flows
+        for(int id : flowsMap.keySet())
+            removeFlowByID(id);
     }
     
     /**

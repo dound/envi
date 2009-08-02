@@ -33,6 +33,11 @@ public class OPModule extends Node {
         long clid = cid;
         return (clid << 32L) | mid;
     }
+    
+    /** check if the ID indicates that the node is being prepared */
+    public static final boolean isPreparing(long id) {
+        return (0x8000000000000000L & id) != 0;
+    }
 
     /** name of the module */
     public final String name;

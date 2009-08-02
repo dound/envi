@@ -343,6 +343,7 @@ public class OPConnectionHandler extends ConnectionHandler
             // Duplicate the module (it should be an original)
             if(m.isOriginal()) {
                 m = new OPModule(m, moduleID);
+                m.setReady(org.openflow.gui.net.protocol.op.OPModule.isReady(moduleID));
                 getTopology().addNode(getConnection(), m);
             }
 

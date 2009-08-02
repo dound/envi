@@ -375,10 +375,12 @@ public class OPModuleStatusWindow {
                     OPSVInt intVal = (OPSVInt)v;
                     OPStateField f = fieldMap.get(name);
                     JComponent c = fieldComps.get(name);
-                    if (c == null)
-                        throw new UnsupportedOperationException("WARNING: Unknown field '" + name + "'");
 
-                    updateIntField(intVal, f, c);
+                    // If we know about the field then update the display
+                    if (c != null)
+                        updateIntField(intVal, f, c);
+                    else
+                        System.err.println("WARNING: Unknown field '" + name + "'");
                 }
                 else {
                     throw new UnsupportedOperationException("WARNING: Unimplemented value type encountered");

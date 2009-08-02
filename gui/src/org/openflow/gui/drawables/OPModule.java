@@ -1,10 +1,12 @@
 package org.openflow.gui.drawables;
 
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Graphics2D;
 
 import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.op.OPStateField;
+import org.pzgui.Constants;
 import org.pzgui.icon.Icon;
 
 public class OPModule extends OPNodeWithNameAndPorts {
@@ -25,6 +27,7 @@ public class OPModule extends OPNodeWithNameAndPorts {
             throw new Error("Error: copy ID should be 0 for original modules!  Got: " + getCopyID());
         setNameColor(Color.WHITE);
         original = true;
+        ready = true;
     }
     
     /**
@@ -42,6 +45,7 @@ public class OPModule extends OPNodeWithNameAndPorts {
         ports = mToCopy.ports;
         stateFields = mToCopy.stateFields;
         original = false;
+        ready = false;
         setNameColor(Color.YELLOW);
     }
     
@@ -138,6 +142,9 @@ public class OPModule extends OPNodeWithNameAndPorts {
     
     /** where the module is being dragged */
     private int dragX, dragY;
+
+    /** is this module downloading */
+    private boolean ready;
     
     public int getDragX() {
         return dragX;
@@ -149,6 +156,13 @@ public class OPModule extends OPNodeWithNameAndPorts {
     
     /** Draw the object using super.drawObject() and then add the name in the middle */
     public void drawObject(Graphics2D gfx) {
+        // make the object less prominent if it is off (unless it has failed)
+        Composite c = null;
+        if(!isReady()) {
+            c = gfx.getComposite();
+            gfx.setComposite(Constants.COMPOSITE_HALF);
+        }
+        
         super.drawObject(gfx);
 
         int x = getX();
@@ -163,6 +177,9 @@ public class OPModule extends OPNodeWithNameAndPorts {
             super.drawObject(gfx);
             super.setPos(x, y);
         }
+        
+        if(c != null)
+            gfx.setComposite(c);
     }
     
     public void setXPos(int x) {
@@ -201,5 +218,13 @@ public class OPModule extends OPNodeWithNameAndPorts {
 
     public OPStateField[] getStateFields() {
         return stateFields;
+    }
+
+    public void setReady(boolean ready) {
+        this.ready = ready;
+    }
+    
+    public boolean isReady() {
+        return ready;
     }
 }

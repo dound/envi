@@ -907,7 +907,7 @@ public class OPConnectionHandler extends ConnectionHandler
                 if (n instanceof OPOpenFlowSwitch) {
                     OPOpenFlowSwitch o = (OPOpenFlowSwitch) n;
                     OPOpenFlowSwitch o2 = (OPOpenFlowSwitch) n2;
-                    o2.setDesc(o2.getDesc());
+                    o2.setDesc(o.getDesc());
                 }
             }
             else {

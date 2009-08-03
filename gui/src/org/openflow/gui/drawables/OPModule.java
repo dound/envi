@@ -169,8 +169,11 @@ public class OPModule extends OPNodeWithNameAndPorts {
         int y = getY();
         
         // no more to do if this isn't an original
-        if(!isOriginal())
+        if(!isOriginal()) {
+            if(c != null)
+                gfx.setComposite(c);
             return;
+        }
         
         if(dragX!=x || dragY!=y) {
             super.setPos(dragX, dragY);

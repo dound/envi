@@ -44,6 +44,7 @@ import org.openflow.gui.net.protocol.LinksAdd;
 import org.openflow.gui.net.protocol.LinksDel;
 import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
+import org.openflow.gui.net.protocol.op.OPModuleStatusChange;
 import org.openflow.gui.net.protocol.op.OPModuleStatusReply;
 import org.openflow.gui.net.protocol.op.OPModuleStatusRequest;
 import org.openflow.gui.net.protocol.op.OPModulesAdd;
@@ -343,7 +344,6 @@ public class OPConnectionHandler extends ConnectionHandler
             // Duplicate the module (it should be an original)
             if(m.isOriginal()) {
                 m = new OPModule(m, moduleID);
-                m.setReady(org.openflow.gui.net.protocol.op.OPModule.isReady(moduleID));
                 getTopology().addNode(getConnection(), m);
             }
 
@@ -670,12 +670,22 @@ public class OPConnectionHandler extends ConnectionHandler
         case OP_SET_STATE_VALUES:
             setStateValues((OPSetStateValues)msg);
             break;
-        
+            
+        case OP_MODULE_STATUS_CHANGE:
+            updateModuleStatus((OPModuleStatusChange)msg);
+            break;
+
         default:
             super.process(msg);
         }
     }
-    
+
+    private void updateModuleStatus(OPModuleStatusChange msg) {
+        OPModule m = (OPModule) getTopology().getNode(msg.module.id);
+        m.setReady(msg.isReady());
+        System.out.println("Set status on module " + m + " to " + m.isReady());
+    }
+
     // drawing related info for our OpenPipes-specific drawings
     public static final int[] INOUT_XS = new int[] {5, 10,  5, 0, 5};
     public static final int[] INOUT_YS = new int[] {0,  5, 10, 5, 0};

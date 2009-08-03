@@ -683,7 +683,6 @@ public class OPConnectionHandler extends ConnectionHandler
     private void updateModuleStatus(OPModuleStatusChange msg) {
         OPModule m = (OPModule) getTopology().getNode(msg.module.id);
         m.setReady(msg.isReady());
-        System.out.println("Set status on module " + m + " to " + m.isReady());
     }
 
     // drawing related info for our OpenPipes-specific drawings

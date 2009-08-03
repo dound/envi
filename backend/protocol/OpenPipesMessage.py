@@ -810,6 +810,42 @@ class OPSetStateValues(OFGMessage):
 OFG_MESSAGES.append(OPSetStateValues)
 
 
+class OPModuleStatusChange(OFGMessage):
+    STATUS_READY = 1
+    STATUS_NOT_READY = 2
+
+    @staticmethod
+    def get_type():
+        return 0xFA
+
+    def __init__(self, module, status, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.module = module
+        self.status = status
+
+    def length(self):
+        return OFGMessage.SIZE + Node.SIZE + 1
+
+    def pack(self):
+        hdr = OFGMessage.pack(self)
+        body = self.module.pack()
+        body += struct.pack('> B', self.status)
+        return hdr + body
+
+    @staticmethod
+    def unpack(body):
+        raise Exception('OPModuleStatusChange.unpack() not implemented (one-way message)')
+
+    def __str__(self):
+        if self.status == OPModuleStatusChange.STATUS_READY:
+            status = 'ready'
+        elif self.status == OPModuleStatusChange.STATUS_NOT_READY:
+            status = 'not ready'
+        fmt = 'OP_MODULE_STATUS_CHANGE: ' + OFGMessage.__str__(self) + " status for module %s: %s"
+        return fmt % (self.module, status)
+OP_MESSAGES.append(OPModuleStatusChange)
+
+
 OP_PROTOCOL = LTProtocol(OFG_MESSAGES + OP_MESSAGES, 'H', 'B')
 
 def run_op_server(port, recv_callback):

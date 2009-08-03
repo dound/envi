@@ -3,6 +3,7 @@ package org.openflow.gui.net.protocol;
 import java.io.DataInput;
 import java.io.IOException;
 
+import org.openflow.gui.net.protocol.op.OPModuleStatusChange;
 import org.openflow.gui.net.protocol.op.OPModuleStatusReply;
 import org.openflow.gui.net.protocol.op.OPModulesAdd;
 import org.openflow.gui.net.protocol.op.OPModulesDel;
@@ -114,6 +115,9 @@ public enum OFGMessageType {
     /** Set a modules state */
     OP_SET_STATE_VALUES((byte)0xF9),
     
+    /** Module status change */
+    OP_MODULE_STATUS_CHANGE((byte)0xFA),
+    
     ;
 
     /** the special value used to identify messages of this type */
@@ -214,6 +218,9 @@ public enum OFGMessageType {
 
             case OP_SET_STATE_VALUES:
                 return new OPSetStateValues(len, xid, in);
+                
+            case OP_MODULE_STATUS_CHANGE:
+                return new OPModuleStatusChange(len, xid, in);
 
             case ECHO_REQUEST:
             case ECHO_REPLY:

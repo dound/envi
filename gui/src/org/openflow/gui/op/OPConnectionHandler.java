@@ -273,6 +273,9 @@ public class OPConnectionHandler extends ConnectionHandler
                 // different node
                 if(!n.equals(m.getNodeInstalledOn())) {
                     moveModule(m, n);
+                    // Reset the X/Y position
+                    OPNodeWithNameAndPorts to = m.getNodeInstalledOn();
+                    m.setPos(to.getX(), to.getY());
                 }
                 return;
             }

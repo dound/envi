@@ -35,6 +35,8 @@ public final class FlowVisorGUI {
         sl.setRepulsionRange(0); // don't repel
         sl.setForceMultiplier(0);
         gm.setLayout(sl);
+	gm.loadDrawablePositionsFromFile("demo.yaml");
+
         
         // create the initial connection(s)
         for(Pair<String, Short> server : servers) {

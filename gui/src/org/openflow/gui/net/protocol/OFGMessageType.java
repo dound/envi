@@ -118,6 +118,9 @@ public enum OFGMessageType {
     /** Module status change */
     OP_MODULE_STATUS_CHANGE((byte)0xFA),
     
+    /** Module alert */
+    OP_MODULE_ALERT((byte)0xFB),
+    
     ;
 
     /** the special value used to identify messages of this type */
@@ -221,6 +224,9 @@ public enum OFGMessageType {
                 
             case OP_MODULE_STATUS_CHANGE:
                 return new OPModuleStatusChange(len, xid, in);
+
+            case OP_MODULE_ALERT:
+                return new OPModuleAlert(len, xid, in);
 
             case ECHO_REQUEST:
             case ECHO_REPLY:

@@ -846,6 +846,35 @@ class OPModuleStatusChange(OFGMessage):
 OP_MESSAGES.append(OPModuleStatusChange)
 
 
+class OPModuleAlert(OFGMessage):
+    @staticmethod
+    def get_type():
+        return 0xFB
+
+    def __init__(self, module, msg, xid=0):
+        OFGMessage.__init__(self, xid)
+        self.module = module
+        self.msg = msg
+
+    def length(self):
+        return OFGMessage.SIZE + Node.SIZE + len(self.msg) + 1
+
+    def pack(self):
+        hdr = OFGMessage.pack(self)
+        body = self.module.pack()
+        body += struct.pack('> %us'%(len(self.msg) + 1), self.msg)
+        return hdr + body
+
+    @staticmethod
+    def unpack(body):
+        raise Exception('OPModuleAlert.unpack() not implemented (one-way message)')
+
+    def __str__(self):
+        fmt = 'OP_MODULE_ALERT: ' + OFGMessage.__str__(self) + " module: %s alert: '%s'"
+        return fmt % (self.module, self.msg)
+OP_MESSAGES.append(OPModuleAlert)
+
+
 OP_PROTOCOL = LTProtocol(OFG_MESSAGES + OP_MESSAGES, 'H', 'B')
 
 def run_op_server(port, recv_callback):

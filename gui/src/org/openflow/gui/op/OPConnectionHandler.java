@@ -44,6 +44,7 @@ import org.openflow.gui.net.protocol.LinksAdd;
 import org.openflow.gui.net.protocol.LinksDel;
 import org.openflow.gui.net.protocol.NodeType;
 import org.openflow.gui.net.protocol.OFGMessage;
+import org.openflow.gui.net.protocol.OPModuleAlert;
 import org.openflow.gui.net.protocol.op.OPModuleStatusChange;
 import org.openflow.gui.net.protocol.op.OPModuleStatusReply;
 import org.openflow.gui.net.protocol.op.OPModuleStatusRequest;
@@ -678,10 +679,18 @@ public class OPConnectionHandler extends ConnectionHandler
         case OP_MODULE_STATUS_CHANGE:
             updateModuleStatus((OPModuleStatusChange)msg);
             break;
+            
+        case OP_MODULE_ALERT:
+            displayAlert((OPModuleAlert)msg);
+            break;
 
         default:
             super.process(msg);
         }
+    }
+
+    private void displayAlert(OPModuleAlert msg) {
+        System.err.println("Alert from module " + msg.module + ": " + msg.msg);
     }
 
     private void updateModuleStatus(OPModuleStatusChange msg) {

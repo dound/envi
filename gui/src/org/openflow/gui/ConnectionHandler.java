@@ -298,11 +298,10 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
     /** add new node to the topology */
     protected void processDrawableNodeAdd(Node n) {
         if(n instanceof NodeWithPorts) {
-            if(!topology.addNode(connection, (NodeWithPorts)n))
-                return;
-                
-            if(n instanceof OpenFlowSwitch)
-                handleNewSwitch((OpenFlowSwitch)n);
+            int ret = topology.addNode(connection, (NodeWithPorts)n);
+            
+            if(ret>=0 && n instanceof OpenFlowSwitch)
+                handleNewSwitch((OpenFlowSwitch)n, ret!=0 /* if locally new, only request links */);
         }
     }
     

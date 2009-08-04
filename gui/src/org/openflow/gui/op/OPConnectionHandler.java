@@ -754,9 +754,7 @@ public class OPConnectionHandler extends ConnectionHandler
             break;
             
         case TYPE_NETFPGA:
-            gicon = new GeometricIcon(NETFPGA_XS, NETFPGA_YS, Color.GREEN, Color.BLACK, Constants.STROKE_DEFAULT);
-            gicon.setCenter(true);
-            icon = gicon;
+            icon = new org.pzgui.icon.ImageIcon("images/netfpga-green.png");
             break;
             
         case TYPE_PC:

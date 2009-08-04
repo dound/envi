@@ -255,6 +255,17 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
      * @param s  the new switch
      */
     protected void handleNewSwitch(OpenFlowSwitch s) {
+        handleNewSwitch(s, true);
+    }
+    
+    /**
+     * Handles a new switch by requesting its links and description if 
+     * Options.AUTO_REQUEST_LINK_INFO_FOR_NEW_SWITCH is true.
+     * 
+     * @param s          the new switch
+     * @param linksOnly  only request new links (don't send a switch description request)
+     */
+    protected void handleNewSwitch(OpenFlowSwitch s, boolean linksOnly) {
         if(!Options.AUTO_REQUEST_LINK_INFO_FOR_NEW_SWITCH)
             return;
         
@@ -267,7 +278,10 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
         } catch (IOException e) {
             System.err.println("Warning: unable to get switches for switch + " + DPIDUtil.toString(dpid));
         }
-        
+
+        if(linksOnly)
+            return;
+            
         try {
             getConnection().sendMessage(new SwitchDescriptionRequest(dpid));
         } catch (IOException e) {

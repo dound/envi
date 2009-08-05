@@ -376,4 +376,14 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
             }
         }
     }
+    
+    /** returns the server address which this object connects to */
+    public String getServerAddr() {
+        return serverIP;
+    }
+    
+    /** returns the TCP port this object connects to */
+    public int getServerPort() {
+        return serverPort;
+    }
 }

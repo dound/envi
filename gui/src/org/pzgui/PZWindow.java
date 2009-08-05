@@ -115,7 +115,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
     private final JLabelWithPZWindowParent lblCanvas = new JLabelWithPZWindowParent(this);
     
     /** the image where the scene will be drawn */
-    private BufferedImage img;
+    protected BufferedImage img;
 
     /** a lock to prevent img from being changed in the middle of a redraw */
     private final Object imgLock = new Object();

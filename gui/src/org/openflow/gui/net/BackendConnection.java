@@ -141,11 +141,17 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
     /**
      * Connect to the server at the specified address and port.
      * 
-     * @param ip                 the IP where the server lives
-     * @param port               the port the server listens on
+     * @param mp    the processor for messages; if null, then "this" will be
+     *              used as mp if it implements the MessageProcesser interface
+     * @param ip    the IP where the server lives
+     * @param port  the port the server listens on
      */
     public BackendConnection(MessageProcessor<MSG_TYPE> mp, String ip, int port) {
-        msgProcessor = mp;
+        if(mp == null && this instanceof MessageProcessor)
+            msgProcessor = (MessageProcessor<MSG_TYPE>)this;
+        else
+            msgProcessor = mp;
+        
         serverIP = ip;
         serverPort = port;  
     }

@@ -10,7 +10,6 @@ import org.openflow.gui.displayshare.protocol.DSParams;
 import org.openflow.gui.net.CountingDataInputStream;
 import org.pzgui.PZManager;
 import org.pzgui.PZWindow;
-import org.pzgui.PZWindowEventListener;
 import org.pzgui.math.Vector2i;
 
 /**
@@ -29,6 +28,12 @@ public class DSServer extends PZWindow {
     
     /** handles the TCP connection to the client */
     private ClientHandler clientHandler;
+    
+    /** whether this window can be made visible */
+    private final boolean mayBeVisible;
+    
+    /** whether to send the next frame */
+    private boolean sendNextFrame = false;
     
     /**
      * A thread to handle DSServer clients.
@@ -114,14 +119,15 @@ public class DSServer extends PZWindow {
     
     /** create a new DSServer listening on the specified port */
     public DSServer(PZManager manager, int screenX, int screenY, int width, int height, int drawX, int drawY, final short port) throws IOException {
+        this(manager, screenX, screenY, width, height, drawX, drawY, port, false);
+    }
+    
+    /** create a new DSServer listening on the specified port */
+    public DSServer(PZManager manager, int screenX, int screenY, int width, int height, int drawX, int drawY, final short port, boolean mayBeVisible) throws IOException {
         super(manager, screenX, screenY, width, height, drawX, drawY);
+        this.mayBeVisible = mayBeVisible;
         clientHandler = new ClientHandler(port);
         clientHandler.start();
-    }
-
-    /** does nothing (ignored) */
-    public void addEventListener(PZWindowEventListener l) {
-        /* do nothing */
     }
     
     /**
@@ -129,31 +135,40 @@ public class DSServer extends PZWindow {
      * needed.
      */
     public void redraw() {
-        // no reason to draw if it is too soon or nobody is using the server
+        // determine whether the next frame should be sent now
         long now = System.currentTimeMillis();
-        if(clientHandler.out!=null && lastRedrawTime + msec_per_frame <= now) {
+        sendNextFrame = clientHandler.out!=null && lastRedrawTime + msec_per_frame <= now;
+        
+        // no reason to draw if it is too soon or nobody is using the display
+        if((mayBeVisible && isVisible()) || sendNextFrame) {
             lastRedrawTime = now;
             super.redraw();
         }
     }
     
     /**
-     * Send the new canvas to the connected client, if any.
+     * Send the new canvas to the connected client, if any.  Also refresh the
+     * window if it is visible.
      */
     protected void refreshCanvas() {
         DataOutputStream out = clientHandler.out;
-        if(out != null) {
+        if(out != null && sendNextFrame) {
             try {
+                sendNextFrame = false;
                 new DSFrame(super.img).write(out);
             } catch (IOException e) {
                 clientHandler.notifyClientLost();
             }
         }
+        
+        if(mayBeVisible && isVisible())
+            super.refreshCanvas();
     }
     
-    /** does nothing (ignored) */
-    public void setVisible(boolean v) {
-        /* do nothing */
+    /** only has an effect if the object was constructed with mayBeVisible=true */
+    public void setVisible(boolean b) {
+        if(mayBeVisible)
+            super.setVisible(b);
     }
     
     /** updates the PZWindow's display configuration based on p */

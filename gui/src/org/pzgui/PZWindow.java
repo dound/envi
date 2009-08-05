@@ -174,11 +174,7 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
             // redraw the scene
             manager.preRedraw(this);
             manager.redraw(this);
-
-            // copy the image buffer into the JLabel on the JFrame
-            Graphics cg = lblCanvas.getGraphics();
-            if(cg != null)
-                cg.drawImage(img, 0, 0, null);
+            refreshCanvas();
 
             // save a screenshot if one was requested
             if(saveScreenshotName != null) {
@@ -191,6 +187,13 @@ public class PZWindow extends javax.swing.JFrame implements ComponentListener {
                 saveScreenshotName = null;
             }
         }
+    }
+    
+    /** copy the image buffer into the JLabel on this object */
+    protected void refreshCanvas() {
+        Graphics cg = lblCanvas.getGraphics();
+        if(cg != null)
+            cg.drawImage(img, 0, 0, null);
     }
 
     /** tells the GUI to save a screenshot when it finishes the next redraw */

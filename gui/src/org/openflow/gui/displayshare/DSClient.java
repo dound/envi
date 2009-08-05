@@ -22,7 +22,7 @@ import org.pzgui.icon.ImageIcon;
  * @author David Underhill
  */
 public class DSClient extends BackendConnection<DSMessage>
-                      implements MessageProcessor<DSMessage>{
+                      implements MessageProcessor<DSMessage> {
     
     /** parameters to specify for the DisplayShare */
     private DSParams params;
@@ -30,8 +30,8 @@ public class DSClient extends BackendConnection<DSMessage>
     /** wrapper for the most recently received frame */
     private final ImageIcon icon = new ImageIcon(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB));
     
-    public DSClient(MessageProcessor<DSMessage> mp, String ip, int port, DSParams params) {
-        super(mp, ip, port);
+    public DSClient(String ip, int port, DSParams params) {
+        super(null /* process own messages */, ip, port);
         this.params = params;
     }
 

@@ -290,7 +290,7 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
      * to the next available transaction ID.  If m is a POLL_REQUEST message, 
      * then the internal message's transaction ID is also set.
      */
-    public void sendMessage(OFGMessage m) throws IOException {
+    public void sendMessage(MSG_TYPE m) throws IOException {
         // get the current connection
         SocketConnection myConn = this.conn;
         java.io.DataOutput out = (myConn == null) ? null : myConn.out;
@@ -300,6 +300,16 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
         if(out == null)
             throw new IOException("connection is down");
         
+        if(m instanceof OFGMessage)
+            sendOFGMessage((OFGMessage)m);
+        
+        m.write(out);
+        
+        if(PRINT_MESSAGES)
+            System.out.println("sent: " + m.toString());
+    }
+    
+    public void sendOFGMessage(OFGMessage m) throws IOException {
         if(m.xid == 0)
             m.xid = nextXID++;
         
@@ -318,11 +328,6 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
                     outstandingStatefulPollRequests.remove(pollMsg.msg.xid);
             }
         }
-        
-        m.write(out);
-        
-        if(PRINT_MESSAGES)
-            System.out.println("sent: " + m.toString());
     }
     
     /** 

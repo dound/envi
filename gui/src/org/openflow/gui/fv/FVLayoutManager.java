@@ -41,6 +41,13 @@ public class FVLayoutManager extends PZLayoutManager {
     /** track when links are drawn to ensure that they are drawn only once per slice */
     private HashMap<DisplaySlice, HashSet<Link>> drawnLinksBySlice = new HashMap<DisplaySlice, HashSet<Link>>();
     
+    /** 
+     * Minimum height to be allocated to a slice.  This is useful when there are
+     * too many slices to be display at once - by specifying a minimum height,
+     * no slice will be overly (vertically) constrained. 
+     */
+    private int minSliceHeight = 0; // no minimum by default
+    
     /** whether the slice graphics have been yet this frame */
     private boolean sliceGraphicsDrawn = false;
     
@@ -300,7 +307,7 @@ public class FVLayoutManager extends PZLayoutManager {
      * to update their transforms according to the new layout area.
      */
     public void setLayoutSize(int width, int height) {
-        int sliceHeight = height/Math.max(1, numVisibleSlices());
+        int sliceHeight = Math.max(minSliceHeight, height/Math.max(1, numVisibleSlices()));
         super.setLayoutSize(width, sliceHeight);
         
         int i = 0;
@@ -433,5 +440,15 @@ public class FVLayoutManager extends PZLayoutManager {
         cmnu.add(mnu);
         
         cmnu.show(windows.get(0), x, y);
+    }
+    
+    /** gets the minimum height of a slice */
+    public int getMinSliceHeight() {
+        return minSliceHeight;
+    }
+    
+    /** sets the minimum height of a slice */
+    public void setMinSliceHeight(int h) {
+        minSliceHeight = h;
     }
 }

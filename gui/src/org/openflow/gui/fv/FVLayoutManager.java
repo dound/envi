@@ -41,6 +41,9 @@ public class FVLayoutManager extends PZLayoutManager {
     /** track when links are drawn to ensure that they are drawn only once per slice */
     private HashMap<DisplaySlice, HashSet<Link>> drawnLinksBySlice = new HashMap<DisplaySlice, HashSet<Link>>();
     
+    /** whether the slice graphics have been yet this frame */
+    private boolean sliceGraphicsDrawn = false;
+    
     /**
      * Construct the FlowVisor GUI layout manager.
      * 
@@ -120,9 +123,7 @@ public class FVLayoutManager extends PZLayoutManager {
         if(gfx == null)
             return;
         
-        for(DisplaySlice ds : displaySlices)
-            ds.draw(gfx);
-        
+        sliceGraphicsDrawn = false;
         drawnLinksBySlice.clear();
     }
     
@@ -131,6 +132,12 @@ public class FVLayoutManager extends PZLayoutManager {
      * appropriate plane(s) based on the slice(s) it lives in. 
      */
     protected void drawBeforeObject(Graphics2D gfx, Drawable d) {
+        if(!sliceGraphicsDrawn) {
+            for(DisplaySlice ds : displaySlices)
+                ds.draw(gfx);
+            sliceGraphicsDrawn = true;
+        }
+        
         drawWrap(gfx, d, true);
     }
     

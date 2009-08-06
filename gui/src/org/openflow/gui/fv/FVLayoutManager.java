@@ -318,6 +318,14 @@ public class FVLayoutManager extends PZLayoutManager {
             return;
         
         // move slices up or down
+        mnui = new JMenuItem("Toggle Ports", KeyEvent.VK_P);
+        mnui.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Link.DRAW_PORT_NUMBERS = ! Link.DRAW_PORT_NUMBERS;
+            }});
+        mnui.setEnabled(true);
+        cmnu.add(mnui);
+
         mnui = new JMenuItem("Move Up", KeyEvent.VK_U);
         mnui.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

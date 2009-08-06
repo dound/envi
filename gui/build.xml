@@ -82,7 +82,7 @@
   <target name="keytoolexec" depends="jar">
     <delete file="ofgkey"/>
     <exec dir="." executable="keytool" failonerror="true">
-      <arg line="-genkeypair -alias ofg -keystore ofgkey -storepass ofgkey
+      <arg line="-genkeypair -Xlint:unchecked -alias ofg -keystore ofgkey -storepass ofgkey
                  -keypass ofgkey -validity 365
                  -dname 'CN=David Underhill, OU=McKeown Group, O=Stanford University, L=Stanford, ST=CA, C=US'"/>
     </exec>

@@ -853,7 +853,11 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         else if (usage > 1)
             usage = 1;
         
-        return USAGE_COLORS[(int)(usage * (NUM_USAGE_COLORS-1))];
+        return USAGE_COLORS[
+			(int)
+			( Math.log(1+usage)/Math.log(2)) 
+			* (NUM_USAGE_COLORS-1)
+			];
     }
     
     /**

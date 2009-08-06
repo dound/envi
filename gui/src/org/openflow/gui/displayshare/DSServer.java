@@ -84,8 +84,11 @@ public class DSServer extends PZWindow {
             }
             
             // wait until notifyClientLost() is called
-            while(out != null)
-                try { wait(); } catch(InterruptedException e) {}
+            while(out != null) {
+                synchronized(this) {
+                    try { wait(); } catch(InterruptedException e) {}
+                }
+            }
         }
         
         /** tell the handler that the client connection has been terminated */

@@ -24,7 +24,7 @@ public class DSServer extends PZWindow {
     private int msec_per_frame = 0;
     
     /** when the frame was last redrawn */
-    private long lastRedrawTime = 0;
+    private long timeLastFrameSent = 0;
     
     /** handles the TCP connection to the client */
     private ClientHandler clientHandler;
@@ -139,14 +139,11 @@ public class DSServer extends PZWindow {
      */
     public void redraw() {
         // determine whether the next frame should be sent now
-        long now = System.currentTimeMillis();
-        sendNextFrame = clientHandler.out!=null && lastRedrawTime + msec_per_frame <= now;
+        sendNextFrame = clientHandler.out!=null && timeLastFrameSent + msec_per_frame <= System.currentTimeMillis();
         
         // no reason to draw if it is too soon or nobody is using the display
-        if((mayBeVisible && isVisible()) || sendNextFrame) {
-            lastRedrawTime = now;
+        if((mayBeVisible && isVisible()) || sendNextFrame)
             super.redraw();
-        }
     }
     
     /**
@@ -157,6 +154,7 @@ public class DSServer extends PZWindow {
         DataOutputStream out = clientHandler.out;
         if(out != null && sendNextFrame) {
             try {
+                timeLastFrameSent = System.currentTimeMillis();
                 sendNextFrame = false;
                 new DSFrame(super.img).write(out);
             } catch (IOException e) {

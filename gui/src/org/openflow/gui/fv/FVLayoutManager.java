@@ -308,12 +308,16 @@ public class FVLayoutManager extends PZLayoutManager {
      */
     public void setLayoutSize(int width, int height) {
         int sliceHeight = Math.max(minSliceHeight, height/Math.max(1, numVisibleSlices()));
-        super.setLayoutSize(width, sliceHeight);
+	int nRows=1;
+	int nCols=1;
+        super.setLayoutSize(width/nRows, sliceHeight);
+
         
         int i = 0;
         for(DisplaySlice ds : displaySlices) {
             if(ds.isVisible()) {
-                ds.updateDisplayTransform(0, sliceHeight * i, width, sliceHeight);
+                ds.updateDisplayTransform(
+			(i%nCols)*width/nCols, sliceHeight * (int)(i/nRows), width/nCols, sliceHeight);
                 i += 1;
             }
         }

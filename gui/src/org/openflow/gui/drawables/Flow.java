@@ -103,13 +103,16 @@ public class Flow extends AbstractDrawable {
     public static final boolean ANIMATE = true;
     
     /** radius of circles which make up the flow */
-    public static final int POINT_SIZE = 20;
+    public static final int DEFAULT_POINT_SIZE = 5;
+    public int pointSize = DEFAULT_POINT_SIZE;
     
     /** gap between points */
-    private static final int GAP_BETWEEN_POINTS = POINT_SIZE;
+    private static final int DEFAULT_GAP_BETWEEN_POINTS = DEFAULT_POINT_SIZE;
+    private int gapBetweenPoints = DEFAULT_GAP_BETWEEN_POINTS;
     
     /** how much to offset the points per second */
-    private static final double MOVING_AMOUNT_PER_SEC = POINT_SIZE;
+    private static final double DEFAULT_MOVING_AMOUNT_PER_SEC = DEFAULT_POINT_SIZE;
+    private double movingAmountPerSec = DEFAULT_MOVING_AMOUNT_PER_SEC;
     
     /** offset due to the current animation, if any */
     private double movingOffset = 0.0;
@@ -131,8 +134,8 @@ public class Flow extends AbstractDrawable {
                 
         // determine the offset to make the line appear to be moving
         if(ANIMATE) {
-            movingOffset += Flow.MOVING_AMOUNT_PER_SEC * ((System.currentTimeMillis() - lastRedraw) / 1000.0);
-            movingOffset %= (getPointSize() + GAP_BETWEEN_POINTS);
+            movingOffset += movingAmountPerSec * ((System.currentTimeMillis() - lastRedraw) / 1000.0);
+            movingOffset %= (getPointSize() + gapBetweenPoints);
             lastRedraw = System.currentTimeMillis();
         }
         
@@ -140,7 +143,7 @@ public class Flow extends AbstractDrawable {
         if(selSlidingBack.hasSelection()) {
             Vector2f diff = new Vector2f(selSlidingBack.dragPos, selSlidingBack.selPos);
             Vector2f slidingBackDir = Vector2f.makeUnit(diff);
-            Vector2f slidingBackAmt = slidingBackDir.multiply((float)Flow.MOVING_AMOUNT_PER_SEC);
+            Vector2f slidingBackAmt = slidingBackDir.multiply((float)movingAmountPerSec);
             if(slidingBackAmt.lengthSq() > diff.lengthSq())
                 selSlidingBack.dragPos.subtract(slidingBackAmt);
             else
@@ -214,7 +217,7 @@ public class Flow extends AbstractDrawable {
                           Vector2f actualFrom, Vector2f actualTo, 
                           int startPathIndex, int endPathIndex, Link link) {
         // do not draw lines smaller than one dot
-        if(Vector2f.distanceSq(actualFrom.x, actualFrom.y, actualTo.x, actualTo.y) < Flow.POINT_SIZE*Flow.POINT_SIZE) {
+        if(Vector2f.distanceSq(actualFrom.x, actualFrom.y, actualTo.x, actualTo.y) < pointSize*pointSize) {
             boundingBoxesNew.add(null); // placeholder bounding box
             return;
         }
@@ -237,7 +240,7 @@ public class Flow extends AbstractDrawable {
         }
         
         // determine vector to take us from point to point
-        int d = getPointSize() + GAP_BETWEEN_POINTS;
+        int d = getPointSize() + gapBetweenPoints;
         Vector2f unitDir = Vector2f.makeUnit(dir);
         Vector2f dp = Vector2f.multiply(unitDir, d);
         float x = from.x;
@@ -308,7 +311,7 @@ public class Flow extends AbstractDrawable {
     
     /** Gets the width of the line within which segments of the flow are drawn */
     public int getPointSize() {
-        return POINT_SIZE;
+        return pointSize;
     }
     
     /** Gets the paint for this flow */

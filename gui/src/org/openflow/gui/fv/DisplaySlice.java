@@ -199,7 +199,7 @@ public class DisplaySlice {
         }
         else if(d instanceof Flow) {
             Flow f = (Flow)d;
-            f.setPaint(getFillPatternWrap(f.getID(), Flow.POINT_SIZE, flowFillPatterns));
+            f.setPaint(getFillPatternWrap(f.getID(), f.getPointSize(), flowFillPatterns));
         }
     }
 

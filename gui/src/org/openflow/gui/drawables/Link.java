@@ -225,6 +225,8 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     /** thickness of a link */
     public static final int LINE_WIDTH = 2;
+    public static final int MAX_LINE_WIDTH = 20;
+    public int currLineWidth = LINE_WIDTH;
     
     /** how the draw a link */
     public static final BasicStroke LINE_DEFAULT_STROKE = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
@@ -385,7 +387,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         
         // add a tunnel if it is tunneled
         if(type == LinkType.TUNNEL)
-            drawTunnel(gfx, LINE_WIDTH);
+            drawTunnel(gfx, this.currLineWidth);
         
         // draw the failure indicator if the link has failed
         if(isFailed())
@@ -649,7 +651,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         
         // compute a normal unit vector to the link line
         Vector2f offset = new Line(src.getX(), src.getY(), 
-                                   dst.getX(), dst.getY()).normal().multiply((LINE_WIDTH+2) * ocount);
+                                   dst.getX(), dst.getY()).normal().multiply((currLineWidth+2) * ocount);
 
         offsetX = Math.round(offset.x);
         offsetY = Math.round(offset.y);
@@ -664,10 +666,10 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         Vector2f to = new Vector2f(x2, y2);
         Vector2f dir = Vector2f.subtract            (to, from);
         Vector2f unitDir = Vector2f.makeUnit(dir);
-        Vector2f perp = new Vector2f(unitDir.y, -unitDir.x).multiply(LINE_WIDTH / 2.0f + 4.0f);
+        Vector2f perp = new Vector2f(unitDir.y, -unitDir.x).multiply(currLineWidth / 2.0f + 4.0f);
 
         // build the bounding box
-        float o = LINE_WIDTH / 2.0f;
+        float o = currLineWidth / 2.0f;
         int[] bx = new int[]{ (int)(x1 - perp.x + o), (int)(x1 + perp.x + o), (int)(x2 + perp.x + o), (int)(x2 - perp.x + o) };
         int[] by = new int[]{ (int)(y1 - perp.y + o), (int)(y1 + perp.y + o), (int)(y2 + perp.y + o), (int)(y2 - perp.y + o) };
         boundingBox = new Polygon(bx, by, bx.length);
@@ -804,7 +806,12 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
             
             // update the color whenever the (unfiltered) link utilization stats are updated
             if(m.wildcards.isWildcardAll())
-                setColorBasedOnCurrentUtilization();
+	    {
+		    if(Options.LINK_STATS_COLOR)
+			setColorBasedOnCurrentUtilization();
+		    if(Options.LINK_STATS_THICKNESS)
+			setLinkThicknessBasedOnCurrentUtilization();
+	    }
         }
     }
     
@@ -839,6 +846,12 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     public void setColorBasedOnCurrentUtilization() {
         float usage = (float)getCurrentUtilization();
         this.curDrawColor = getUsageColor(usage);
+    }
+    /** sets the color this link will be drawn based on the current utilization */
+    public void setLinkThicknessBasedOnCurrentUtilization() {
+        float usage = (float)getCurrentUtilization();
+        this.currLineWidth = (int)(Math.sqrt(usage) * MAX_LINE_WIDTH);
+	System.err.println("Setting link " +this + " to width="+ this.currLineWidth + " usage="+usage);
     }
     
     /**

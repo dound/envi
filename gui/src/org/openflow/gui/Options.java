@@ -28,6 +28,8 @@ public final class Options {
      * or two directed links.
      */
     public static final boolean USE_DIRECTED_LINKS = false;
+    public static final boolean LINK_STATS_COLOR = true;
+    public static final boolean LINK_STATS_THICKNESS = true;
     
     /** whether to use a light or dark color scheme */
     public static final boolean USE_LIGHT_COLOR_SCHEME = true;

@@ -58,7 +58,7 @@ public class Topology {
      * A lock to prevent a race condition between remove old NodeRefTrack and
      * adding new ones.  
      */
-    private static final Object globalNodesWriterLock = new Object();
+    //private static final Object globalNodes = new Object();
     
     /**
      * A global list of all links in all topologies as keys (values of this map
@@ -97,7 +97,7 @@ public class Topology {
         Long id = n.getID();
         NodeRefTrack localR = nodesMap.get(id);
         if(localR == null) {
-            synchronized(globalNodesWriterLock) {
+            synchronized(globalNodes) {
                 NodeRefTrack r = globalNodes.get(id);
                 if(r == null) {
                     globalNodes.put(id, new NodeRefTrack(n, owner));
@@ -211,7 +211,7 @@ public class Topology {
         }
         
         // remove the reference from the global topology list too
-        synchronized(globalNodesWriterLock) {
+        synchronized(globalNodes) {
             NodeRefTrack r = globalNodes.get(id);
             if(r.removeRef(owner)) {
                 globalNodes.remove(id);
@@ -447,9 +447,9 @@ public class Topology {
     
     /** mark all nodes as not in the current topology being drawn */
     public static void flagAllNodesAsInAnotherTopology() {
-        synchronized(globalNodesWriterLock) {
+        //synchronized(globalNodes) {  // it's ok if we set this on a node that went away
             for(NodeRefTrack r : globalNodes.values())
                 r.obj.setInTopologyBeingDrawn(false);
-        }
+        //}
     }
 }

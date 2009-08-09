@@ -65,6 +65,12 @@ public class FVLayoutManager extends PZLayoutManager {
 
     public void addDrawable(Drawable d)
     {
+    	final String ICON_NEC 		= "images/switch-nec-ip8800-v_small.png";
+    	final String ICON_AP  		= "images/ap.png";
+    	final String ICON_HP  		= "images/procurve.png";
+    	final String ICON_NETFPGA	= "images/netfpga.png";
+    	final String ICON_WIMAX		= "images/wimax.png";
+    	final String ICON_SOKRIS	= "images/sokris.png";
 	    super.addDrawable(d);
 	    // TODO: any custom processing when a Drawable is added
 	    // example of drawing a particular switch specially
@@ -72,11 +78,44 @@ public class FVLayoutManager extends PZLayoutManager {
 		    OpenFlowSwitch s = (OpenFlowSwitch)d;
 		    long id = s.getID();
 		    ImageIcon icon;
-		    
-		    if(id == 0x0012e298a5d2l)
-			    icon = new ImageIcon("images/dgu.gif");
+		    // can't @#*&@%!! switch() on a long... what a shit lang
+		    if(id == 0x0000000db916ef94l )
+			    icon = new ImageIcon(ICON_AP);
+		    else if(id == 0x0000000db916ef94l )
+			    icon = new ImageIcon(ICON_AP);
+		    else if(id == 0x0000000db915c044l)
+			    icon = new ImageIcon(ICON_AP);
+		    else if(id == 0x0385001b3fc54700l)
+		    	icon = new ImageIcon(ICON_HP);
+		    else if(id == 0x0000000db913b274l)
+		    	icon = new ImageIcon(ICON_SOKRIS);
+		    else if(id == 0x00000000cafecafel)
+		    	icon = new ImageIcon(ICON_WIMAX);
+		    else if(id == 0x0000002320000014l)
+		    	icon = new ImageIcon(ICON_NETFPGA);
+		    else if(id == 0x0000002320000015l)
+		    	icon = new ImageIcon(ICON_NETFPGA);
+		    else if(id == 0x0000002320000016l)
+		    	icon = new ImageIcon(ICON_NETFPGA);
+		    else if(id == 0x0000002320000017l)
+		    	icon = new ImageIcon(ICON_NETFPGA);
+		    else if(id == 0x0000002320000018l)
+		    	icon = new ImageIcon(ICON_NETFPGA);
+		    else if(id == 0x0000002320E90DD3l)
+		    	icon = new ImageIcon(ICON_NETFPGA);
 		    else
-			    icon = new ImageIcon("images/switch-nec-ip8800-v_small.png");
+		    	/*
+		    	nec1b.switchDatapathId 00000012e298a5d3
+			    nec1.switchDatapathId 00000012e298a5d1
+			    necsw2.switchDatapathId 00000012e27831f5
+			    necsw3b.switchDatapathId 00000012e298a5d2
+			    necsw3.switchDatapathId 00000012e298a5d0
+			    necsw4a.switchDatapathId 00000012e2b8f3d0
+			    necsw4b.switchDatapathId 00000012e2b8f3d1
+			    necsw.switchDatapathId 00000012e2786765
+		    	 */
+		    	icon = new ImageIcon(ICON_NEC);
+
 			   
 		    s.setIcon(icon);
 	    

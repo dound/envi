@@ -37,7 +37,7 @@ public class DisplaySlice {
     public static final AlphaComposite COMPOSITE_SLICE_PLANE = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.15f);
     
     /** whether to try to fake a 3D perspective mode (false => 2D mode) */
-    public static final boolean USE_FAKE_PERSPECTIVE = true;
+    public static final boolean USE_FAKE_PERSPECTIVE = false;
     
     public static final double FAKE_PERSPECTIVE_MAX_SHRINKAGE = 0.25;
     

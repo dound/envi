@@ -66,11 +66,11 @@ public class FVLayoutManager extends PZLayoutManager {
     public void addDrawable(Drawable d)
     {
     	final String ICON_NEC 		= "images/switch-nec-ip8800-v_small.png";
-    	final String ICON_AP  		= "images/ap.png";
-    	final String ICON_HP  		= "images/procurve.png";
-    	final String ICON_NETFPGA	= "images/netfpga.png";
-    	final String ICON_WIMAX		= "images/wimax.png";
-    	final String ICON_SOKRIS	= "images/sokris.png";
+    	final String ICON_AP  		= "images/ap-small.png";
+    	final String ICON_HP  		= "images/procurve-small.png";
+    	final String ICON_NETFPGA	= "images/netfpga-small.png";
+    	final String ICON_WIMAX		= "images/ap-small.png";
+    	final String ICON_SOKRIS	= "images/ap-small.png";
 	    super.addDrawable(d);
 	    // TODO: any custom processing when a Drawable is added
 	    // example of drawing a particular switch specially
@@ -81,11 +81,11 @@ public class FVLayoutManager extends PZLayoutManager {
 		    // can't @#*&@%!! switch() on a long... what a shit lang
 		    if(id == 0x0000000db916ef94l )
 			    icon = new ImageIcon(ICON_AP);
-		    else if(id == 0x0000000db916ef94l )
+		    else if(id == 0x0000000db916efc8l )
 			    icon = new ImageIcon(ICON_AP);
 		    else if(id == 0x0000000db915c044l)
 			    icon = new ImageIcon(ICON_AP);
-		    else if(id == 0x0385001b3fc54700l)
+		    else if(id == 0x0000001b3fc54700l)
 		    	icon = new ImageIcon(ICON_HP);
 		    else if(id == 0x0000000db913b274l)
 		    	icon = new ImageIcon(ICON_SOKRIS);

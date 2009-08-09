@@ -19,10 +19,12 @@ import org.openflow.gui.Topology;
 import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.NodeWithPorts;
+import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.pzgui.Drawable;
 import org.pzgui.DrawableFilter;
 import org.pzgui.PZWindow;
 import org.pzgui.PZWindowEventListener;
+import org.pzgui.icon.ImageIcon;
 import org.pzgui.layout.Layoutable;
 import org.pzgui.layout.PZLayoutManager;
 
@@ -59,6 +61,26 @@ public class FVLayoutManager extends PZLayoutManager {
     public FVLayoutManager(FVMultipleConnectionAndTopologyHandler mch) {
         super();
         this.mch = mch;
+    }
+
+    public void addDrawable(Drawable d)
+    {
+	    super.addDrawable(d);
+	    // TODO: any custom processing when a Drawable is added
+	    // example of drawing a particular switch specially
+	    if(d instanceof OpenFlowSwitch) {
+		    OpenFlowSwitch s = (OpenFlowSwitch)d;
+		    long id = s.getID();
+		    ImageIcon icon;
+		    
+		    if(id == 0x0012e298a5d2l)
+			    icon = new ImageIcon("images/dgu.gif");
+		    else
+			    icon = new ImageIcon("images/switch-nec-ip8800-v_small.png");
+			   
+		    s.setIcon(icon);
+	    
+	    }
     }
     
     /** adds a slice to be displayed */

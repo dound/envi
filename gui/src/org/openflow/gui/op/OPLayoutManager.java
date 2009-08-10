@@ -76,7 +76,7 @@ public class OPLayoutManager extends PZManager {
     public void run() {
         // create the initial GUI display if it wasn't specified in the config file
         if(windows.size() == 0)
-            addWindow(0, 0, 1368, 728, 0, 0, 1.0f);
+            addWindow(0, 0, 1366, 768, 0, 0, 1.0f);
         super.run();
     }
 }

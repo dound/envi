@@ -69,8 +69,8 @@ public class FVLayoutManager extends PZLayoutManager {
     	final String ICON_AP  		= "images/ap-small.png";
     	final String ICON_HP  		= "images/procurve-small.png";
     	final String ICON_NETFPGA	= "images/netfpga-small.png";
-    	final String ICON_WIMAX		= "images/ap-small.png";
-    	final String ICON_SOKRIS	= "images/ap-small.png";
+    	final String ICON_WIMAX		= "images/wimax-small.png";
+    	final String ICON_SOEKRIS	= "images/soekris-small.png";
 	    super.addDrawable(d);
 	    // TODO: any custom processing when a Drawable is added
 	    // example of drawing a particular switch specially
@@ -88,7 +88,7 @@ public class FVLayoutManager extends PZLayoutManager {
 		    else if(id == 0x0000001b3fc54700l)
 		    	icon = new ImageIcon(ICON_HP);
 		    else if(id == 0x0000000db913b274l)
-		    	icon = new ImageIcon(ICON_SOKRIS);
+		    	icon = new ImageIcon(ICON_SOEKRIS);
 		    else if(id == 0x00000000cafecafel)
 		    	icon = new ImageIcon(ICON_WIMAX);
 		    else if(id == 0x0000002320000014l)

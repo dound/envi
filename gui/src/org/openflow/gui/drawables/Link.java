@@ -851,7 +851,7 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     public void setLinkThicknessBasedOnCurrentUtilization() {
         float usage = (float)getCurrentUtilization();
         this.currLineWidth = (int)(Math.sqrt(usage) * MAX_LINE_WIDTH);
-	System.err.println("Setting link " +this + " to width="+ this.currLineWidth + " usage="+usage);
+	// System.err.println("Setting link " +this + " to width="+ this.currLineWidth + " usage="+usage);
     }
     
     /**

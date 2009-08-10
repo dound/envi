@@ -647,17 +647,17 @@ public class OPConnectionHandler extends ConnectionHandler
         switch(msg.type) {
         case OP_NODES_ADD:
             for(org.openflow.gui.net.protocol.op.OPNode n : ((OPNodesAdd)msg).nodes)
-                super.processDrawableNodeAdd(processNodeAdd(n));
+                processDrawableNodeAdd(processNodeAdd(n));
             break;
             
         case OP_NODES_DEL:
             for(org.openflow.gui.net.protocol.op.OPNode n : ((OPNodesDel)msg).nodes)
-                super.processNodeDel(n);
+                processNodeDel(n);
             break;
 
         case OP_MODULES_ADD:
             for(org.openflow.gui.net.protocol.op.OPModule m : ((OPModulesAdd)msg).modules)
-                super.processDrawableNodeAdd(processNodeAdd(m));
+                processDrawableNodeAdd(processNodeAdd(m));
             break;
         
         case OP_MODULE_STATUS_REPLY:

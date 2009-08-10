@@ -630,16 +630,6 @@ public class OPConnectionHandler extends ConnectionHandler
     }
 
     /** 
-     * Calls super.connectionStateChange() and then does some custom processing.
-     */
-    public void connectionStateChange(boolean connected) {
-        super.connectionStateChange(connected);
-        
-        if(!getConnection().isConnected())
-            System.exit(-1);
-    }
-    
-    /** 
      * Directly handles ElasticTreeConnectionManager-specific messages received from the  
      * backend and delegates handling of other messages to super.process().
      */

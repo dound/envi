@@ -25,6 +25,7 @@ import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.pzgui.Drawable;
 import org.pzgui.icon.Icon;
 import org.pzgui.icon.ShapeIcon;
+import org.pzgui.math.Vector2i;
 
 /**
  * Contains a set of topologies to draw in a single display slice and
@@ -82,9 +83,20 @@ public class DisplaySlice {
     /** font to draw the title in */
     private static final Font TITLE_FONT = new Font("Tahoma", Font.BOLD, 24);
     
+    /** 
+     * Slice-specific Drawable coordinates.  This allows a particular node to
+     * appear in a different location in this slice versus the default "root"
+     * position.  These are new relative positions.
+     */
+    private final HashMap<Drawable, Vector2i> customDrawableCoords;
+    
+    /** extra transform for the current drawable which needs to be undone, if any */
+    private Vector2i transformExtra = null;
+    
     /** construct a new DisplaySlice containing no topologies */
     public DisplaySlice() {
         transformInverse = transform = new AffineTransform();
+        customDrawableCoords = new HashMap<Drawable, Vector2i>();
     }
     
     /** gets the slice's title for display on the slice background */
@@ -95,6 +107,20 @@ public class DisplaySlice {
     /** sets the slice's title for display on the slice background */
     public void setTitle(String title) {
         this.title = title;
+    }
+    
+    /** 
+     * Sets a custom offset for a Drawable in this slice.
+     * 
+     * @param d   the Drawable to offset from its usual position (relative offset)
+     * @param dx  x translation
+     * @param dy  y translation 
+     */
+    public void setCustomOffset(Drawable d, int dx, int dy) {
+        if(dx==0 && dy==0)
+            customDrawableCoords.remove(d);
+        else
+            customDrawableCoords.put(d, new Vector2i(dx, dy));
     }
     
     /** add a topology to this slice */
@@ -203,6 +229,11 @@ public class DisplaySlice {
     public void apply(Graphics2D gfx, Drawable d) {
         AffineTransform t = gfx.getTransform();
         t.concatenate(transform);
+        
+        // add any transform specific to this drawable
+        transformExtra = this.customDrawableCoords.get(d);
+        if(transformExtra != null)
+            t.translate(transformExtra.x, transformExtra.y);
         gfx.setTransform(t);
         
         if(d instanceof Node) {
@@ -230,6 +261,12 @@ public class DisplaySlice {
     public void unapply(Graphics2D gfx, Drawable d) {
         AffineTransform t = gfx.getTransform();
         t.concatenate(transformInverse);
+        
+        // undo any transform specific to this drawable
+        if(transformExtra != null) {
+            t.translate(-transformExtra.x, -transformExtra.y);
+            transformExtra = null;
+        }
         gfx.setTransform(t);
         
         if(d instanceof Node) {

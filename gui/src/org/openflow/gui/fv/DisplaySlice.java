@@ -193,7 +193,7 @@ public class DisplaySlice {
         // draw the slice's title
         gfx.setPaint(org.pzgui.Constants.PAINT_DEFAULT);
         gfx.setFont(TITLE_FONT);
-        org.pzgui.StringDrawer.drawRightAlignedString(title, gfx, sliceWidth-5, gfx.getFontMetrics().getHeight());
+        org.pzgui.StringDrawer.drawRightAlignedString(title, gfx, sliceWidth-5+xOffset, yOffset+gfx.getFontMetrics().getHeight());
         gfx.setFont(org.pzgui.Constants.FONT_DEFAULT);
     }
 

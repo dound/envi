@@ -4,6 +4,7 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Polygon;
@@ -75,9 +76,25 @@ public class DisplaySlice {
     /** temporary for storing the original size of an icon pre-perspective scaling */
     private Dimension origSize;
     
+    /** name for the slice (will be displayed on the slice background) */
+    private String title = "";
+    
+    /** font to draw the title in */
+    private static final Font TITLE_FONT = new Font("Tahoma", Font.BOLD, 24);
+    
     /** construct a new DisplaySlice containing no topologies */
     public DisplaySlice() {
         transformInverse = transform = new AffineTransform();
+    }
+    
+    /** gets the slice's title for display on the slice background */
+    public String getTitle() {
+        return title;
+    }
+
+    /** sets the slice's title for display on the slice background */
+    public void setTitle(String title) {
+        this.title = title;
     }
     
     /** add a topology to this slice */
@@ -126,6 +143,12 @@ public class DisplaySlice {
         gfx.setPaint(slicePaint);
         gfx.fill(sliceShape);
         gfx.setComposite(c);
+        
+        // draw the slice's title
+        gfx.setPaint(org.pzgui.Constants.PAINT_DEFAULT);
+        gfx.setFont(TITLE_FONT);
+        org.pzgui.StringDrawer.drawRightAlignedString(title, gfx, sliceWidth-5, gfx.getFontMetrics().getHeight());
+        gfx.setFont(org.pzgui.Constants.FONT_DEFAULT);
     }
 
     /** get the x offset of the slice */

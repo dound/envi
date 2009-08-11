@@ -1,6 +1,8 @@
 package org.openflow.gui.fv;
 
 import org.openflow.gui.ConnectionHandler;
+import org.openflow.gui.drawables.Node;
+import org.openflow.gui.net.protocol.NodeType;
 
 /**
  * The FlowVisor GUI individual connection handler.  Just a thin wrapper at the
@@ -30,5 +32,13 @@ public class FVConnectionHandler extends ConnectionHandler {
         if(!getConnection().isConnected()) {
             // TODO: we just got disconnected - maybe need to do some cleanup
         }
+    }
+
+    /** override to ignore hosts (short-term) */
+    protected Node processNodeAdd(org.openflow.gui.net.protocol.Node n) {
+        if(n.nodeType == NodeType.HOST)
+            return null; // ignore hosts
+        else
+            return super.processNodeAdd(n);
     }
 }

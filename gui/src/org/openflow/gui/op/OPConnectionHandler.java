@@ -66,10 +66,10 @@ public class OPConnectionHandler extends ConnectionHandler
     private final OPLayoutManager manager;
     
     /** shape which will hold test input */
-    private final OPNodeWithNameAndPorts testInput;
+    //private final OPNodeWithNameAndPorts testInput;
     
     /** shape which will hold test output */
-    private final OPNodeWithNameAndPorts testOutput;
+    //private final OPNodeWithNameAndPorts testOutput;
     
     /** module for which a status request was most recently sent */
     private NodeWithPorts currTTNode;
@@ -120,14 +120,14 @@ public class OPConnectionHandler extends ConnectionHandler
         // the connection to the backend.
         manager.addDrawableEventListener(this);
         
-        testInput = new OPNodeWithNameAndPorts(NodeType.UNKNOWN, "", 1111, new ShapeIcon(new Rectangle2D.Double(0, 0, TEST_BOX_WIDTH, TEST_BOX_HEIGHT), LIGHT_YELLOW, Color.BLACK));
-        testOutput = new OPNodeWithNameAndPorts(NodeType.UNKNOWN, "", 9999, new ShapeIcon(new Rectangle2D.Double(0, 0, TEST_BOX_WIDTH, TEST_BOX_HEIGHT), Color.WHITE, Color.BLACK));
+        //testInput = new OPNodeWithNameAndPorts(NodeType.UNKNOWN, "", 1111, new ShapeIcon(new Rectangle2D.Double(0, 0, TEST_BOX_WIDTH, TEST_BOX_HEIGHT), LIGHT_YELLOW, Color.BLACK));
+        //testOutput = new OPNodeWithNameAndPorts(NodeType.UNKNOWN, "", 9999, new ShapeIcon(new Rectangle2D.Double(0, 0, TEST_BOX_WIDTH, TEST_BOX_HEIGHT), Color.WHITE, Color.BLACK));
         
         // a background for the pallete
         manager.addDrawable(new LayoutableIcon(5555, new ShapeIcon(new Rectangle2D.Double(0, 0, TEST_BOX_WIDTH, 1500), new Color(230,230,230), Color.BLACK), 0, 0));
         
-        manager.addDrawable(testInput);
-        manager.addDrawable(testOutput);
+        //manager.addDrawable(testInput);
+        //manager.addDrawable(testOutput);
 
         // Create a the module status window
         statusWindow = new OPModuleStatusWindow(this);
@@ -820,8 +820,8 @@ public class OPConnectionHandler extends ConnectionHandler
 
     /** handles displaying test info */
     private void processTestInfo(OPTestInfo msg) {
-        testInput.setName(msg.input);
-        testOutput.setName(msg.output);
+        //testInput.setName(msg.input);
+        //testOutput.setName(msg.output);
     }
 
     private void setToolTip(JComponent c, NodeWithPorts n, String status) {

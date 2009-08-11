@@ -14,14 +14,50 @@ import org.pzgui.layout.Vertex;
  * 
  * @author David Underhill
  */
+class Triple<A,B,C>
+{
+	public A a;
+	public B b;
+	public C c;
+	public Triple(A a, B b, C c)
+	{
+		this.a = a ; this.b = b; this.c = c;
+	}
+
+}
 public final class FlowVisorGUI {
     /** cannot instantiate this class */
     private FlowVisorGUI() {}
+
     
     /** run the front-end */
     public static void main(String args[]) {
-        // get the server(s) to connect to
-        ArrayList<Pair<String, Short>> servers = OpenFlowGUI.getServers(args);
+        //ArrayList<Pair<String, Short>> servers = OpenFlowGUI.getServers(args);
+
+	ArrayList<Triple<String, Integer, String>> servers = new ArrayList();
+
+	if(args.length>0) // do localhost
+	{
+		System.err.println("Connecting via localhost; hope you set up the tunnel");
+		servers.add(new Triple("localhost",2501,"Slice: OpenRoads"));
+		servers.add(new Triple("localhost",2502,"Slice: Aggregation"));
+		servers.add(new Triple("localhost",2503,"Slice: Flow Dragging"));
+		servers.add(new Triple("localhost",2504,"Slice: PlugnServ"));
+		servers.add(new Triple("localhost",2505,"Physical Network"));
+		servers.add(new Triple("localhost",2506,"Slice: OpenPipes"));
+		servers.add(new Triple("localhost",2507,"Slice: Production"));
+	}
+	else
+	{
+		System.err.println("Connecting directly... hope you're in Gates");
+		servers.add(new Triple("openflow3.stanford.edu",2503, "Slice: OpenRoads"));
+		servers.add(new Triple("openflow6.stanford.edu",2503, "Slice: Aggregation"));
+		servers.add(new Triple("openflow5.stanford.edu",2504, "Slice Flow Dragging"));
+		servers.add(new Triple("openflow4.stanford.edu",2503, "Slice: PlugnServ"));
+		servers.add(new Triple("openflow5.stanford.edu",2503,"Physical Network"));
+		servers.add(new Triple("hpn8.stanford.edu",2503, "Slice: OpenPipes"));
+		servers.add(new Triple("openflow5.stanford.edu",2505,"Slice: Production"));
+	}
         
         // create the data structure to track multiple connections ad topologies
         FVMultipleConnectionAndTopologyHandler mch = new FVMultipleConnectionAndTopologyHandler();
@@ -40,9 +76,12 @@ public final class FlowVisorGUI {
 
         
         // create the initial connection(s)
-        for(Pair<String, Short> server : servers) {
-            FVConnectionHandler ch = new FVConnectionHandler(gm, server.a, server.b);
-            mch.addConnectionManager(ch);
+        for(Triple<String, Integer, String> server : servers) {
+            FVConnectionHandler ch = new FVConnectionHandler(gm, 
+	    	server.a, 
+		server.b.shortValue(),		// stoopid java
+		server.c);
+            mch.addConnectionManager(ch);	
         }
         
         // start our managers

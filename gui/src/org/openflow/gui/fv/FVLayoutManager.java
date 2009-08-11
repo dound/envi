@@ -131,9 +131,10 @@ public class FVLayoutManager extends PZLayoutManager {
     }
     
     /** adds a slice to be displayed */
-    public void addDisplaySlice(FVTopology topology) {
+    public void addDisplaySlice(FVTopology topology, String title) {
         DisplaySlice ds = new DisplaySlice();
         ds.addTopology(topology);
+	ds.setTitle(title);
         displaySlices.add(ds);
         refreshSlices();
     }
@@ -439,7 +440,7 @@ public class FVLayoutManager extends PZLayoutManager {
             mnui = new JMenuItem(t.getName());
             mnui.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    addDisplaySlice(t);
+                    addDisplaySlice(t,"");
                     
                 }});
             mnu.add(mnui);

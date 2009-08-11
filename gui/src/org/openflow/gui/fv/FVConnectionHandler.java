@@ -16,9 +16,9 @@ public class FVConnectionHandler extends ConnectionHandler {
      * @param server  the IP or hostname where the back-end is located
      * @param port    the port the back-end is listening on
      */
-    public FVConnectionHandler(FVLayoutManager manager, String server, Short port) {
+    public FVConnectionHandler(FVLayoutManager manager, String server, Short port, String title) {
         super(new FVTopology(manager, server + ":" + port), server, port, true, true);
-        manager.addDisplaySlice((FVTopology)getTopology());
+        manager.addDisplaySlice((FVTopology)getTopology(),title);
     }
     
     /** 

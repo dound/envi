@@ -93,10 +93,20 @@ public class DisplaySlice {
     /** extra transform for the current drawable which needs to be undone, if any */
     private Vector2i transformExtra = null;
     
+    /**
+     * Slice-specific Drawable icons.  This allows a particular Node to have its
+     * icon changed in just this slice.
+     */
+    private final HashMap<Node, Icon> customNodeIcons;
+    
+    /** real icon for the current node which needs to be undone, if any */
+    private Icon nodeIconToRestore = null;
+    
     /** construct a new DisplaySlice containing no topologies */
     public DisplaySlice() {
         transformInverse = transform = new AffineTransform();
         customDrawableCoords = new HashMap<Drawable, Vector2i>();
+        customNodeIcons = new HashMap<Node, Icon>();
     }
     
     /** gets the slice's title for display on the slice background */
@@ -121,6 +131,16 @@ public class DisplaySlice {
             customDrawableCoords.remove(d);
         else
             customDrawableCoords.put(d, new Vector2i(dx, dy));
+    }
+    
+    /**
+     * Sets a custom icon for a node in this slice.
+     * 
+     * @param n  the node to specify a custom icon for
+     * @param i  the icon (null => no custom icon)
+     */
+    public void setCustomIcon(Node n, Icon i) {
+        customNodeIcons.put(n, i);
     }
     
     /** add a topology to this slice */
@@ -238,7 +258,17 @@ public class DisplaySlice {
         
         if(d instanceof Node) {
             Node n = (Node)d;
-            Icon icon = n.getIcon();
+            
+            // custom icon?
+            Icon icon = customNodeIcons.get(n);
+            if(icon != null) {
+                nodeIconToRestore = n.getIcon();
+                n.setIcon(icon);
+                return;
+            }
+            
+            // no custom icon
+            icon = n.getIcon();
             if(icon instanceof ShapeIcon) {
                 ShapeIcon si = (ShapeIcon)icon;
                 si.setFillColor(getFillPatternWrap(n.getID(), OpenFlowSwitch.DEFAULT_SIZE, fillPatterns));
@@ -275,6 +305,12 @@ public class DisplaySlice {
             if(icon instanceof ShapeIcon) {
                 if(USE_FAKE_PERSPECTIVE)
                     ((ShapeIcon)icon).setSize(origSize);
+            }
+            
+            // restore the original icon if this slice used a custom one
+            if(nodeIconToRestore != null) {
+                n.setIcon(nodeIconToRestore);
+                icon = null;
             }
         }
         

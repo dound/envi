@@ -70,8 +70,10 @@ public class ShapeIcon extends Icon {
         int yC = y - s.getBounds().height / 2;
         gfx.translate(xC, yC);
         
-        gfx.setPaint(fill);
-        gfx.fill(s);
+        if(fill != null) {
+            gfx.setPaint(fill);
+            gfx.fill(s);
+        }
         
         if( outline != null ) {
             gfx.setPaint(outline);

@@ -88,11 +88,12 @@ public class Topology {
      * 
      * @param owner  the connection which supplies information about this node 
      * @param n      the node to add
-     * @return  true if the node was added, false it was already present in some
-     *          topology (not necessarily this one)
+     * @return  -1 if the node was not added (it was already present)
+     *           0 if the node was added (globally new)
+     *           1 if the node was added (locally new, but not globally new)
      */
-    public boolean addNode(BackendConnection<OFGMessage> owner, NodeWithPorts n) {
-        boolean ret = false;
+    public int addNode(BackendConnection<OFGMessage> owner, NodeWithPorts n) {
+        int ret = -1;
         Long id = n.getID();
         NodeRefTrack localR = nodesMap.get(id);
         if(localR == null) {
@@ -101,11 +102,12 @@ public class Topology {
                 if(r == null) {
                     globalNodes.put(id, new NodeRefTrack(n, owner));
                     addNodeToManager(n);
-                    ret = true;
+                    ret = 0; // globally new
                 }
                 else {
                     r.addRef(owner);
                     n = r.obj; // use the existing node
+                    ret = 1; // locally new but not globally new
                 }
             }
             
@@ -299,11 +301,12 @@ public class Topology {
         Link existingLink = dstNode.getLinkTo(dstPort, srcNode, srcPort);
         if(existingLink != null) {
             int count = globalLinks.get(existingLink);
+            count -= 1;  // subtract the link being removed from the count 
             synchronized(globalLinksWriterLock) {
                 if(count == 0)
                     globalLinks.remove(existingLink);
                 else
-                    globalLinks.put(existingLink, count - 1);
+                    globalLinks.put(existingLink, count);
             }
             
             linksMap.remove(existingLink);

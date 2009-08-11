@@ -65,12 +65,20 @@ public class FVLayoutManager extends PZLayoutManager {
 
     public void addDrawable(Drawable d)
     {
-    	final String ICON_NEC 		= "images/switch-nec-ip8800-v_small.png";
-    	final String ICON_AP  		= "images/ap-small.png";
-    	final String ICON_HP  		= "images/procurve-small.png";
-    	final String ICON_NETFPGA	= "images/netfpga-small.png";
-    	final String ICON_WIMAX		= "images/wimax-small.png";
-    	final String ICON_SOEKRIS	= "images/soekris-small.png";
+    	final String PATH_ICON_NEC      = "images/switch-nec-ip8800-v_small.png";
+    	final String PATH_ICON_AP       = "images/ap-small.png";
+    	final String PATH_ICON_HP       = "images/procurve-small.png";
+    	final String PATH_ICON_NETFPGA  = "images/netfpga-small.png";
+    	final String PATH_ICON_WIMAX    = "images/wimax-small.png";
+    	final String PATH_ICON_SOEKRIS  = "images/soekris-small.png";
+    	
+    	final ImageIcon ICON_NEC     = new ImageIcon(PATH_ICON_NEC);
+        final ImageIcon ICON_AP      = new ImageIcon(PATH_ICON_AP);
+        final ImageIcon ICON_HP      = new ImageIcon(PATH_ICON_HP);
+        final ImageIcon ICON_NETFPGA = new ImageIcon(PATH_ICON_NETFPGA);
+        final ImageIcon ICON_WIMAX   = new ImageIcon(PATH_ICON_WIMAX);
+        final ImageIcon ICON_SOEKRIS = new ImageIcon(PATH_ICON_SOEKRIS);
+    	
 	    super.addDrawable(d);
 	    // TODO: any custom processing when a Drawable is added
 	    // example of drawing a particular switch specially
@@ -80,29 +88,29 @@ public class FVLayoutManager extends PZLayoutManager {
 		    ImageIcon icon;
 		    // can't @#*&@%!! switch() on a long... what a shit lang
 		    if(id == 0x0000000db916ef94l )
-			    icon = new ImageIcon(ICON_AP);
+			    icon = ICON_AP;
 		    else if(id == 0x0000000db916efc8l )
-			    icon = new ImageIcon(ICON_AP);
+			    icon = ICON_AP;
 		    else if(id == 0x0000000db915c044l)
-			    icon = new ImageIcon(ICON_AP);
+			    icon = ICON_AP;
 		    else if(id == 0x0000001b3fc54700l)
-		    	icon = new ImageIcon(ICON_HP);
+		    	icon = ICON_HP;
 		    else if(id == 0x0000000db913b274l)
-		    	icon = new ImageIcon(ICON_SOEKRIS);
+		    	icon = ICON_SOEKRIS;
 		    else if(id == 0x00000000cafecafel)
-		    	icon = new ImageIcon(ICON_WIMAX);
+		    	icon = ICON_WIMAX;
 		    else if(id == 0x0000002320000014l)
-		    	icon = new ImageIcon(ICON_NETFPGA);
+		    	icon = ICON_NETFPGA;
 		    else if(id == 0x0000002320000015l)
-		    	icon = new ImageIcon(ICON_NETFPGA);
+		    	icon = ICON_NETFPGA;
 		    else if(id == 0x0000002320000016l)
-		    	icon = new ImageIcon(ICON_NETFPGA);
+		    	icon = ICON_NETFPGA;
 		    else if(id == 0x0000002320000017l)
-		    	icon = new ImageIcon(ICON_NETFPGA);
+		    	icon = ICON_NETFPGA;
 		    else if(id == 0x0000002320000018l)
-		    	icon = new ImageIcon(ICON_NETFPGA);
+		    	icon = ICON_NETFPGA;
 		    else if(id == 0x0000002320E90DD3l)
-		    	icon = new ImageIcon(ICON_NETFPGA);
+		    	icon = ICON_NETFPGA;
 		    else
 		    	/*
 		    	nec1b.switchDatapathId 00000012e298a5d3
@@ -114,7 +122,7 @@ public class FVLayoutManager extends PZLayoutManager {
 			    necsw4b.switchDatapathId 00000012e2b8f3d1
 			    necsw.switchDatapathId 00000012e2786765
 		    	 */
-		    	icon = new ImageIcon(ICON_NEC);
+		    	icon = ICON_NEC;
 
 			   
 		    s.setIcon(icon);

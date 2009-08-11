@@ -41,22 +41,22 @@ public final class FlowVisorGUI {
 		System.err.println("Connecting via localhost; hope you set up the tunnel");
 		servers.add(new Triple("localhost",2501,"Slice: OpenRoads"));
 		servers.add(new Triple("localhost",2502,"Slice: Aggregation"));
-		servers.add(new Triple("localhost",2503,"Slice: Flow Dragging"));
+		// servers.add(new Triple("localhost",2503,"Slice: Flow Dragging"));
+		servers.add(new Triple("localhost",2507,"Slice: Production"));
 		servers.add(new Triple("localhost",2504,"Slice: PlugnServ"));
 		servers.add(new Triple("localhost",2505,"Physical Network"));
 		servers.add(new Triple("localhost",2506,"Slice: OpenPipes"));
-		servers.add(new Triple("localhost",2507,"Slice: Production"));
 	}
 	else
 	{
 		System.err.println("Connecting directly... hope you're in Gates");
 		servers.add(new Triple("openflow3.stanford.edu",2503, "Slice: OpenRoads"));
 		servers.add(new Triple("openflow6.stanford.edu",2503, "Slice: Aggregation"));
-		servers.add(new Triple("openflow5.stanford.edu",2504, "Slice Flow Dragging"));
+		//servers.add(new Triple("openflow5.stanford.edu",2504, "Slice Flow Dragging"));
+		servers.add(new Triple("openflow5.stanford.edu",2505,"Slice: Production"));
 		servers.add(new Triple("openflow4.stanford.edu",2503, "Slice: PlugnServ"));
 		servers.add(new Triple("openflow5.stanford.edu",2503,"Physical Network"));
 		servers.add(new Triple("hpn8.stanford.edu",2503, "Slice: OpenPipes"));
-		servers.add(new Triple("openflow5.stanford.edu",2505,"Slice: Production"));
 	}
         
         // create the data structure to track multiple connections ad topologies

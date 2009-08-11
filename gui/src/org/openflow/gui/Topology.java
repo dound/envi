@@ -301,11 +301,12 @@ public class Topology {
         Link existingLink = dstNode.getLinkTo(dstPort, srcNode, srcPort);
         if(existingLink != null) {
             int count = globalLinks.get(existingLink);
+            count -= 1;  // subtract the link being removed from the count 
             synchronized(globalLinksWriterLock) {
                 if(count == 0)
                     globalLinks.remove(existingLink);
                 else
-                    globalLinks.put(existingLink, count - 1);
+                    globalLinks.put(existingLink, count);
             }
             
             linksMap.remove(existingLink);

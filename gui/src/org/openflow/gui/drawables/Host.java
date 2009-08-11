@@ -20,8 +20,13 @@ public class Host extends NodeWithPorts {
     }
     
     public Host(String name, int x, int y, long ip) {
-        super(NodeType.HOST, name, x, y, new ShapeIcon(DEFAULT_SHAPE, DEFAULT_FILL));
+        super(NodeType.HOST, name, x, y, newDefaultHostShape());
         this.ip = ip;
+    }
+    
+    /** creates a new Host icon */
+    public static final ShapeIcon newDefaultHostShape() {
+        return new ShapeIcon(DEFAULT_SHAPE, DEFAULT_FILL);
     }
     
     

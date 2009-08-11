@@ -17,6 +17,9 @@ public enum NodeType {
 
     /** a host */
     HOST((short)100),
+
+    /** a wireless host */
+    WIRELESSHOST((short)101),
     
     ;
 

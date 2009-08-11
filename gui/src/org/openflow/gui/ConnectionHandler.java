@@ -315,7 +315,8 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
      * an OpenFlowSwitch is returned.
      */
     protected Node processNodeAdd(org.openflow.gui.net.protocol.Node n) {
-        if(n.nodeType == NodeType.HOST)
+        if(n.nodeType == NodeType.HOST ||
+	   n.nodeType == NodeType.WIRELESSHOST)
             return new Host(n.id);
         else
             return new OpenFlowSwitch(n.id, n.nodeType);

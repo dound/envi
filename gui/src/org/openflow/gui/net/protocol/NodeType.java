@@ -16,7 +16,10 @@ public enum NodeType {
     OPENFLOW_WIRELESS_ACCESS_POINT((short)2),
 
     /** a host */
-    HOST((short)100),
+    HOST((short)256),
+
+    /** wireless host **/
+    WIRELESSHOST((short)257),
     
     /** the input node */
     TYPE_IN((short)1000),

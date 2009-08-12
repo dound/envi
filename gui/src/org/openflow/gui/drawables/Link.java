@@ -19,9 +19,11 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.openflow.gui.Options;
+import org.openflow.gui.fv.DisplaySlice;
 import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.protocol.LinkType;
 import org.openflow.gui.net.protocol.PollStart;
@@ -30,6 +32,7 @@ import org.openflow.gui.stats.LinkStats;
 import org.openflow.protocol.AggregateStatsReply;
 import org.openflow.protocol.AggregateStatsRequest;
 import org.openflow.protocol.Match;
+import org.openflow.util.Pair;
 import org.pzgui.Constants;
 import org.pzgui.AbstractDrawable;
 import org.pzgui.StringDrawer;
@@ -283,11 +286,36 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** Bounds the area in which a link is drawn. */
     private Polygon boundingBox = null;
     
+    /** current slice to space is being reserved for */
+    public static DisplaySlice currentDisplaySlice = null;
+    
+    /** how much space is reserved (top, bottom) */
+    private final HashMap<DisplaySlice, Pair<Integer, Integer>> reservedPixels = new HashMap<DisplaySlice, Pair<Integer, Integer>>();
+    
     /** how much space is reserved on the "bottom" side of the link for other drawings */
-    private int reservedPixelsBtm = 0;
+    private int getReservedSpaceBottom() {
+        Pair<Integer, Integer> r = reservedPixels.get(currentDisplaySlice);
+        if(r == null)
+            return 0;
+        else
+            return r.b;
+    }
     
     /** how much space is reserved on the "top" side the link for other drawings */
-    private int reservedPixelsTop = 0;
+    private int getReservedSpaceTop() {
+        Pair<Integer, Integer> r = reservedPixels.get(currentDisplaySlice);
+        if(r == null)
+            return 0;
+        else
+            return r.a;
+    }
+    
+    /** sets the reserved space along this link for the current slice */
+    private void setReservedSpace(int top, int btm) {
+        if(currentDisplaySlice != null) {
+            this.reservedPixels.put(currentDisplaySlice, new Pair<Integer, Integer>(top, btm));
+        }
+    }
     
     /** resets the drawing state to undrawn */
     public void unsetDrawn() {
@@ -301,23 +329,8 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     public void unsetDrawn(boolean resetReservedSpace) {
         super.unsetDrawn();
         if(resetReservedSpace) {
-            reservedPixelsBtm = 0;
-            reservedPixelsTop = 0;
+            reservedPixels.clear();
         }
-    }
-    
-    /**
-     * Gets the amount of space reserved on the top side of the link.
-     */
-    public int getReservedSpaceTop() {
-        return reservedPixelsTop;
-    }
-
-    /**
-     * Gets the amount of space reserved on the bottom side of the link.
-     */
-    public int getReservedSpaceBottom() {
-        return reservedPixelsBtm;
     }
     
     /**
@@ -341,21 +354,27 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
         if(size == 0)
             return 0;
         
+        int reservedPixelsTop = getReservedSpaceTop();
+        int reservedPixelsBtm = getReservedSpaceBottom();
+        
         // reserve space right over the link if we have space
         int reservationSize = size + margin;
-        if(getReservedSpaceTop() == 0 && getReservedSpaceBottom() == 0) {
+        if(reservedPixelsTop == 0 && reservedPixelsBtm == 0) {
             // half for each
             reservedPixelsTop = reservedPixelsBtm = reservationSize;
+            setReservedSpace(reservedPixelsTop, reservedPixelsBtm);
             return 0;
         }
         
         // reserve space in the requested space
         if(above) {
             reservedPixelsTop += reservationSize;
+            setReservedSpace(reservedPixelsTop, reservedPixelsBtm);
             return -(reservedPixelsTop - reservationSize);
         }
         else {
             reservedPixelsBtm += reservationSize;
+            setReservedSpace(reservedPixelsTop, reservedPixelsBtm);
             return reservedPixelsBtm - reservationSize;
         }
     }

@@ -250,7 +250,9 @@ public class FVLayoutManager extends PZLayoutManager {
             
             if(ds.isVisible() && ((layoutableID!=null && ds.hasNode(layoutableID)) || (flowID!=null && ds.hasFlow(flowID)))) {
                 ds.apply(gfx, d);
+                Link.currentDisplaySlice = ds;
                 draw(gfx, d, before);
+                Link.currentDisplaySlice = null;
                 ds.unapply(gfx, d);
             }
         }

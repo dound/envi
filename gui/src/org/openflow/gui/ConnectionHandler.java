@@ -293,8 +293,12 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
     
     /** add new nodes to the topology */
     private void processNodesAdd(NodesAdd msg) {
-        for(org.openflow.gui.net.protocol.Node msgNode : msg.nodes)
-            processDrawableNodeAdd(processNodeAdd(msgNode));
+        for(org.openflow.gui.net.protocol.Node msgNode : msg.nodes) {
+	    if (msgNode.nodeType != NodeType.HOST &&
+		msgNode.nodeType != NodeType.WIRELESSHOST) {
+		processDrawableNodeAdd(processNodeAdd(msgNode));
+	    }
+	}
     }
     
     /** add new node to the topology */

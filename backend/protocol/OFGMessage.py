@@ -230,7 +230,7 @@ class Node:
     TYPE_UNKNOWN = 0
     TYPE_OPENFLOW_SWITCH = 1
     TYPE_OPENFLOW_WIRELESS_ACCESS_POINT = 2
-    TYPE_HOST = 100
+    TYPE_HOST = 256
 
     # OpenPipes-specific types
     TYPE_IN        = 1000

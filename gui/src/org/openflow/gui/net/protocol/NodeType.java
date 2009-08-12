@@ -18,9 +18,8 @@ public enum NodeType {
     /** a host */
     HOST((short)256),
 
-    /** a wireless host */
-    WIRELESSHOST((short)256),
-    
+    /** wireless host **/
+    WIRELESSHOST((short)257),
     ;
 
     /** the special value used to identify messages of this type */

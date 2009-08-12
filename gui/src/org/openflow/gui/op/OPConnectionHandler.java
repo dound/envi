@@ -923,7 +923,7 @@ public class OPConnectionHandler extends ConnectionHandler
                 }
             }
             else {
-                if(!topology.addNode(getConnection(), (NodeWithPorts)n))
+                if(topology.addNode(getConnection(), (NodeWithPorts)n) == -1)
                     return;
                     
                 if(n instanceof OpenFlowSwitch)

@@ -35,8 +35,13 @@ public final class FlowVisorGUI {
         //ArrayList<Pair<String, Short>> servers = OpenFlowGUI.getServers(args);
 
 	ArrayList<Triple<String, Integer, String>> servers = new ArrayList();
+	boolean localConnection = false;
 
-	if(args.length>0) // do localhost
+	for (int i = 0; i < args.length; i++)
+	    if ((args[i].compareTo("lo") == 0))
+		localConnection = true;
+
+	if(localConnection) // do localhost
 	{
 		System.err.println("Connecting via localhost; hope you set up the tunnel");
 		servers.add(new Triple("localhost",2501,"Slice: OpenRoads"));
@@ -65,12 +70,11 @@ public final class FlowVisorGUI {
         // create a manager to handle drawing the topology info received by the connection
         FVLayoutManager gm = new FVLayoutManager(mch);
         gm.setMinSliceHeight(400);
-	System.out.println(args[0]);
-	if ((args.length > 0) && (args[0].compareTo("fs") == 0))
-	{
-	    System.out.println("Set full screen...");
-	    gm.fullScreen = true;
-	}
+	for (int i = 0; i < args.length; i++)
+	    if ((args[i].compareTo("fs") == 0)) {
+		System.out.println("Set full screen...");
+		gm.fullScreen = true;
+	    }
 
         // layout the nodes with the spring algorithm by default
         edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge> sl;

@@ -53,6 +53,8 @@ public class PZManager extends Thread {
     // ------- GUI Windows (Scene Displayers) ------- //
     // ********************************************** //
 
+    public boolean fullScreen = false;
+
     /** windows which are displaying the scene */
     protected final Vector<PZWindow> windows = new Vector<PZWindow>();
 
@@ -87,15 +89,17 @@ public class PZManager extends Thread {
             windows.add(w);
 
             GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-            if (!gd.isFullScreenSupported()) {
-                System.err.println("Full screen is not supported");
-            }
-	    //w.setUndecorated(true);
-            //gd.setFullScreenWindow(w);
-
-            // show the window
-            w.setVisible(true);
-        }
+	    if (fullScreen) {
+		if (!gd.isFullScreenSupported()) {
+		    System.err.println("Full screen is not supported");
+		}
+		w.setUndecorated(true);
+		gd.setFullScreenWindow(w);
+	    } else {
+		// show the window
+		w.setVisible(true);
+	    }
+	}
         
         if(addDefaultEventListener)
             w.addEventListener(new PZWindowEventListener());

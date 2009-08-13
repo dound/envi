@@ -65,7 +65,13 @@ public final class FlowVisorGUI {
         // create a manager to handle drawing the topology info received by the connection
         FVLayoutManager gm = new FVLayoutManager(mch);
         gm.setMinSliceHeight(400);
-        
+	System.out.println(args[0]);
+	if ((args.length > 0) && (args[0].compareTo("fs") == 0))
+	{
+	    System.out.println("Set full screen...");
+	    gm.fullScreen = true;
+	}
+
         // layout the nodes with the spring algorithm by default
         edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge> sl;
         sl = new edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge>(gm.getGraph());

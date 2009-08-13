@@ -2,6 +2,8 @@ package org.pzgui;
 
 import java.awt.AWTEvent;
 import java.awt.Graphics2D;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,7 +85,14 @@ public class PZManager extends Thread {
             if(windows.contains(w))
                 return;
             windows.add(w);
-            
+
+            GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+            if (!gd.isFullScreenSupported()) {
+                System.err.println("Full screen is not supported");
+            }
+	    //w.setUndecorated(true);
+            //gd.setFullScreenWindow(w);
+
             // show the window
             w.setVisible(true);
         }

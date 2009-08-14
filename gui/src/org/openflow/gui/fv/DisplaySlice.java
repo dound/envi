@@ -193,7 +193,7 @@ public class DisplaySlice {
         gfx.fill(sliceShape);
         gfx.setComposite(c);
 
-	gfx.drawImage( ImageIcon.loadImage("images/ghost-bg.png"),xOffset,yOffset,sliceWidth,sliceHeight, null);
+	gfx.drawImage( ImageIcon.loadImage("images/ghost-bg-grad.png"),xOffset,yOffset,sliceWidth,sliceHeight, null);
         
         // draw the slice's title
 	// Nah mate, that ain't a hack.. *THIS* is a HACK!

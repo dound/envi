@@ -24,6 +24,7 @@ import org.pzgui.DrawableEventListener;
 import org.pzgui.DrawableFilter;
 import org.pzgui.icon.GeometricIcon;
 import org.pzgui.icon.Icon;
+import org.pzgui.icon.ImageIcon;
 import org.pzgui.icon.ShapeIcon;
 
 import org.openflow.gui.ConnectionHandler;
@@ -92,6 +93,8 @@ public class OPConnectionHandler extends ConnectionHandler
         return new Pair<NodeType, Long>(n.getType(), n.getID());
     }
     
+    public static final int LEFT_BOX_WIDTH = 380;
+    
     public static final int TEST_BOX_WIDTH  = 500;
     public static final int TEST_BOX_HEIGHT = 50;
     
@@ -124,7 +127,10 @@ public class OPConnectionHandler extends ConnectionHandler
         //testOutput = new OPNodeWithNameAndPorts(NodeType.UNKNOWN, "", 9999, new ShapeIcon(new Rectangle2D.Double(0, 0, TEST_BOX_WIDTH, TEST_BOX_HEIGHT), Color.WHITE, Color.BLACK));
         
         // a background for the pallete
-        manager.addDrawable(new LayoutableIcon(5555, new ShapeIcon(new Rectangle2D.Double(0, 0, TEST_BOX_WIDTH, 1500), new Color(230,230,230), Color.BLACK), 0, 0));
+        manager.addDrawable(new LayoutableIcon(5555, new ShapeIcon(new Rectangle2D.Double(0, 0, LEFT_BOX_WIDTH, 1500), new Color(240,240,255), Color.BLACK), 0, 0));
+        
+        // a background for the pallete
+        manager.addDrawable(new LayoutableIcon(5556, new ImageIcon("images/system.png"), 0, 0));
         
         //manager.addDrawable(testInput);
         //manager.addDrawable(testOutput);

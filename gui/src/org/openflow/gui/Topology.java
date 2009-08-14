@@ -130,6 +130,23 @@ public class Topology {
         NodeRefTrack r = nodesMap.get(id);
         return r==null ? null : r.obj;
     }
+
+    /**
+     * Gets a list of nodes topology.
+     * 
+     * @return the NodeWithPorts list
+     */
+    public NodeWithPorts[] getAllNodes() 
+    {
+	    int size = nodesMap.size();
+	    int i=0;
+	    NodeWithPorts[] ret  = new NodeWithPorts[size];
+	    for(NodeRefTrack r : nodesMap.values())
+	    {
+		ret[i++]=r.obj;
+	    }
+        return ret;
+    }
     
     /** Gets the set of IDs currently in the topology */
     public Set<Long> getNodeIDs() {

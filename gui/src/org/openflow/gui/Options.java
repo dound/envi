@@ -32,6 +32,7 @@ public final class Options {
 //    public static final boolean USE_DIRECTED_LINKS = true;
     public static final boolean LINK_STATS_COLOR = true;
     public static final boolean LINK_STATS_THICKNESS = true;
+    public static final String MASTER_SLICE = "Physical Network";
     
     /** whether to use a light or dark color scheme */
     public static final boolean USE_LIGHT_COLOR_SCHEME = true;

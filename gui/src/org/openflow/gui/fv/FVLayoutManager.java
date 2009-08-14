@@ -15,6 +15,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 
+import org.openflow.gui.Options;
 import org.openflow.gui.Topology;
 import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.Link;
@@ -65,68 +66,72 @@ public class FVLayoutManager extends PZLayoutManager {
 
     public void addDrawable(Drawable d)
     {
-    	final String PATH_ICON_NEC      = "images/switch-nec-ip8800-v_small.png";
-    	final String PATH_ICON_AP       = "images/ap-small.png";
-    	final String PATH_ICON_HP       = "images/procurve-small.png";
-    	final String PATH_ICON_NETFPGA  = "images/netfpga-small.png";
-    	final String PATH_ICON_WIMAX    = "images/wimax-small.png";
-    	final String PATH_ICON_SOEKRIS  = "images/soekris-small.png";
-    	
-    	final ImageIcon ICON_NEC     = new ImageIcon(PATH_ICON_NEC);
-        final ImageIcon ICON_AP      = new ImageIcon(PATH_ICON_AP);
-        final ImageIcon ICON_HP      = new ImageIcon(PATH_ICON_HP);
-        final ImageIcon ICON_NETFPGA = new ImageIcon(PATH_ICON_NETFPGA);
-        final ImageIcon ICON_WIMAX   = new ImageIcon(PATH_ICON_WIMAX);
-        final ImageIcon ICON_SOEKRIS = new ImageIcon(PATH_ICON_SOEKRIS);
-    	
 	    super.addDrawable(d);
-	    // TODO: any custom processing when a Drawable is added
-	    // example of drawing a particular switch specially
-	    if(d instanceof OpenFlowSwitch) {
-		    OpenFlowSwitch s = (OpenFlowSwitch)d;
-		    long id = s.getID();
-		    ImageIcon icon;
-		    // can't @#*&@%!! switch() on a long... what a shit lang
-		    if(id == 0x0000000db916ef94l )
-			    icon = ICON_AP;
-		    else if(id == 0x0000000db916efc8l )
-			    icon = ICON_AP;
-		    else if(id == 0x0000000db915c044l)
-			    icon = ICON_AP;
-		    else if(id == 0x0000001b3fc54700l)
-		    	icon = ICON_HP;
-		    else if(id == 0x0000000db913b274l)
-		    	icon = ICON_SOEKRIS;
-		    else if(id == 0x00000000cafecafel)
-		    	icon = ICON_WIMAX;
-		    else if(id == 0x0000002320000014l)
-		    	icon = ICON_NETFPGA;
-		    else if(id == 0x0000002320000015l)
-		    	icon = ICON_NETFPGA;
-		    else if(id == 0x0000002320000016l)
-		    	icon = ICON_NETFPGA;
-		    else if(id == 0x0000002320000017l)
-		    	icon = ICON_NETFPGA;
-		    else if(id == 0x0000002320000018l)
-		    	icon = ICON_NETFPGA;
-		    else if(id == 0x0000002320E90DD3l)
-		    	icon = ICON_NETFPGA;
-		    else
-		    	/*
-		    	nec1b.switchDatapathId 00000012e298a5d3
-			    nec1.switchDatapathId 00000012e298a5d1
-			    necsw2.switchDatapathId 00000012e27831f5
-			    necsw3b.switchDatapathId 00000012e298a5d2
-			    necsw3.switchDatapathId 00000012e298a5d0
-			    necsw4a.switchDatapathId 00000012e2b8f3d0
-			    necsw4b.switchDatapathId 00000012e2b8f3d1
-			    necsw.switchDatapathId 00000012e2786765
-		    	 */
-		    	icon = ICON_NEC;
+	    for( DisplaySlice ds : displaySlices)
+	    {
+		    if(ds.getTitle().equals(Options.MASTER_SLICE))
+		    {
+			    final String PATH_ICON_NEC      = "images/switch-nec-ip8800-v_small.png";
+			    final String PATH_ICON_AP       = "images/ap-small.png";
+			    final String PATH_ICON_HP       = "images/procurve-small.png";
+			    final String PATH_ICON_NETFPGA  = "images/netfpga-small.png";
+			    final String PATH_ICON_WIMAX    = "images/wimax-small.png";
+			    final String PATH_ICON_SOEKRIS  = "images/soekris-small.png";
 
-			   
-		    s.setIcon(icon);
-	    
+			    final ImageIcon ICON_NEC     = new ImageIcon(PATH_ICON_NEC);
+			    final ImageIcon ICON_AP      = new ImageIcon(PATH_ICON_AP);
+			    final ImageIcon ICON_HP      = new ImageIcon(PATH_ICON_HP);
+			    final ImageIcon ICON_NETFPGA = new ImageIcon(PATH_ICON_NETFPGA);
+			    final ImageIcon ICON_WIMAX   = new ImageIcon(PATH_ICON_WIMAX);
+			    final ImageIcon ICON_SOEKRIS = new ImageIcon(PATH_ICON_SOEKRIS);
+
+			    // TODO: any custom processing when a Drawable is added
+			    // example of drawing a particular switch specially
+			    if(d instanceof OpenFlowSwitch) {
+				    OpenFlowSwitch s = (OpenFlowSwitch)d;
+				    long id = s.getID();
+				    ImageIcon icon;
+				    // can't @#*&@%!! switch() on a long... what a shit lang
+				    if(id == 0x0000000db916ef94l )
+					    icon = ICON_AP;
+				    else if(id == 0x0000000db916efc8l )
+					    icon = ICON_AP;
+				    else if(id == 0x0000000db915c044l)
+					    icon = ICON_AP;
+				    else if(id == 0x0000001b3fc54700l)
+					    icon = ICON_HP;
+				    else if(id == 0x0000000db913b274l)
+					    icon = ICON_SOEKRIS;
+				    else if(id == 0x00000000cafecafel)
+					    icon = ICON_WIMAX;
+				    else if(id == 0x0000002320000014l)
+					    icon = ICON_NETFPGA;
+				    else if(id == 0x0000002320000015l)
+					    icon = ICON_NETFPGA;
+				    else if(id == 0x0000002320000016l)
+					    icon = ICON_NETFPGA;
+				    else if(id == 0x0000002320000017l)
+					    icon = ICON_NETFPGA;
+				    else if(id == 0x0000002320000018l)
+					    icon = ICON_NETFPGA;
+				    else if(id == 0x0000002320E90DD3l)
+					    icon = ICON_NETFPGA;
+				    else
+					    /*
+					       nec1b.switchDatapathId 00000012e298a5d3
+					       nec1.switchDatapathId 00000012e298a5d1
+					       necsw2.switchDatapathId 00000012e27831f5
+					       necsw3b.switchDatapathId 00000012e298a5d2
+					       necsw3.switchDatapathId 00000012e298a5d0
+					       necsw4a.switchDatapathId 00000012e2b8f3d0
+					       necsw4b.switchDatapathId 00000012e2b8f3d1
+					       necsw.switchDatapathId 00000012e2786765
+					     */
+					    icon = ICON_NEC;
+				    System.err.println("Setting master slice node "+d+" to icon "+icon);
+				    ds.setCustomIcon(s,icon);
+			    }
+		    }
 	    }
     }
     

@@ -18,6 +18,7 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import org.openflow.gui.Options;
 import org.openflow.gui.Topology;
 import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.Node;
@@ -82,6 +83,7 @@ public class DisplaySlice {
     
     /** font to draw the title in */
     private static final Font TITLE_FONT = new Font("Tahoma", Font.BOLD, 24);
+    private static final Font TITLE_BIG_FONT = new Font("Tahoma", Font.BOLD, 28);
     
     /** 
      * Slice-specific Drawable coordinates.  This allows a particular node to
@@ -191,9 +193,19 @@ public class DisplaySlice {
         gfx.setComposite(c);
         
         // draw the slice's title
-        gfx.setPaint(org.pzgui.Constants.PAINT_DEFAULT);
-        gfx.setFont(TITLE_FONT);
-        org.pzgui.StringDrawer.drawRightAlignedString(title, gfx, sliceWidth-5+xOffset, yOffset+gfx.getFontMetrics().getHeight());
+	// Nah mate, that ain't a hack.. *THIS* is a HACK!
+        if(title.equals(Options.MASTER_SLICE))
+	{
+        	gfx.setPaint(Color.RED);
+		gfx.setFont(TITLE_BIG_FONT);
+        	org.pzgui.StringDrawer.drawCenteredString(title, gfx, sliceWidth/2+xOffset, yOffset+gfx.getFontMetrics().getHeight());
+	}
+	else
+	{
+        	gfx.setPaint(org.pzgui.Constants.PAINT_DEFAULT);
+		gfx.setFont(TITLE_FONT);
+        	org.pzgui.StringDrawer.drawRightAlignedString(title, gfx, sliceWidth-5+xOffset, yOffset+gfx.getFontMetrics().getHeight());
+	}
         gfx.setFont(org.pzgui.Constants.FONT_DEFAULT);
     }
 

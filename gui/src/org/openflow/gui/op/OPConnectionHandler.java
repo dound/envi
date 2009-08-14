@@ -749,18 +749,18 @@ public class OPConnectionHandler extends ConnectionHandler
             break;
             
         case TYPE_MODULE_HW:
-            icon = new ShapeIcon(new RoundRectangle2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE*4/5, 10, 10), DARK_GREEN, Color.BLACK);
             m = (org.openflow.gui.net.protocol.op.OPModule)n;
             name = m.name;
+        	icon = getModuleIcon(n.nodeType, name);
             ports = new OPModulePort[m.ports.length];
             for (int i = 0; i < m.ports.length; i++)
                 ports[i] = new OPModulePort(m.ports[i].id, m.ports[i].name, m.ports[i].desc);
             return new OPModule(true, name, n.id, icon, ports, m.stateFields);
         
         case TYPE_MODULE_SW:
-            icon = new ShapeIcon(new Ellipse2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_BLUE, Color.BLACK);
             m = (org.openflow.gui.net.protocol.op.OPModule)n;
             name = m.name;
+        	icon = getModuleIcon(n.nodeType, name);
             ports = new OPModulePort[m.ports.length];
             for (int i = 0; i < m.ports.length; i++)
                 ports[i] = new OPModulePort(m.ports[i].id, m.ports[i].name, m.ports[i].desc);
@@ -784,7 +784,36 @@ public class OPConnectionHandler extends ConnectionHandler
         return ret;
     }
 
-    private void processModuleStatusReply(OPModuleStatusReply msg) {
+    protected Icon getModuleIcon(NodeType nodeType, String name) {
+    	switch (nodeType) {
+
+    	case TYPE_MODULE_HW:
+    		if (name.equals("Grayscale"))
+    			return new org.pzgui.icon.ImageIcon("images/hw_grayscale.png");
+    		else if (name.equals("Grayscale (faulty)"))
+    			return new org.pzgui.icon.ImageIcon("images/hw_grayscale_faulty.png");
+    		else if (name.equals("Flip video"))
+    			return new org.pzgui.icon.ImageIcon("images/hw_flip.png");
+    		else if (name.equals("Color detection"))
+    			return new org.pzgui.icon.ImageIcon("images/hw_color_ident.png");
+    		else
+    			return new ShapeIcon(new RoundRectangle2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE*4/5, 10, 10), DARK_GREEN, Color.BLACK);
+
+    	case TYPE_MODULE_SW:
+    		if (name.equals("Grayscale"))
+    			return new org.pzgui.icon.ImageIcon("images/sw_grayscale.png");
+    		else if (name.equals("Comparison"))
+    			return new org.pzgui.icon.ImageIcon("images/sw_comparison.png");
+    		else
+    			return new ShapeIcon(new Ellipse2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE), DARK_BLUE, Color.BLACK);
+
+    	default:
+    		return new ShapeIcon(new RoundRectangle2D.Double(0, 0, MODULE_SIZE, MODULE_SIZE*4/5, 10, 10), LIGHT_YELLOW, Color.BLACK);
+    		
+    	}
+	}
+
+	private void processModuleStatusReply(OPModuleStatusReply msg) {
         Pair<NodeType, Long> key = new Pair<NodeType, Long>(msg.node.nodeType, msg.node.id);
         Pair<OPNodeWithNameAndPorts, ArrayList<OPModule>> value = config.get(key);
         if(value == null) {

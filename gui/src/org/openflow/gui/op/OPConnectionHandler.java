@@ -768,7 +768,10 @@ public class OPConnectionHandler extends ConnectionHandler
 
         case OPENFLOW_SWITCH:
             opn = (org.openflow.gui.net.protocol.op.OPNode) n;
-            return new OPOpenFlowSwitch(opn.name, opn.desc, opn.id);
+            icon = new org.pzgui.icon.ImageIcon("images/switch.png");
+            Node newNode = new OPOpenFlowSwitch(opn.name, opn.desc, opn.id);
+            newNode.setIcon(icon);
+            return newNode;
 
         default:
             return super.processNodeAdd(n);

@@ -611,13 +611,13 @@ public class PZManager extends Thread {
     protected void postRedraw() {}
     
     /** Sets ups gfx based on the pan and zoom settings */
-    private static void setupGraphicsView(Graphics2D gfx, Vector2i offset, float zoom) {
+    protected static void setupGraphicsView(Graphics2D gfx, Vector2i offset, float zoom) {
         gfx.translate(offset.x, offset.y);
         gfx.scale(zoom, zoom);
     }
     
     /** Removes a gfx setup by unzooming and then untranslating */
-    private static void resetGraphicsView(Graphics2D gfx, Vector2i offset, float zoom) {
+    protected static void resetGraphicsView(Graphics2D gfx, Vector2i offset, float zoom) {
         // back to the original view
         gfx.scale(1.0f / zoom, 1.0f / zoom);
         gfx.translate(-offset.x, -offset.y);

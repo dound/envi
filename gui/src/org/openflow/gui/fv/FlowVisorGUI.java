@@ -48,7 +48,7 @@ public final class FlowVisorGUI {
 		servers.add(new Triple("localhost",2502,"Slice: Aggregation"));
 		// servers.add(new Triple("localhost",2503,"Slice: Flow Dragging"));
 		servers.add(new Triple("localhost",2507,"Slice: Production"));
-		servers.add(new Triple("localhost",2504,"Slice: Plug-n-Serv"));
+		servers.add(new Triple("localhost",2504,"Slice: Plug-n-Serve"));
 		servers.add(new Triple("localhost",2505,"Physical Network"));
 		servers.add(new Triple("localhost",2506,"Slice: OpenPipes"));
 	}
@@ -59,7 +59,7 @@ public final class FlowVisorGUI {
 		servers.add(new Triple("openflow6.stanford.edu",2503, "Slice: Aggregation"));
 		//servers.add(new Triple("openflow5.stanford.edu",2504, "Slice Flow Dragging"));
 		servers.add(new Triple("openflow5.stanford.edu",2505,"Slice: Production"));
-		servers.add(new Triple("openflow4.stanford.edu",2503, "Slice: Plug-n-Serv"));
+		servers.add(new Triple("openflow4.stanford.edu",2503, "Slice: Plug-n-Serve"));
 		servers.add(new Triple("openflow5.stanford.edu",2503,"Physical Network"));
 		servers.add(new Triple("hpn8.stanford.edu",2503, "Slice: OpenPipes"));
 	}

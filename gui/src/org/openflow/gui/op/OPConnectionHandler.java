@@ -731,17 +731,13 @@ public class OPConnectionHandler extends ConnectionHandler
         switch(n.nodeType) {
         
         case TYPE_IN:
-            gicon = new GeometricIcon(INOUT_XS, INOUT_YS, LIGHT_YELLOW, Color.BLACK, Constants.STROKE_DEFAULT);
-            gicon.setCenter(true);
-            icon = gicon;
-            name = "In";
+            icon = new org.pzgui.icon.ImageIcon("images/movie_camera.png");
+            //name = "In";
             break;
             
         case TYPE_OUT:
-            gicon = new GeometricIcon(INOUT_XS, INOUT_YS, Color.WHITE, Color.BLACK, Constants.STROKE_DEFAULT);
-            gicon.setCenter(true);
-            icon = gicon;
-            name = "Out";
+            icon = new org.pzgui.icon.ImageIcon("images/television.png");
+            //name = "Out";
             break;
             
         case TYPE_NETFPGA:

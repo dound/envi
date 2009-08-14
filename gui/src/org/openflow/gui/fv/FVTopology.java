@@ -12,7 +12,10 @@ import org.openflow.gui.Topology;
  */
 public class FVTopology extends Topology {
     /** colors to assign to each topology */
-    private static final Color TOPOLOGY_COLORS[] = new Color[]{Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW, Color.WHITE, Color.MAGENTA, Color.ORANGE};
+    private static final Color TOPOLOGY_COLORS[] = new Color[]{
+		    Color.YELLOW, Color.WHITE, Color.MAGENTA, 
+	    		Color.BLUE, Color.RED, Color.GREEN, 
+		    Color.ORANGE};
     
     /** the next color to assign */
     private static int topologyColorOn = 0; 

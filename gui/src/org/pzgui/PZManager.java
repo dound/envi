@@ -552,7 +552,8 @@ public class PZManager extends Thread {
 
         // create the initial GUI display if it wasn't specified in the config file
         if(windows.size() == 0)
-            addWindow(0, 0, 1024, 768, 0, 0, 1.0f);
+            // addWindow(0, 0, 1024, 768, 0, 0, 1.0f);
+            addWindow(0, 0, 1368, 768, 0, 0, 1.0f);
 
         // keep the display and moving objects positions up to date
         long t;

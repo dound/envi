@@ -49,7 +49,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
     // ------------------- Drawing ------------------ //
     
     /** default size of the DEFAULT_SHAPE */
-    public static final int DEFAULT_SIZE = 40;
+    public static final int DEFAULT_SIZE = 20;
     
     /** default shape used to represent a switch */
     public static final Shape DEFAULT_SHAPE = new Ellipse2D.Double(0, 0, DEFAULT_SIZE, DEFAULT_SIZE);

@@ -25,6 +25,7 @@ import org.openflow.gui.drawables.Node;
 import org.openflow.gui.drawables.OpenFlowSwitch;
 import org.pzgui.Drawable;
 import org.pzgui.icon.Icon;
+import org.pzgui.icon.ImageIcon;
 import org.pzgui.icon.ShapeIcon;
 import org.pzgui.math.Vector2i;
 
@@ -191,6 +192,8 @@ public class DisplaySlice {
         gfx.setPaint(slicePaint);
         gfx.fill(sliceShape);
         gfx.setComposite(c);
+
+	gfx.drawImage( ImageIcon.loadImage("images/ghost-bg.png"),xOffset,yOffset,sliceWidth,sliceHeight, null);
         
         // draw the slice's title
 	// Nah mate, that ain't a hack.. *THIS* is a HACK!

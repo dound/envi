@@ -103,11 +103,11 @@ public class Flow extends AbstractDrawable {
     public static final boolean ANIMATE = true;
     
     /** radius of circles which make up the flow */
-    public static final int DEFAULT_POINT_SIZE = 5;
+    public static final int DEFAULT_POINT_SIZE = 3;
     public int pointSize = DEFAULT_POINT_SIZE;
     
     /** gap between points */
-    private static final int DEFAULT_GAP_BETWEEN_POINTS = DEFAULT_POINT_SIZE;
+    private static final int DEFAULT_GAP_BETWEEN_POINTS = DEFAULT_POINT_SIZE/1;
     private int gapBetweenPoints = DEFAULT_GAP_BETWEEN_POINTS;
     
     /** how much to offset the points per second */

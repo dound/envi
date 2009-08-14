@@ -84,6 +84,9 @@ public class OPWindowEventListener extends PZWindowEventListener {
         else if (e.getKeyCode() == KeyEvent.VK_I) {
             toggleStateDialog(getWindow(e));
         }
+        else if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            // Do nothing -- don't exit on escape!
+        }
         else
             super.keyReleased(e);
     }

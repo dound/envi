@@ -8,6 +8,7 @@ import org.openflow.util.string.StringOps;
 import org.pzgui.Constants;
 import org.pzgui.StringDrawer;
 import org.pzgui.icon.Icon;
+import org.pzgui.icon.ImageIcon;
 
 public class OPNodeWithNameAndPorts extends SimpleNodeWithPorts {
     public OPNodeWithNameAndPorts(NodeType type, String name, long id, Icon icon) {
@@ -52,6 +53,11 @@ public class OPNodeWithNameAndPorts extends SimpleNodeWithPorts {
         Icon m = getMarker();
         if(m != null)
             m.draw(gfx, getX(), getY());
+        
+        // Check if the node has an ImageIcon as the icon
+        Icon icon = getIcon();
+        if (icon != null && icon instanceof ImageIcon)
+           	return;
         
         String name = getName();
         if(name==null || name.length()==0)

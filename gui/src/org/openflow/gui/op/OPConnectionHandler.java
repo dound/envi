@@ -130,7 +130,9 @@ public class OPConnectionHandler extends ConnectionHandler
         manager.addDrawable(new LayoutableIcon(5555, new ShapeIcon(new Rectangle2D.Double(0, 0, LEFT_BOX_WIDTH, 1500), new Color(240,240,255), Color.BLACK), 0, 0));
         
         // a background for the palette
-        manager.addDrawable(new LayoutableIcon(5556, new ImageIcon("images/system.png"), 0, 0));
+        LayoutableIcon systemIcon = new LayoutableIcon(5556, new ImageIcon("images/system.png"), 0, 0);
+        manager.addDrawable(systemIcon);
+        manager.addAlwaysVisibleDrawable(systemIcon);
         
         //manager.addDrawable(testInput);
         //manager.addDrawable(testOutput);

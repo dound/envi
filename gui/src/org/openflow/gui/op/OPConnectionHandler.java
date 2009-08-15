@@ -2,6 +2,7 @@ package org.openflow.gui.op;
 
 import java.awt.AWTEvent;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
@@ -26,6 +27,7 @@ import org.pzgui.icon.GeometricIcon;
 import org.pzgui.icon.Icon;
 import org.pzgui.icon.ImageIcon;
 import org.pzgui.icon.ShapeIcon;
+import org.pzgui.icon.TextIcon;
 
 import org.openflow.gui.ConnectionHandler;
 import org.openflow.gui.Topology;
@@ -137,6 +139,11 @@ public class OPConnectionHandler extends ConnectionHandler
         // Add LA and Houston
         manager.addDrawable(new LayoutableIcon(5557, new ImageIcon("images/houston-background.png"), 0, 0));
         manager.addDrawable(new LayoutableIcon(5558, new ImageIcon("images/los_angeles-background.png"), 0, 0));
+        
+        // Add labels
+        Font f = new Font("SansSerif", Font.PLAIN, 24);
+        manager.addDrawable(new LayoutableIcon(5559, new TextIcon("Desired system:", f, 24, Color.BLACK), 0, 0));
+        manager.addDrawable(new LayoutableIcon(5560, new TextIcon("Additional modules:", f, 24, Color.BLACK), 0, 0));
         
         //manager.addDrawable(testInput);
         //manager.addDrawable(testOutput);

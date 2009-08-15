@@ -1,5 +1,5 @@
 #!/bin/sh
 
-java -jar bin/openflow_gui.jar   local
+java -jar bin/openflow_gui.jar lo $@
 
 

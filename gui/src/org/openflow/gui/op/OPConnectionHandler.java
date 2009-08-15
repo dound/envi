@@ -154,6 +154,10 @@ public class OPConnectionHandler extends ConnectionHandler
         manager.addDrawable(problem1Text);
         manager.addDrawable(problem1SubText);
 
+        // Add the brain and OpenFlow logos
+        manager.addDrawable(new LayoutableIcon(5563, new ImageIcon("images/openflow-translucent.png"), 0, 0));
+        manager.addDrawable(new LayoutableIcon(5564, new ImageIcon("images/brain-openpipes.png"), 0, 0));
+        
         //manager.addDrawable(testInput);
         //manager.addDrawable(testOutput);
 

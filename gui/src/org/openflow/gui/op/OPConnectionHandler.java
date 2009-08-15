@@ -134,6 +134,10 @@ public class OPConnectionHandler extends ConnectionHandler
         manager.addDrawable(systemIcon);
         manager.addAlwaysVisibleDrawable(systemIcon);
         
+        // Add LA and Houston
+        manager.addDrawable(new LayoutableIcon(5557, new ImageIcon("images/houston-background.png"), 0, 0));
+        manager.addDrawable(new LayoutableIcon(5558, new ImageIcon("images/los_angeles-background.png"), 0, 0));
+        
         //manager.addDrawable(testInput);
         //manager.addDrawable(testOutput);
 

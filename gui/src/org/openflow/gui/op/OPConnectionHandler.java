@@ -140,11 +140,20 @@ public class OPConnectionHandler extends ConnectionHandler
         manager.addDrawable(new LayoutableIcon(5557, new ImageIcon("images/houston-background.png"), 0, 0));
         manager.addDrawable(new LayoutableIcon(5558, new ImageIcon("images/los_angeles-background.png"), 0, 0));
         
-        // Add labels
-        Font f = new Font("SansSerif", Font.PLAIN, 24);
-        manager.addDrawable(new LayoutableIcon(5559, new TextIcon("Desired system:", f, 24, Color.BLACK), 0, 0));
-        manager.addDrawable(new LayoutableIcon(5560, new TextIcon("Additional modules:", f, 24, Color.BLACK), 0, 0));
+        // Add labels for side bar
+        Font sidebarFont = new Font("DejaVu Sans", Font.PLAIN, 24);
+        manager.addDrawable(new LayoutableIcon(5559, new TextIcon("Desired system:", sidebarFont, 24, Color.BLACK), 0, 0));
+        manager.addDrawable(new LayoutableIcon(5560, new TextIcon("Additional modules:", sidebarFont, 24, Color.BLACK), 0, 0));
         
+        // Add title labels
+        Font problemTextFont = new Font("DejaVu Sans", Font.BOLD, 42);
+        System.out.println(problemTextFont);
+        //Font problemSubTextFont = new Font("SansSerif", Font.PLAIN, 24);
+        Drawable problem1Text = new LayoutableIcon(5561, new TextIcon("Problem 1: How to utilize available resources?", problemTextFont, 42, Color.BLACK), 0, 0);
+        Drawable problem1SubText = new LayoutableIcon(5562, new TextIcon("Distribute modules across resources. Resources may be geographically dispersed.", sidebarFont, 24, Color.BLACK), 0, 0);
+        manager.addDrawable(problem1Text);
+        manager.addDrawable(problem1SubText);
+
         //manager.addDrawable(testInput);
         //manager.addDrawable(testOutput);
 

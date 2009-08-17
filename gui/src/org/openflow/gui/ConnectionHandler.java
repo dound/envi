@@ -3,14 +3,16 @@ package org.openflow.gui;
 import java.io.DataInput;
 import java.io.IOException;
 
+import org.openflow.gui.drawables.Flow;
 import org.openflow.gui.drawables.Host;
 import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.Node;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.OpenFlowSwitch;
-import org.openflow.gui.drawables.Link.LinkExistsException;
 import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.MessageProcessor;
+import org.openflow.gui.net.protocol.FlowsAdd;
+import org.openflow.gui.net.protocol.FlowsDel;
 import org.openflow.gui.net.protocol.LinksAdd;
 import org.openflow.gui.net.protocol.LinksDel;
 import org.openflow.gui.net.protocol.NodeType;
@@ -30,8 +32,11 @@ import org.openflow.protocol.AggregateStatsReply;
 import org.openflow.protocol.AggregateStatsRequest;
 import org.openflow.protocol.Match;
 import org.openflow.protocol.SwitchDescriptionStats;
+import org.openflow.util.FlowHop;
 import org.openflow.util.string.DPIDUtil;
 import org.pzgui.DialogHelper;
+import org.pzgui.PZClosing;
+import org.pzgui.PZManager;
 
 /**
  * Processes messages from a connection and updates the associated topology 
@@ -43,7 +48,8 @@ import org.pzgui.DialogHelper;
  * 
  * @author David Underhill
  */
-public class ConnectionHandler implements MessageProcessor<OFGMessage> {
+public class ConnectionHandler implements MessageProcessor<OFGMessage>,
+                                          PZClosing {
     /** the connection being managed */
     private final BackendConnection<OFGMessage> connection;
     
@@ -85,10 +91,19 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         return topology;
     }
     
+    /**
+     * @deprecated  this method will be removed soon; it has been replaced by
+     *              connectedStateChange(boolean)  
+     */
+    public final void connectionStateChange() {
+        throw new Error("using old connectionStateChange() method");
+    }
+    
     /** Called when the backend has been disconnected or reconnected */
-    public void connectionStateChange() {
-        if(!connection.isConnected())
-            topology.removeAllNodes(connection);
+    public void connectionStateChange(boolean connected) {
+        if(!connection.isConnected()) {
+            topology.removeAll(connection);
+        }
         else {
             // ask the backend for a list of switches and links
             try {
@@ -133,9 +148,11 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             
         case ECHO_REQUEST:
             processEchoRequest(msg.xid);
-            
+            break;
+
         case ECHO_REPLY:
             processEchoReply(msg.xid);
+	    break;
             
         case NODES_ADD:
             processNodesAdd((NodesAdd)msg);
@@ -151,6 +168,14 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             
         case LINKS_DELETE:
             processLinksDel((LinksDel)msg);
+            break;
+            
+        case FLOWS_ADD:
+            processFlowsAdd((FlowsAdd)msg);
+            break;
+            
+        case FLOWS_DELETE:
+            processFlowsDel((FlowsDel)msg);
             break;
             
         case STAT_REPLY:
@@ -230,6 +255,17 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
      * @param s  the new switch
      */
     protected void handleNewSwitch(OpenFlowSwitch s) {
+        handleNewSwitch(s, true);
+    }
+    
+    /**
+     * Handles a new switch by requesting its links and description if 
+     * Options.AUTO_REQUEST_LINK_INFO_FOR_NEW_SWITCH is true.
+     * 
+     * @param s          the new switch
+     * @param linksOnly  only request new links (don't send a switch description request)
+     */
+    protected void handleNewSwitch(OpenFlowSwitch s, boolean linksOnly) {
         if(!Options.AUTO_REQUEST_LINK_INFO_FOR_NEW_SWITCH)
             return;
         
@@ -242,7 +278,10 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         } catch (IOException e) {
             System.err.println("Warning: unable to get switches for switch + " + DPIDUtil.toString(dpid));
         }
-        
+
+        if(linksOnly)
+            return;
+            
         try {
             getConnection().sendMessage(new SwitchDescriptionRequest(dpid));
         } catch (IOException e) {
@@ -259,11 +298,10 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     /** add new node to the topology */
     protected void processDrawableNodeAdd(Node n) {
         if(n instanceof NodeWithPorts) {
-            if(!topology.addNode(connection, (NodeWithPorts)n))
-                return;
-                
-            if(n instanceof OpenFlowSwitch)
-                handleNewSwitch((OpenFlowSwitch)n);
+            int ret = topology.addNode(connection, (NodeWithPorts)n);
+            
+            if(ret>=0 && n instanceof OpenFlowSwitch)
+                handleNewSwitch((OpenFlowSwitch)n, ret!=0 /* if locally new, only request links */);
         }
     }
     
@@ -278,7 +316,7 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         if(n.nodeType == NodeType.HOST)
             return new Host(n.id);
         else
-            return new OpenFlowSwitch(n.id);
+            return new OpenFlowSwitch(n.id, n.nodeType);
     }
 
     /** remove nodes from the topology */
@@ -289,23 +327,23 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
     }
     
     private void processLinksAdd(LinksAdd msg) {
-        for(org.openflow.gui.net.protocol.Link x : msg.links) {
+        for(org.openflow.gui.net.protocol.LinkSpec x : msg.links) {
             NodeWithPorts dst = topology.getNode(x.dstNode.id);
             if(dst == null) {
                 logNodeMissing("LinkAdd", "dst", x.dstNode.id);
-                return;
+                continue;
             }
             
             NodeWithPorts src = topology.getNode(x.srcNode.id);
             if(src == null) {
                 logNodeMissing("LinkAdd", "src", x.srcNode.id);
-                return;
+                continue;
             }
             
-            try {
                 Link l = topology.addLink(x.linkType, dst, x.dstPort, src, x.srcPort);
                 if(l == null)
                     continue;
+                l.setMaximumDataRate(x.capacity_bps);
                 
                 if(!Options.AUTO_TRACK_STATS_FOR_NEW_LINK)
                     continue;
@@ -318,10 +356,6 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
                     System.err.println("Warning: unable to setup link utilization polling for switch " + 
                             DPIDUtil.toString(x.dstNode.id) + " port " + l.getMyPort(dst));
                 }
-            }
-            catch(LinkExistsException e) {
-                // ignore 
-            }
         }
     }
     
@@ -335,6 +369,44 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
             case -3: logLinkMissing("delete", "link",     x.dstNode.id, x.dstPort, x.srcNode.id, x.srcPort); break;
             }
         }
+    }
+    
+    private void processFlowsAdd(FlowsAdd msg) {
+        for(org.openflow.gui.net.protocol.Flow x : msg.flows) {
+            NodeWithPorts src = topology.getNode(x.srcNode.id);
+            if(src == null) {
+                logNodeMissing("FlowAdd", "src", x.srcNode.id);
+                continue;
+            }
+            
+            NodeWithPorts dst = topology.getNode(x.dstNode.id);
+            if(dst == null) {
+                logNodeMissing("FlowAdd", "dst", x.dstNode.id);
+                continue;
+            }
+            
+            FlowHop[] hops = new FlowHop[x.path.length + 2];
+            hops[0] = new FlowHop((short)-1, src, x.srcPort);
+            hops[hops.length-1] = new FlowHop(x.dstPort, dst, (short)-1);
+            
+            int i = 1;
+            for(org.openflow.gui.net.protocol.FlowHop fh : x.path) {
+                NodeWithPorts hop = topology.getNode(fh.node.id);
+                if(hop == null) {
+                    logNodeMissing("FlowAdd", "hop" + i, fh.node.id);
+                    continue;
+                }
+                hops[i++] = new FlowHop(fh.inport, hop, fh.outport);
+            }
+            
+            Flow flow = new Flow(x.type, x.id, hops);
+            topology.addFlow(flow);
+        }
+    }
+    
+    private void processFlowsDel(FlowsDel msg) {
+        for(org.openflow.gui.net.protocol.Flow x : msg.flows)
+            topology.removeFlowByID(x.id);
     }
     
     private void processStatReply(StatsHeader msg) {
@@ -446,5 +518,17 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage> {
         RequestType rt = b ? RequestType.SUBSCRIBE : RequestType.UNSUBSCRIBE;
         connection.sendMessage(new RequestLinks(rt));
         subscribeToLinkChanges = b;
+    }
+
+    /**
+     * Sends a goodbye message to the backend and then shutsdown the connection.
+     */
+    public void pzClosing(PZManager manager) {
+        try {
+            connection.sendMessage(new OFGMessage(OFGMessageType.DISCONNECT, 0));
+            connection.shutdown();
+        } catch (IOException e) {
+            System.err.println("Unable to send DISCONNECT message: " + e.getMessage());
+        }
     }
 }

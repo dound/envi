@@ -136,8 +136,7 @@ public class PZWindowEventListener implements ComponentListener,
             manager.displayIcon("<V> Reset View!", 2000);
         }
         else if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-            System.out.println("Goodbye");
-            System.exit(0);
+            manager.exit(0);
         }
         else if(e.getKeyCode() == KeyEvent.VK_PAGE_UP) {
             window.screenshot();
@@ -224,9 +223,20 @@ public class PZWindowEventListener implements ComponentListener,
             }
         }
         else {
-            // if a node is selected, handle dragging it
-            selNode.drag(x, y);
+            dragNode(selNode, x, y);
         }
+    }
+    
+    /**
+     * Called when a node has been dragged.
+     * 
+     * @param selNode  the node being dragged
+     * @param x        current x coordinate of the drag
+     * @param y        current y coordinate of the drag
+     */
+    public void dragNode(Drawable selNode, int x, int y) {
+        // if a node is selected, handle dragging it
+        selNode.drag(x, y);
     }
 
     /** Tells the manager where the mouse is now. */

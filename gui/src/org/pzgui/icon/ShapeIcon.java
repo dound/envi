@@ -27,6 +27,7 @@ public class ShapeIcon extends Icon {
     public ShapeIcon(Shape s, Paint fill, Paint outline) {
         this.shape = s;
         size = s.getBounds().getSize();
+        super.setSize(size);
         this.fillColor = fill;
         this.outlineColor = outline;
     }
@@ -37,7 +38,7 @@ public class ShapeIcon extends Icon {
     }
     
     public void draw(Graphics2D gfx, int x, int y) {
-        draw(gfx, shape, fillColor, outlineColor, x, y);
+        draw(gfx, x, y, getWidth(), getHeight());
     }
     
     public void draw(Graphics2D gfx, int x, int y, int w, int h) {
@@ -69,8 +70,10 @@ public class ShapeIcon extends Icon {
         int yC = y - s.getBounds().height / 2;
         gfx.translate(xC, yC);
         
-        gfx.setPaint(fill);
-        gfx.fill(s);
+        if(fill != null) {
+            gfx.setPaint(fill);
+            gfx.fill(s);
+        }
         
         if( outline != null ) {
             gfx.setPaint(outline);
@@ -82,7 +85,7 @@ public class ShapeIcon extends Icon {
     }
     
     public Dimension getSize() {
-        return size;
+        return getMaximumSize();
     }
     
     public Paint getFillColor() {

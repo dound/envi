@@ -9,8 +9,9 @@ import java.io.IOException;
  * @author David Underhill
  */
 public interface MessageProcessor<MSG_TYPE extends Message> {
-    /** Process a change in the connection status */
-    public void connectionStateChange();
+    /** Process a change in the connection status 
+     * @param connected TODO*/
+    public void connectionStateChange(boolean connected);
     
     /** 
      * Constructs the object representing the received message.  The message is 

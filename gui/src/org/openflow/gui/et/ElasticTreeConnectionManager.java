@@ -85,8 +85,8 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
      * Calls super.connectionStateChange() and then, if the connection is now
      * active for the first time, sends a message to the server.
      */
-    public void connectionStateChange() {
-        super.connectionStateChange();
+    public void connectionStateChange(boolean connected) {
+        super.connectionStateChange(connected);
         
         if(getConnection().isConnected()) {
             refreshTopology(manager.getK());
@@ -265,7 +265,7 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
     }
     
     private void refreshTopology(int k) {
-        getTopology().removeAllNodes(getConnection());
+        getTopology().removeAll(getConnection());
         try {
             getConnection().sendMessage(new ETSwitchesRequest(k));
         } catch (IOException e) {

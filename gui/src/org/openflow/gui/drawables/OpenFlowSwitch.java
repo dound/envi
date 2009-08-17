@@ -18,12 +18,31 @@ import org.pzgui.icon.ShapeIcon;
  */
 public class OpenFlowSwitch extends NodeWithPorts {
     public OpenFlowSwitch(long dpid) {
-        this("", 0, 0, dpid);
+        this(dpid, NodeType.OPENFLOW_SWITCH);
+    }
+    
+    public OpenFlowSwitch(long dpid, NodeType nt) {
+        this("", 0, 0, dpid, nt);
     }
     
     public OpenFlowSwitch(String name, int x, int y, long dpid) {
-        super(NodeType.OPENFLOW_SWITCH, name, x, y, new ShapeIcon(DEFAULT_SHAPE, DEFAULT_FILL));
+        this(name, x, y, dpid, NodeType.OPENFLOW_SWITCH);
+    }
+    
+    public OpenFlowSwitch(String name, int x, int y, long dpid, NodeType nt) {
+        super(NodeType.OPENFLOW_SWITCH, name, x, y, newDefaultOpenFlowSwitchShape(nt));                
         this.datapathID = dpid;
+    }
+    
+    /** creates a new OpenFlowSwitch icon */
+    public static final ShapeIcon newDefaultOpenFlowSwitchShape(NodeType nt) {
+        Paint fill;
+        if(nt == NodeType.OPENFLOW_WIRELESS_ACCESS_POINT)
+            fill = DEFAULT_FILL_WIFI;
+        else
+            fill = DEFAULT_FILL;
+        
+        return new ShapeIcon(DEFAULT_SHAPE, fill);
     }
     
     
@@ -37,6 +56,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
     
     /** default fill color for DEFAULT_SHAPE */
     public static final Paint DEFAULT_FILL = new Color(128, 128, 255);
+    public static final Paint DEFAULT_FILL_WIFI = new Color(128, 255, 128);
     
     /** 
      * Uses super.drawObject() to do most of the work and then draws switch
@@ -52,6 +72,9 @@ public class OpenFlowSwitch extends NodeWithPorts {
             
         // display switch description stats on mouse over
         if(this.isHovered() || this.isSelected()) {
+            gfx.drawString(DPIDUtil.dpidToHex(getID()), x, y);
+            y += gfx.getFontMetrics().getHeight();
+
             if(isStringSet(manufacturer)) {
                 gfx.drawString(manufacturer, x, y);
                 y += gfx.getFontMetrics().getHeight();

@@ -7,6 +7,7 @@ import java.awt.Polygon;
 import java.util.LinkedList;
 import java.util.Vector;
 
+import org.openflow.gui.Topology;
 import org.openflow.gui.net.protocol.FlowType;
 import org.openflow.util.FlowHop;
 import org.openflow.util.Pair;
@@ -26,6 +27,7 @@ public class Flow extends AbstractDrawable {
     
     private FlowType type;
     private int flowID;
+    private Topology topology=null;
     
     /** the nodes from the flow's source to its destination */
     private FlowHop[] path;
@@ -47,6 +49,11 @@ public class Flow extends AbstractDrawable {
         this.path = path;
     }
     
+    /** Set the topology that this flow belongs to  */
+      
+    public void setTopology(Topology topology) {
+        this.topology=topology;
+    }
     /** Gets the type of this flow */
     public FlowType getType() {
         return type;
@@ -66,11 +73,19 @@ public class Flow extends AbstractDrawable {
     
     /** whether to draw a given segment */
     private boolean shouldDrawSegment(FlowHop from, FlowHop to) {
-        for(Pair<FlowHop, FlowHop> p : segmentsToIgnore)
-            if(p.a.equals(from) && p.b.equals(to))
-                return false;
-        
-        return true;
+	    
+	    {
+		    // make sure that both of these nodes are in our topology!
+		    if(topology.getNode(from.node.getID()) == null)
+			    return false;
+		    if(topology.getNode(to.node.getID()) == null)
+			    return false;
+	    }
+	    for(Pair<FlowHop, FlowHop> p : segmentsToIgnore)
+		    if(p.a.equals(from) && p.b.equals(to))
+			    return false;
+
+	    return true;
     }
     
     /** whether this flow contains a particular segment */

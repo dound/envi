@@ -430,6 +430,7 @@ public class Topology {
                 }
             }
         }
+	newFlow.setTopology(this);		// beat the flow with a stick
         manager.addDrawable(newFlow);
     }
     

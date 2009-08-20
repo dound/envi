@@ -73,14 +73,11 @@ public class Flow extends AbstractDrawable {
     
     /** whether to draw a given segment */
     private boolean shouldDrawSegment(FlowHop from, FlowHop to) {
-	    
-	    {
-		    // make sure that both of these nodes are in our topology!
-		    if(topology.getNode(from.node.getID()) == null)
-			    return false;
-		    if(topology.getNode(to.node.getID()) == null)
-			    return false;
-	    }
+	    // make sure that both of these nodes are in our topology!
+	    if(topology.getNode(from.node.getID()) == null)
+		    return false;
+	    if(topology.getNode(to.node.getID()) == null)
+		    return false;
 	    for(Pair<FlowHop, FlowHop> p : segmentsToIgnore)
 		    if(p.a.equals(from) && p.b.equals(to))
 			    return false;

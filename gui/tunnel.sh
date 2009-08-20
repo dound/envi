@@ -8,4 +8,4 @@ ssh \
 -L 2505:openflow5.stanford.edu:2503 \
 -L 2506:hpn8.stanford.edu:2503 \
 -L 2507:openflow5.stanford.edu:2505 \
-yuba.stanford.edu sleep 4294967295
+yuba.stanford.edu 'while `true` ; do sleep 20 ; date ; done '

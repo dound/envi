@@ -141,11 +141,17 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
     /**
      * Connect to the server at the specified address and port.
      * 
-     * @param ip                 the IP where the server lives
-     * @param port               the port the server listens on
+     * @param mp    the processor for messages; if null, then "this" will be
+     *              used as mp if it implements the MessageProcesser interface
+     * @param ip    the IP where the server lives
+     * @param port  the port the server listens on
      */
     public BackendConnection(MessageProcessor<MSG_TYPE> mp, String ip, int port) {
-        msgProcessor = mp;
+        if(mp == null && this instanceof MessageProcessor)
+            msgProcessor = (MessageProcessor<MSG_TYPE>)this;
+        else
+            msgProcessor = mp;
+        
         serverIP = ip;
         serverPort = port;  
     }
@@ -237,7 +243,7 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
         
         System.out.println("Now connected to server");
         stats.connected();
-        msgProcessor.connectionStateChange();
+        msgProcessor.connectionStateChange(true);
     }
     
     /** tells the connection to disconnect and then connect again */
@@ -290,7 +296,7 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
      * to the next available transaction ID.  If m is a POLL_REQUEST message, 
      * then the internal message's transaction ID is also set.
      */
-    public void sendMessage(OFGMessage m) throws IOException {
+    public void sendMessage(MSG_TYPE m) throws IOException {
         // get the current connection
         SocketConnection myConn = this.conn;
         java.io.DataOutput out = (myConn == null) ? null : myConn.out;
@@ -300,6 +306,16 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
         if(out == null)
             throw new IOException("connection is down");
         
+        if(m instanceof OFGMessage)
+            sendOFGMessage((OFGMessage)m);
+        
+        m.write(out);
+        
+        if(PRINT_MESSAGES)
+            System.out.println("sent: " + m.toString());
+    }
+    
+    public void sendOFGMessage(OFGMessage m) throws IOException {
         if(m.xid == 0)
             m.xid = nextXID++;
         
@@ -318,11 +334,6 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
                     outstandingStatefulPollRequests.remove(pollMsg.msg.xid);
             }
         }
-        
-        m.write(out);
-        
-        if(PRINT_MESSAGES)
-            System.out.println("sent: " + m.toString());
     }
     
     /** 
@@ -354,7 +365,7 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
         stats.disconnected();
         outstandingStatefulRequests.clear();
         outstandingStatefulPollRequests.clear();
-        msgProcessor.connectionStateChange();
+        msgProcessor.connectionStateChange(false);
     }
     
     /** try to close the connection to the server */
@@ -375,5 +386,15 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
                 } catch(IOException e){}
             }
         }
+    }
+    
+    /** returns the server address which this object connects to */
+    public String getServerAddr() {
+        return serverIP;
+    }
+    
+    /** returns the TCP port this object connects to */
+    public int getServerPort() {
+        return serverPort;
     }
 }

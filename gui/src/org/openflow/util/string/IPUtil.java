@@ -89,7 +89,7 @@ public class IPUtil {
         public static int stringToIP(String ip) {
             String[] terms = ip.split("\\.");
             if(terms.length != 4)
-                throw new Error("stringToIP needs correct ip, got " + ip);
+                throw new NumberFormatException("stringToIP needs correct ip, got " + ip);
             
             int o1 = Integer.valueOf(terms[0]);
             int o2 = Integer.valueOf(terms[1]);

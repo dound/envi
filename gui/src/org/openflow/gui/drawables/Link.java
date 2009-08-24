@@ -57,14 +57,16 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
      * re-created.
      */
     public static class LinkExistsException extends Exception {
-        /** default constructor */
-        public LinkExistsException() {
-            super();
-        }
+        private final Link preExisting;
         
         /** set the message associated with the exception */
-        public LinkExistsException(String msg) {
-            super(msg);
+        public LinkExistsException(Link preExisting) {
+            super("Link construction error: link already exists");
+            this.preExisting = preExisting;
+        }
+        
+        public Link getPreExistingLink() {
+            return preExisting;
         }
     }
     
@@ -88,8 +90,9 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     public Link(LinkType linkType, NodeWithPorts dst, short dstPort, NodeWithPorts src, short srcPort) throws LinkExistsException {
         synchronized(ONE_AT_A_TIME) {
             // do not re-create existing links
-            if(src.getDirectedLinkTo(srcPort, dst, dstPort, true) != null)
-                throw new LinkExistsException("Link construction error: link already exists");
+            Link preExisting = src.getDirectedLinkTo(srcPort, dst, dstPort, true);
+            if(preExisting != null)
+                throw new LinkExistsException(preExisting);
             
             this.type = linkType;
             this.src = src;
@@ -277,6 +280,83 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     
     /** Bounds the area in which a link is drawn. */
     private Polygon boundingBox = null;
+    
+    /** how much space is reserved on the "bottom" side of the link for other drawings */
+    private int reservedPixelsBtm = 0;
+    
+    /** how much space is reserved on the "top" side the link for other drawings */
+    private int reservedPixelsTop = 0;
+    
+    /** resets the drawing state to undrawn */
+    public void unsetDrawn() {
+        this.unsetDrawn(true);
+    }
+    
+    /** 
+     * Resets the drawing state to undrawn.  If resetReservedSpace is true,
+     * then reserved space is cancelled, otherwise it is unchanged.
+     */
+    public void unsetDrawn(boolean resetReservedSpace) {
+        super.unsetDrawn();
+        if(resetReservedSpace) {
+            reservedPixelsBtm = 0;
+            reservedPixelsTop = 0;
+        }
+    }
+    
+    /**
+     * Gets the amount of space reserved on the top side of the link.
+     */
+    public int getReservedSpaceTop() {
+        return reservedPixelsTop;
+    }
+
+    /**
+     * Gets the amount of space reserved on the bottom side of the link.
+     */
+    public int getReservedSpaceBottom() {
+        return reservedPixelsBtm;
+    }
+    
+    /**
+     * Reserves space on the more open side of the Link.
+     * 
+     * @return offset distance from the link (to the middle of the reserved space)
+     */
+    public int reserveSpace(int size, int margin) {
+        return reserveSpace(size, margin,
+                            getReservedSpaceTop() < getReservedSpaceBottom());
+    }
+    
+    /**
+     * Reserves space on the specified side of the Link (if space is available
+     * directly over the link, then that will be given).
+     * 
+     * @return offset distance from the link (to the middle of the reserved space)
+     */
+    public int reserveSpace(int size, int margin, boolean above) {
+        // ignore the request if no space is required
+        if(size == 0)
+            return 0;
+        
+        // reserve space right over the link if we have space
+        int reservationSize = size + margin;
+        if(getReservedSpaceTop() == 0 && getReservedSpaceBottom() == 0) {
+            // half for each
+            reservedPixelsTop = reservedPixelsBtm = reservationSize;
+            return 0;
+        }
+        
+        // reserve space in the requested space
+        if(above) {
+            reservedPixelsTop += reservationSize;
+            return -(reservedPixelsTop - reservationSize);
+        }
+        else {
+            reservedPixelsBtm += reservationSize;
+            return reservedPixelsBtm - reservationSize;
+        }
+    }
     
     /** Draws the link */
     public void drawObject(Graphics2D gfx) {
@@ -564,11 +644,15 @@ public class Link extends AbstractDrawable implements Edge<NodeWithPorts> {
     /** sets how many other links between the same endpoints have already been drawn */
     void setOffset(int numOtherLinks) {
         int ocount = ((numOtherLinks + 1) / 2) * 2;
-        if(ocount == numOtherLinks)
+        if (numOtherLinks % 2 == 1)
             ocount = -ocount;
         
-        offsetX = (LINE_WIDTH+2) * ocount;
-        offsetY = (LINE_WIDTH+2) * ocount;
+        // compute a normal unit vector to the link line
+        Vector2f offset = new Line(src.getX(), src.getY(), 
+                                   dst.getX(), dst.getY()).normal().multiply((LINE_WIDTH+2) * ocount);
+
+        offsetX = Math.round(offset.x);
+        offsetY = Math.round(offset.y);
         
         updateBoundingBox(src.getX()+offsetX, src.getY()+offsetY, 
                           dst.getX()+offsetX, dst.getY()+offsetY);

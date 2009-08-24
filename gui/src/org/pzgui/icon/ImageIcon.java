@@ -33,9 +33,14 @@ public class ImageIcon extends Icon {
         return img.getScaledInstance(w, h, w>img.getWidth(null) ? Image.SCALE_SMOOTH : Image.SCALE_AREA_AVERAGING);
     }
     
-    private final Image img;
-    private final Dimension size;
+    private Image img;
+    private Dimension size;
     private final HashMap<Dimension, Image> resampledImages = new HashMap<Dimension, Image>();
+    
+    /** Creates an image from the specified image object */
+    public ImageIcon(Image img) {
+        setImage(img);
+    }
     
     /**
      * Creates an image from the specified filename.  The image's height and 
@@ -127,5 +132,15 @@ public class ImageIcon extends Icon {
             
         }
         return ret;
+    }
+    
+    /** 
+     * Changes the image displayed by this ImageIcon.  The resampled images 
+     * cache is flushed.
+     */
+    public void setImage(Image img) {
+        this.img = img;
+        this.size = new Dimension(img.getWidth(null), img.getHeight(null));
+        resampledImages.clear();
     }
 }

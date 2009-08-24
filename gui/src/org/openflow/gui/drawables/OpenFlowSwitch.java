@@ -30,10 +30,19 @@ public class OpenFlowSwitch extends NodeWithPorts {
     }
     
     public OpenFlowSwitch(String name, int x, int y, long dpid, NodeType nt) {
-        super(NodeType.OPENFLOW_SWITCH, name, x, y,
-                new ShapeIcon(DEFAULT_SHAPE,
-                              nt==NodeType.OPENFLOW_WIRELESS_ACCESS_POINT ? DEFAULT_FILL_WIFI : DEFAULT_FILL));
+        super(NodeType.OPENFLOW_SWITCH, name, x, y, newDefaultOpenFlowSwitchShape(nt));                
         this.datapathID = dpid;
+    }
+    
+    /** creates a new OpenFlowSwitch icon */
+    public static final ShapeIcon newDefaultOpenFlowSwitchShape(NodeType nt) {
+        Paint fill;
+        if(nt == NodeType.OPENFLOW_WIRELESS_ACCESS_POINT)
+            fill = DEFAULT_FILL_WIFI;
+        else
+            fill = DEFAULT_FILL;
+        
+        return new ShapeIcon(DEFAULT_SHAPE, fill);
     }
     
     

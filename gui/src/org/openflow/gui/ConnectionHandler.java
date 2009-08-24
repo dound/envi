@@ -9,7 +9,6 @@ import org.openflow.gui.drawables.Link;
 import org.openflow.gui.drawables.Node;
 import org.openflow.gui.drawables.NodeWithPorts;
 import org.openflow.gui.drawables.OpenFlowSwitch;
-import org.openflow.gui.drawables.Link.LinkExistsException;
 import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.MessageProcessor;
 import org.openflow.gui.net.protocol.FlowsAdd;
@@ -94,10 +93,18 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
         return topology;
     }
     
+    /**
+     * @deprecated  this method will be removed soon; it has been replaced by
+     *              connectedStateChange(boolean)  
+     */
+    public final void connectionStateChange() {
+        throw new Error("using old connectionStateChange() method");
+    }
+    
     /** Called when the backend has been disconnected or reconnected */
-    public void connectionStateChange() {
+    public void connectionStateChange(boolean connected) {
         if(!connection.isConnected()) {
-            topology.removeAllNodes(connection);
+            topology.removeAll(connection);
         }
         else {
             // ask the backend for a list of switches and links
@@ -143,9 +150,11 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
             
         case ECHO_REQUEST:
             processEchoRequest(msg.xid);
-            
+            break;
+
         case ECHO_REPLY:
             processEchoReply(msg.xid);
+	    break;
             
         case NODES_ADD:
             processNodesAdd((NodesAdd)msg);
@@ -256,6 +265,17 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
      * @param s  the new switch
      */
     protected void handleNewSwitch(OpenFlowSwitch s) {
+        handleNewSwitch(s, true);
+    }
+    
+    /**
+     * Handles a new switch by requesting its links and description if 
+     * Options.AUTO_REQUEST_LINK_INFO_FOR_NEW_SWITCH is true.
+     * 
+     * @param s          the new switch
+     * @param linksOnly  only request new links (don't send a switch description request)
+     */
+    protected void handleNewSwitch(OpenFlowSwitch s, boolean linksOnly) {
         if(!Options.AUTO_REQUEST_LINK_INFO_FOR_NEW_SWITCH)
             return;
         
@@ -268,7 +288,10 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
         } catch (IOException e) {
             System.err.println("Warning: unable to get switches for switch + " + DPIDUtil.toString(dpid));
         }
-        
+
+        if(linksOnly)
+            return;
+            
         try {
             getConnection().sendMessage(new SwitchDescriptionRequest(dpid));
         } catch (IOException e) {
@@ -285,11 +308,10 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
     /** add new node to the topology */
     protected void processDrawableNodeAdd(Node n) {
         if(n instanceof NodeWithPorts) {
-            if(!topology.addNode(connection, (NodeWithPorts)n))
-                return;
-                
-            if(n instanceof OpenFlowSwitch)
-                handleNewSwitch((OpenFlowSwitch)n);
+            int ret = topology.addNode(connection, (NodeWithPorts)n);
+            
+            if(ret>=0 && n instanceof OpenFlowSwitch)
+                handleNewSwitch((OpenFlowSwitch)n, ret!=0 /* if locally new, only request links */);
         }
     }
     
@@ -328,11 +350,10 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
                 continue;
             }
             
-            try {
                 Link l = topology.addLink(x.linkType, dst, x.dstPort, src, x.srcPort);
-                l.setMaximumDataRate(x.capacity_bps);
                 if(l == null)
                     continue;
+                l.setMaximumDataRate(x.capacity_bps);
                 
                 if(!Options.AUTO_TRACK_STATS_FOR_NEW_LINK)
                     continue;
@@ -345,10 +366,6 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
                     System.err.println("Warning: unable to setup link utilization polling for switch " + 
                             DPIDUtil.toString(x.dstNode.id) + " port " + l.getMyPort(dst));
                 }
-            }
-            catch(LinkExistsException e) {
-                // ignore 
-            }
         }
     }
     

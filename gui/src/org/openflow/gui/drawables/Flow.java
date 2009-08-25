@@ -226,8 +226,14 @@ public class Flow extends AbstractDrawable {
         
         // offset links from one another
         if(link != null) {
-            int offsetLength = link.reserveSpace(getPointSize(), getPointSize());
+            int offsetLength = link.reserveSpace(getPointSize(), getPointSize()/2);
             
+            // Verify whether the flow is in the same direction or opposite
+            // direction to the link. If the directions are opposite, then
+            // change the sign of offsetLength
+            if (path[startPathIndex].node.getID() != link.getSource().getID())
+            	offsetLength = -offsetLength;
+
             // compute a normal unit vector to the link line
             Vector2f offset = new Line(from.getX(), from.getY(), 
                                        to.getX(),   to.getY()).normal().multiply(offsetLength);

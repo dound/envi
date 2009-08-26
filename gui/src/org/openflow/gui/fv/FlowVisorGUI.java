@@ -52,7 +52,7 @@ public final class FlowVisorGUI {
 		servers.add(new Triple("localhost",2506,"Slice: OpenPipes"));
 		servers.add(new Triple("localhost",2501,"Slice: OpenRoads"));
 		// servers.add(new Triple("localhost",2503,"Slice: Flow Dragging"));
-		servers.add(new Triple("localhost",2507,"All Slices + \nProduction Traffic"));
+		servers.add(new Triple("localhost",2507,"All Slices + Production"));
 		servers.add(new Triple("localhost",2502,"Slice: Aggregation"));
 	}
 	else
@@ -62,7 +62,7 @@ public final class FlowVisorGUI {
 		servers.add(new Triple("openflow5.stanford.edu",2503,"Physical Network"));
 		servers.add(new Triple("hpn8.stanford.edu",2503, "Slice: OpenPipes"));
 		servers.add(new Triple("openflow3.stanford.edu",2503, "Slice: OpenRoads"));
-		servers.add(new Triple("openflow5.stanford.edu",2505,"All Slices + \nProduction Traffic"));
+		servers.add(new Triple("openflow5.stanford.edu",2505,"All Slices + Production"));
 		servers.add(new Triple("openflow6.stanford.edu",2503, "Slice: Aggregation"));
 		//servers.add(new Triple("openflow5.stanford.edu",2504, "Slice Flow Dragging"));
 	}
@@ -73,13 +73,21 @@ public final class FlowVisorGUI {
         // create a manager to handle drawing the topology info received by the connection
         FVLayoutManager gm = new FVLayoutManager(mch);
 
-        gm.setMinSliceHeight(400);
+        //gm.setMinSliceHeight(400);
+	String yaml = "demo.yaml";
 	for (int i = 0; i < args.length; i++)
 	    if ((args[i].compareTo("fs") == 0)) {
 		System.out.println("Set full screen...");
 		gm.fullScreen = true;
+	    } else if (args[i].compareTo("1024x768") == 0)
+	    {
+		gm.addWindow(0, 0, 1024, 768, 0, 0, 1.0f);
+		yaml = "demo-1024x768.yaml";
+	    } else if (args[i].compareTo("800x600") == 0)
+	    {
+		gm.addWindow(0, 0, 800, 600, 0, 0, 1.0f);
+		yaml = "demo-800x600.yaml";
 	    }
-	gm.addWindow(0, 0, 1024, 768, 0, 0, 1.0f);
 
         // layout the nodes with the spring algorithm by default
         edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge> sl;
@@ -87,7 +95,7 @@ public final class FlowVisorGUI {
         sl.setRepulsionRange(0); // don't repel
         sl.setForceMultiplier(0);
         gm.setLayout(sl);
-	gm.loadDrawablePositionsFromFile("demo.yaml");
+	gm.loadDrawablePositionsFromFile(yaml);
 
         
         // create the initial connection(s)

@@ -83,7 +83,7 @@ public class DisplaySlice {
     private String title = "";
     
     /** font to draw the title in */
-    private static final Font TITLE_FONT = new Font("Tahoma", Font.BOLD, 24);
+    private static final Font TITLE_FONT = new Font("Tahoma", Font.BOLD, 20);
     private static final Font TITLE_BIG_FONT = new Font("Tahoma", Font.BOLD, 28);
     
     /** 

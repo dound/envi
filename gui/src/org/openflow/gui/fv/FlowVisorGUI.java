@@ -29,6 +29,9 @@ public final class FlowVisorGUI {
     /** cannot instantiate this class */
     private FlowVisorGUI() {}
 
+    static final int MASTER_INDEX 	=  1;
+    static final int ALL_INDEX 		=  4;
+
     
     /** run the front-end */
     public static void main(String args[]) {
@@ -49,7 +52,7 @@ public final class FlowVisorGUI {
 		servers.add(new Triple("localhost",2506,"Slice: OpenPipes"));
 		servers.add(new Triple("localhost",2501,"Slice: OpenRoads"));
 		// servers.add(new Triple("localhost",2503,"Slice: Flow Dragging"));
-		servers.add(new Triple("localhost",2507,"All Slices + Production Traffic"));
+		servers.add(new Triple("localhost",2507,"All Slices + \nProduction Traffic"));
 		servers.add(new Triple("localhost",2502,"Slice: Aggregation"));
 	}
 	else
@@ -59,7 +62,7 @@ public final class FlowVisorGUI {
 		servers.add(new Triple("openflow5.stanford.edu",2503,"Physical Network"));
 		servers.add(new Triple("hpn8.stanford.edu",2503, "Slice: OpenPipes"));
 		servers.add(new Triple("openflow3.stanford.edu",2503, "Slice: OpenRoads"));
-		servers.add(new Triple("openflow5.stanford.edu",2505,"All Slices + Production Traffic"));
+		servers.add(new Triple("openflow5.stanford.edu",2505,"All Slices + \nProduction Traffic"));
 		servers.add(new Triple("openflow6.stanford.edu",2503, "Slice: Aggregation"));
 		//servers.add(new Triple("openflow5.stanford.edu",2504, "Slice Flow Dragging"));
 	}
@@ -69,12 +72,14 @@ public final class FlowVisorGUI {
         
         // create a manager to handle drawing the topology info received by the connection
         FVLayoutManager gm = new FVLayoutManager(mch);
+
         gm.setMinSliceHeight(400);
 	for (int i = 0; i < args.length; i++)
 	    if ((args[i].compareTo("fs") == 0)) {
 		System.out.println("Set full screen...");
 		gm.fullScreen = true;
 	    }
+	gm.addWindow(0, 0, 1024, 768, 0, 0, 1.0f);
 
         // layout the nodes with the spring algorithm by default
         edu.uci.ics.jung.algorithms.layout.SpringLayout2<Vertex, Edge> sl;
@@ -97,6 +102,15 @@ public final class FlowVisorGUI {
         // start our managers
         gm.start();
         for(int i=0; i<mch.getNumConnectionManagers(); i++)
+	{
             mch.getConnectionManager(i).getConnection().start();
+	    if( i != FlowVisorGUI.MASTER_INDEX )	
+	    {
+		    DisplaySlice ds  = gm.getDisplaySlice(FlowVisorGUI.ALL_INDEX);
+		    FVTopology t = (FVTopology)mch.getTopology(i);
+		    ds.addTopology(t);
+	    }
+
+	}
     }
 }

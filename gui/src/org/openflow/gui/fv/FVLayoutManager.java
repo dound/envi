@@ -143,6 +143,11 @@ public class FVLayoutManager extends PZLayoutManager {
         displaySlices.add(ds);
         refreshSlices();
     }
+
+    public DisplaySlice getDisplaySlice(int i)
+    {
+	return displaySlices.get(i);
+    }
     
     /** swap the order of two slices */
     private void swapDisplaySlices(int i, int j) {

@@ -36,6 +36,8 @@ public final class Options {
     
     /** whether to use a light or dark color scheme */
     public static final boolean USE_LIGHT_COLOR_SCHEME = true;
+
+    public static String ImageDir = "images";
     
     /* prevents this class from being instantiated */
     private Options() {}

@@ -3,6 +3,7 @@ package org.openflow.gui.fv;
 import java.util.ArrayList;
 
 import org.openflow.gui.OpenFlowGUI;
+import org.openflow.gui.Options;
 import org.openflow.gui.fv.FVConnectionHandler;
 import org.openflow.gui.fv.FVLayoutManager;
 import org.openflow.util.Pair;
@@ -87,6 +88,7 @@ public final class FlowVisorGUI {
 	    {
 		gm.addWindow(0, 0, 800, 600, 0, 0, 1.0f);
 		yaml = "demo-800x600.yaml";
+		Options.ImageDir = "images-800x600";
 	    }
 
         // layout the nodes with the spring algorithm by default

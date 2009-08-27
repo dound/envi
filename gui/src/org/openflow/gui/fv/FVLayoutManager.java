@@ -71,12 +71,12 @@ public class FVLayoutManager extends PZLayoutManager {
 	    {
 		    if(ds.getTitle().equals(Options.MASTER_SLICE))
 		    {
-			    final String PATH_ICON_NEC      = "images/switch-nec-ip8800-v_small.png";
-			    final String PATH_ICON_AP       = "images/ap-small.png";
-			    final String PATH_ICON_HP       = "images/procurve-small.png";
-			    final String PATH_ICON_NETFPGA  = "images/netfpga-small.png";
-			    final String PATH_ICON_WIMAX    = "images/wimax-small.png";
-			    final String PATH_ICON_SOEKRIS  = "images/soekris-small.png";
+			    final String PATH_ICON_NEC      = Options.ImageDir + "/switch-nec-ip8800-v_small.png";
+			    final String PATH_ICON_AP       = Options.ImageDir + "/ap-small.png";
+			    final String PATH_ICON_HP       = Options.ImageDir + "/procurve-small.png";
+			    final String PATH_ICON_NETFPGA  = Options.ImageDir + "/netfpga-small.png";
+			    final String PATH_ICON_WIMAX    = Options.ImageDir + "/wimax-small.png";
+			    final String PATH_ICON_SOEKRIS  = Options.ImageDir + "/soekris-small.png";
 
 			    final ImageIcon ICON_NEC     = new ImageIcon(PATH_ICON_NEC);
 			    final ImageIcon ICON_AP      = new ImageIcon(PATH_ICON_AP);

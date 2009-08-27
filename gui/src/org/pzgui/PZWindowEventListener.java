@@ -188,8 +188,10 @@ public class PZWindowEventListener implements ComponentListener,
         PZManager manager = window.getManager();
         
         Drawable d = manager.getSelected();
-        if(d != null)
+        if(d != null) {
+            translateMousePos(e);
             manager.fireDrawableEvent(d, e, "mouse_released");
+        }
         
         manager.noteMouseUp();
         manager.deselect();
@@ -270,6 +272,19 @@ public class PZWindowEventListener implements ComponentListener,
     }
 
     
+    /**
+     * Translate the mouse position to reflect the zoom level of the selected
+     * window
+     */
+    protected void translateMousePos(MouseEvent e) {
+        PZWindow window = getWindow(e);
+
+        int x = window.getMX(e);
+        int y = window.getMY(e);
+        
+        e.translatePoint(x - e.getX(), y - e.getY());
+    }
+
     // ---------------- Window Events --------------- //
     
     public void windowActivated(WindowEvent e)   { /* no-op */ }

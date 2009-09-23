@@ -84,6 +84,10 @@ public final class FlowVisorGUI {
 	    {
 		gm.addWindow(0, 0, 1024, 768, 0, 0, 1.0f);
 		yaml = "demo-1024x768.yaml";
+	    } else if (args[i].compareTo("1280x1024") == 0)
+	    {
+		gm.addWindow(0, 0, 1280, 1024, 0, 0, 1.0f);
+		yaml = "demo-1280x1024.yaml";
 	    } else if (args[i].compareTo("800x600") == 0)
 	    {
 		gm.addWindow(0, 0, 800, 600, 0, 0, 1.0f);

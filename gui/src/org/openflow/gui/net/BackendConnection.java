@@ -22,7 +22,7 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
     private static final long REQUEST_LIFETIME_MSEC = 2000;
     
     /** maximum time to wait between tries to get connected */
-    public static final int RETRY_WAIT_MSEC_MAX = 2 * 60 * 1000; // two minutes
+    public static final int RETRY_WAIT_MSEC_MAX = 5 * 1000; // five seconds
     
     /**
      * Statistics about this connection.

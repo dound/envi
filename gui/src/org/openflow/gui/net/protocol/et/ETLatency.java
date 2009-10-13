@@ -14,39 +14,29 @@ import org.openflow.gui.net.protocol.OFGMessageType;
  *
  */
 public class ETLatency extends OFGMessage {
-    /** latency via just the edge layer */
-    public final int latency_ms_edge;
-    
-    /** latency up through the aggregation layer */
-    public final int latency_ms_agg;
-    
-    /** latency up through the core layer */
-    public final int latency_ms_core;
+    /** latency over all paths */
+    public final int latency;
     
     public ETLatency(final int len, final int xid, final DataInput in) throws IOException {
         super(OFGMessageType.ET_LATENCY, xid);
         if(len != length())
             throw new IOException("ETBandwidth is " + len + "B - expected " + length() + "B");
         
-        this.latency_ms_edge = in.readInt();
-        this.latency_ms_agg = in.readInt();
-        this.latency_ms_core = in.readInt();
+        this.latency = in.readInt();
     }
     
     /** This returns the maximum length of ETPowerUsage */
     public int length() {
-        return super.length() + 12;
+        return super.length() + 4;
     }
     
     /** Writes the header (via super.write()), and this message */
     public void write(DataOutput out) throws IOException {
         super.write(out);
-        out.writeInt(latency_ms_edge);
-        out.writeInt(latency_ms_agg);
-        out.writeInt(latency_ms_core);
+        out.writeInt(latency);
     }
     
     public String toString() {
-        return super.toString() + TSSEP + "edge_ms=" + latency_ms_edge  + " agg_ms=" + latency_ms_agg + " core_ms=" + latency_ms_core;
+        return super.toString() + TSSEP + "=" + latency;
     }
 }

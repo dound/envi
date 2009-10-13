@@ -346,7 +346,7 @@ public class ElasticTreeConnectionManager extends ConnectionHandler
     }
 
     private void processLatencyData(ETLatency msg) {
-        manager.setLatencyData(msg.latency_ms_edge, msg.latency_ms_agg, msg.latency_ms_core);
+        manager.setLatencyData(msg.latency);
     }
 
     private void processComputationDone(ETComputationDone msg) {

@@ -81,7 +81,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final Font FONT_CHART = new Font("Tahoma", Font.BOLD, FONT_CHART_SIZE);
     private static final boolean DEFAULT_SHOW_AXES = false;
     private static final boolean SHOW_CHART_GRIDLINES = false;
-    private static final int MAX_LATENCY_MS = 25;
+    private static final int MAX_LATENCY_US = 1000;
     
     // custom slider configuration parameters
     private static final int SLIDER_MARGIN_X = 60;
@@ -93,7 +93,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final int SLIDER_MARKER_SIZE = (SLIDER_WIDTH / 3) * 2;
     private static final BasicStroke SLIDER_MARKER_STROKE = new BasicStroke(2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     private static final boolean SLIDER_DRAW_UPPER_HALF_DARKER = true; // true=>draw darker, false=>hide
-    private static final String[] STATS_NAMES = new String[]{"power (% of traditional)", "traffic (Mb/s per host)", "latency (ms)"}; // for axes labels, if needed
+    private static final String[] STATS_NAMES = new String[]{"power (% of traditional)", "traffic (Mb/s per host)", "latency (us)"}; // for axes labels, if needed
     private static final Color[] STATS_COLORS = new Color[]{new Color(255,0,255), new Color(0,0,255), new Color(0,255,255)};
     
     /** Creates a new Elastic Tree GUI */
@@ -625,7 +625,7 @@ public class ElasticTreeManager extends PZLayoutManager {
             switch(i) {
             case 0: n.setRange(0.0, 1.0);          break; // %
             case 1: n.setRange(0, 1000);           break; // 0 to 1000MB/s
-            case 2: n.setRange(0, MAX_LATENCY_MS); break; // latency
+            case 2: n.setRange(0, MAX_LATENCY_US); break; // latency
             }
             if(!showAxes) {
                 if(i <= 1) {
@@ -1231,8 +1231,7 @@ public class ElasticTreeManager extends PZLayoutManager {
 
     // power, throughput, and latency statistics
     private int powerCurrent, powerTraditional;
-    private int latencyEdge, latencyAgg, latencyCore;
-    private double latencyAvg;
+    private int latency;
     private float throughput_ratio;
     
     public void setPowerData(int cur, int traditional, int max) {
@@ -1262,25 +1261,19 @@ public class ElasticTreeManager extends PZLayoutManager {
         drawSlider(1, p, "traffic", value);
     }
 
-    public void setLatencyData(int latency_ms_edge, int latency_ms_agg, int latency_ms_core) {
-        latencyEdge = latency_ms_edge;
-        latencyAgg = latency_ms_agg;
-        latencyCore = latency_ms_core;
-        latencyAvg = (latencyEdge + latencyAgg + latencyCore) / 3.0;
+    public void setLatencyData(int latency_new) {
+        latency = latency_new;
     }
     
     private void refreshLatencySlider() {
-        double p = latencyAvg / MAX_LATENCY_MS;
-        drawSlider(2, p, "latency", new org.openflow.util.string.PrintfFormat("%.0f").sprintf(latencyAvg) + "ms");
+        double p = (double)latency / MAX_LATENCY_US;
+        drawSlider(2, p, "latency", (int)latency + "us");
     }
     
     /**
      * Redraws the sliders and updates the chart to match the latest data.
      */
     private void refreshStatsGraphics(float demand) {
-        final boolean TEMP_FAKE = true;
-        if(TEMP_FAKE)
-            latencyAvg = 15;
         
         synchronized(slidersImg) { // prevent tearing
             Graphics2D gfx = (Graphics2D)slidersImg.getGraphics();
@@ -1297,7 +1290,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         int xput = (int)(demand * 1000);
         chartDataXput.add(x, xput);
         chartDataPower.add(x, powerCurrent / (double)powerTraditional);
-        chartDataLatency.add(x, latencyAvg);
+        chartDataLatency.add(x, latency);
         
         // remove old data
         if(x >= MAX_VIS_DATA_POINTS) {

@@ -1166,7 +1166,7 @@ public class ElasticTreeManager extends PZLayoutManager {
         slAnimStepSize.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 setPanelTitle(pnlAnimStepSize, "Step Size (% of Space): " + slAnimStepSize.getValue() + "%", TITLE_BORDER_FONT_SMALL);
-                animationManager.setStepDuration(slAnimStepSize.getValue());
+                animationManager.setStepSize(slAnimStepSize.getValue());
             }
         });
         

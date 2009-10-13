@@ -194,33 +194,27 @@ class ETLatency(OFGMessage):
     def get_type():
         return 0xF5
 
-    def __init__(self, latency_ms_edge, latency_ms_agg, latency_ms_core, xid=0):
+    def __init__(self, latency, xid=0):
         OFGMessage.__init__(self, xid)
-        self.latency_ms_edge = int(latency_ms_edge)
-        self.latency_ms_agg = int(latency_ms_agg)
-        self.latency_ms_core = int(latency_ms_core)
+        self.latency = int(latency)
 
     def length(self):
-        return OFGMessage.SIZE + 12
+        return OFGMessage.SIZE + 4
 
     def pack(self):
-        body = struct.pack('> 3I', self.latency_ms_edge, self.latency_ms_agg, self.latency_ms_core)
+        body = struct.pack('> I', self.latency)
         return OFGMessage.pack(self) + body
 
     @staticmethod
     def unpack(body):
         xid = struct.unpack('> I', body[:4])[0]
         body = body[4:]
-        latency_ms_edge = struct.unpack('> I', body[:4])[0]
-        body = body[4:]
-        latency_ms_agg = struct.unpack('> I', body[:4])[0]
-        body = body[4:]
-        latency_ms_core = struct.unpack('> I', body[:4])[0]
-        return ETLatency(latency_ms_edge, latency_ms_agg, latency_ms_core, xid)
+        latency = struct.unpack('> I', body[:4])[0]
+        return ETLatency(latency, xid)
 
     def __str__(self):
-        fmt = 'ET_LATENCY: ' + OFGMessage.__str__(self) + " edge_ms=%u agg_ms=%u core_ms=%u"
-        return fmt % (self.latency_ms_edge, self.latency_ms_agg, self.latency_ms_core)
+        fmt = 'ET_LATENCY: ' + OFGMessage.__str__(self) + " %u"
+        return fmt % (self.latency)
 ET_MESSAGES.append(ETLatency)
 
 class ETSwitchesRequest(OFGMessage):

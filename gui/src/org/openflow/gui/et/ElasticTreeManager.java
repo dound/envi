@@ -59,7 +59,8 @@ import org.tame.MThumbSlider;
  * @author David Underhill
  */
 public class ElasticTreeManager extends PZLayoutManager {
-    public static final int HW_FAT_TREE_K = 6;
+    public static final int HW_FAT_TREE_K = 4;
+    public static final int DEFAULT_FAT_TREE_K = 6;
     public static final int RESERVED_HEIGHT_BOTTOM = 400;
     
     private static final Color SERVER_COLOR = new Color(128, 128, 128);
@@ -95,9 +96,9 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final String[] STATS_NAMES = new String[]{"power (% of traditional)", "traffic (Mb/s per host)", "latency (ms)"}; // for axes labels, if needed
     private static final Color[] STATS_COLORS = new Color[]{new Color(255,0,255), new Color(0,0,255), new Color(0,255,255)};
     
-    /** Creates a new Elastic Tree GUI for a k=6 fat tree */
+    /** Creates a new Elastic Tree GUI */
     public ElasticTreeManager() {
-        this(HW_FAT_TREE_K);
+        this(DEFAULT_FAT_TREE_K);
     }
 
     /** Creates a new Elastic Tree GUI for a k fat tree */

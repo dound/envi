@@ -1250,7 +1250,8 @@ public class ElasticTreeManager extends PZLayoutManager {
     }
 
     public void setAchievedAggregateThroughput(int bandwidth_achieved_mbps) {
-        throughput_ratio = bandwidth_achieved_mbps / (float)(getK()==4 ? 4000 : 54000);
+        float max_bw = (float)getFatTreeLayout().size_host() * 1000;
+        throughput_ratio = bandwidth_achieved_mbps / max_bw;
     }
     
     private void refreshXputSlider() {

@@ -66,6 +66,7 @@ public final class FlowVisorGUI {
 		servers.add(new Triple("openflow5.stanford.edu",2505,"All Slices + Production"));
 		servers.add(new Triple("openflow6.stanford.edu",2503, "Slice: Aggregation"));
 	//	servers.add(new Triple("openflow5.stanford.edu",2504, "Slice Flow Dragging"));
+
 	}
         
         // create the data structure to track multiple connections ad topologies

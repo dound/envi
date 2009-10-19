@@ -65,7 +65,7 @@ public final class FlowVisorGUI {
 		servers.add(new Triple("openflow3.stanford.edu",2503, "Slice: OpenRoads"));
 		servers.add(new Triple("openflow5.stanford.edu",2505,"All Slices + Production"));
 		servers.add(new Triple("openflow6.stanford.edu",2503, "Slice: Aggregation"));
-		servers.add(new Triple("openflow5.stanford.edu",2504, "Slice Flow Dragging"));
+	//	servers.add(new Triple("openflow5.stanford.edu",2504, "Slice Flow Dragging"));
 	}
         
         // create the data structure to track multiple connections ad topologies
@@ -93,6 +93,11 @@ public final class FlowVisorGUI {
 		gm.addWindow(0, 0, 800, 600, 0, 0, 1.0f);
 		yaml = "demo-800x600.yaml";
 		Options.ImageDir = "images-800x600";
+	    } else if (args[i].compareTo("1920x1080") == 0)
+	    {
+		gm.addWindow(0, 0, 1920, 1080, 0, 0, 1.0f);
+		yaml = "demo-1920x1080.yaml";
+		Options.ImageDir = "images-1920x1080";
 	    }
 
         // layout the nodes with the spring algorithm by default

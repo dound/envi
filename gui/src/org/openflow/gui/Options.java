@@ -21,7 +21,9 @@ public final class Options {
     public static final boolean AUTO_TRACK_STATS_FOR_NEW_LINK = true;
     
     /** how often to refresh basic port statistics */
-    public static final int STATS_REFRESH_RATE_MSEC = 5000;
+    // uses aggregate stats request: turn off!
+    // public static final int STATS_REFRESH_RATE_MSEC = 5000;
+    public static final int STATS_REFRESH_RATE_MSEC = 0;
     
     /**
      * Whether links between nodes should be represented using one undirected

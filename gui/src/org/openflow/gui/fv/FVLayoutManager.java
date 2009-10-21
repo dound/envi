@@ -100,7 +100,7 @@ public class FVLayoutManager extends PZLayoutManager {
 					    icon = ICON_AP;
 				    else if(id == 0x0000001b3fc54700l)
 					    icon = ICON_HP;
-				    else if(id == 0x0000000db913b274l)
+				    else if(id == 0x0000000db913b275l)
 					    icon = ICON_SOEKRIS;
 				    else if(id == 0x00000000cafecafel)
 					    icon = ICON_WIMAX;

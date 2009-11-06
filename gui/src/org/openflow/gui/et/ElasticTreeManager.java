@@ -87,7 +87,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final int SLIDER_MARGIN_X = 60;
     private static final int SLIDER_MARGIN_Y = 30;
     private static final int SLIDER_WIDTH = 30;
-    private static final int FONT_SLIDER_LEFT_SIZE = 44;
+    private static final int FONT_SLIDER_LEFT_SIZE = 32;
     private static final int FONT_SLIDER_BTM_SIZE = 32;
     private static final int SLIDER_BORDER_WIDTH = 0;
     private static final int SLIDER_MARKER_SIZE = (SLIDER_WIDTH / 3) * 2;

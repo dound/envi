@@ -81,7 +81,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     private static final Font FONT_CHART = new Font("Tahoma", Font.BOLD, FONT_CHART_SIZE);
     private static final boolean DEFAULT_SHOW_AXES = false;
     private static final boolean SHOW_CHART_GRIDLINES = false;
-    private static final int MAX_LATENCY_US = 1000;
+    private static final int MAX_LATENCY_US = 600;
     
     // custom slider configuration parameters
     private static final int SLIDER_MARGIN_X = 60;

@@ -48,13 +48,13 @@ public final class FlowVisorGUI {
 	if(localConnection) // do localhost
 	{
 		System.err.println("Connecting via localhost; hope you set up the tunnel");
-		servers.add(new Triple("localhost",2504,"Slice: Plug-n-Serve"));
-		servers.add(new Triple("localhost",2505,"Physical Network"));
-		servers.add(new Triple("localhost",2506,"Slice: OpenPipes"));
-		servers.add(new Triple("localhost",2501,"Slice: OpenRoads"));
+		servers.add(new Triple("localhost",2501,"Slice: Plug-n-Serve"));
+		servers.add(new Triple("localhost",2502,"Physical Network"));
+		servers.add(new Triple("localhost",2503,"Slice: OpenPipes"));
+		servers.add(new Triple("localhost",2504,"Slice: OpenRoads"));
 		// servers.add(new Triple("localhost",2503,"Slice: Flow Dragging"));
-		servers.add(new Triple("localhost",2507,"All Slices + Production"));
-		servers.add(new Triple("localhost",2502,"Slice: Aggregation"));
+		servers.add(new Triple("localhost",2505,"All Slices + Production"));
+		servers.add(new Triple("localhost",2506,"Slice: Aggregation"));
 	}
 	else
 	{

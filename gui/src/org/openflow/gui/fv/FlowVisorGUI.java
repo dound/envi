@@ -59,7 +59,7 @@ public final class FlowVisorGUI {
 	else
 	{
 		System.err.println("Connecting directly... hope you're in Gates");
-		servers.add(new Triple("openflow8.stanford.edu",5432, "Slice: Plug-n-Serve"));
+		servers.add(new Triple("openflow8.stanford.edu",2503, "Slice: Plug-n-Serve"));
 		servers.add(new Triple("openflow5.stanford.edu",2503,"Physical Network"));
 		servers.add(new Triple("openflow5.stanford.edu",2507, "Slice: OpenPipes"));
 		servers.add(new Triple("openflow3.stanford.edu",2503, "Slice: OpenRoads"));

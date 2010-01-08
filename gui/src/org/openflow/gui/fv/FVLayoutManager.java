@@ -98,7 +98,7 @@ public class FVLayoutManager extends PZLayoutManager {
 					    icon = ICON_AP;
 				    else if(id == 0x0000000db915c044l)
 					    icon = ICON_AP;
-				    else if(id == 0x0000001b3fc54700l)
+				    else if(id == 0x001b3fc547000385l)
 					    icon = ICON_HP;
 				    else if(id == 0x0000000db913b275l)
 					    icon = ICON_SOEKRIS;

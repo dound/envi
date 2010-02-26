@@ -124,7 +124,7 @@ public class ElasticTreeManager extends PZLayoutManager {
     
     /** change the type of fat tree we are viewing */
     private void setK(int k) {
-        k = (k==4) ? 4 : 6;  // force the values to be either 4 or 6
+        k = (k==4) || (k==6) || (k==8) ? k : 4;  // force the values to be either 4, 6, or 8
         
         if(k == fatTreeLayout.getK())
             return;
@@ -222,6 +222,8 @@ public class ElasticTreeManager extends PZLayoutManager {
                     setK(4);
                 else if(e.getKeyCode() == KeyEvent.VK_6)
                     setK(6);
+                else if(e.getKeyCode() == KeyEvent.VK_8)
+                    setK(8);
             }
         });
     }

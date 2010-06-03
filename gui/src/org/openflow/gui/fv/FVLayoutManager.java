@@ -94,12 +94,16 @@ public class FVLayoutManager extends PZLayoutManager {
 				    // can't @#*&@%!! switch() on a long... what a shit lang
 				    if(id == 0x0000000db916ef94l )
 					    icon = ICON_AP;
-				    else if(id == 0x0000000db916efc8l )
+				    else if(id == 0x0000000db916efa4l )
 					    icon = ICON_AP;
-				    else if(id == 0x0000000db915c044l)
+				    else if(id == 0x0000000db916ee48l )
+					    icon = ICON_AP;
+				    else if(id == 0x0000000db916efd0l)
 					    icon = ICON_AP;
 				    else if(id == 0x001b3fc547000385l)
 					    icon = ICON_HP;
+				    else if(id == 0x0000000db913b274l)
+					    icon = ICON_SOEKRIS;
 				    else if(id == 0x0000000db913b275l)
 					    icon = ICON_SOEKRIS;
 				    else if(id == 0x00000000cafecafel)

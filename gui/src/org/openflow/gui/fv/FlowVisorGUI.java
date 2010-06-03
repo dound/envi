@@ -62,7 +62,7 @@ public final class FlowVisorGUI {
 		servers.add(new Triple("openflow8.stanford.edu",2503, "Slice: Plug-n-Serve"));
 		servers.add(new Triple("openflow5.stanford.edu",2503,"Physical Network"));
 		servers.add(new Triple("openflow5.stanford.edu",2507, "Slice: OpenPipes"));
-		servers.add(new Triple("openflow3.stanford.edu",2503, "Slice: OpenRoads"));
+		servers.add(new Triple("171.64.95.163",2503, "Slice: OpenRoads"));
 		servers.add(new Triple("openflow5.stanford.edu",2506,"All Slices + Production"));
 		servers.add(new Triple("openflow6.stanford.edu",2503, "Slice: Aggregation"));
 	//	servers.add(new Triple("openflow5.stanford.edu",2504, "Slice Flow Dragging"));

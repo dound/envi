@@ -72,6 +72,11 @@ public class OpenFlowSwitch extends NodeWithPorts {
             
         // display switch description stats on mouse over
         if(this.isHovered() || this.isSelected()) {
+            if(isStringSet(desc)) {
+                gfx.drawString(desc, x, y);
+                y += gfx.getFontMetrics().getHeight();
+            }
+
             gfx.drawString(DPIDUtil.dpidToHex(getID()), x, y);
             y += gfx.getFontMetrics().getHeight();
 
@@ -123,7 +128,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
     // ------------- Description Stats -------------- //
     
     /** switch description stats */
-    private String manufacturer="?", hw_desc="?", sw_desc="?", serial_num="?";
+    private String manufacturer="?", hw_desc="?", sw_desc="?", serial_num="?", desc="?";
     
     /** Returns true if s is not null, non-zero length, and not "None" or "?" */
     private boolean isStringSet(String s) {
@@ -161,6 +166,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
         hw_desc = stats.hw_desc;
         sw_desc = stats.sw_desc;
         serial_num = stats.serial_num;
+        desc = stats.desc;
         descUpdateTime = System.currentTimeMillis();
     }
     

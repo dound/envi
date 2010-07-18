@@ -9,12 +9,10 @@
 
 
 ssh \
--L 2501:openflow8.stanford.edu:2503 \
--L 2502:openflow5.stanford.edu:2503 \
--L 2503:openflow5.stanford.edu:2507 \
--L 2504:openflow3.stanford.edu:2503 \
--L 2505:openflow5.stanford.edu:2506 \
--L 2506:openflow6.stanford.edu:2503 \
-yuba.stanford.edu 'while `true` ; do echo I am the flowvisor tunnel `date` ; sleep 20 ; done '
+-L 2501:openflow5.stanford.edu:31340 \
+-L 2502:openflow5.stanford.edu:31341 \
+-L 2503:openflow5.stanford.edu:31342 \
+-L 2504:openflow5.stanford.edu:31343 \
+yuba.stanford.edu 'while `true` ; do echo I am the gec8 lavi tunnel `date` ; sleep 5 ; done '
 #-L 2507:openflow6.stanford.edu:2503 \
 #-L 2504:openflow4.stanford.edu:2503 \

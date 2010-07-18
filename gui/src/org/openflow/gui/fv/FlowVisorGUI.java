@@ -30,75 +30,47 @@ public final class FlowVisorGUI {
     /** cannot instantiate this class */
     private FlowVisorGUI() {}
 
-    static final int MASTER_INDEX 	=  1;
-    static final int ALL_INDEX 		=  4;
-
-    
     /** run the front-end */
     public static void main(String args[]) {
         //ArrayList<Pair<String, Short>> servers = OpenFlowGUI.getServers(args);
 
 	ArrayList<Triple<String, Integer, String>> servers = new ArrayList();
-	boolean localConnection = false;
 
-	for (int i = 0; i < args.length; i++)
-	    if ((args[i].compareTo("lo") == 0))
-		localConnection = true;
-
-	if(localConnection) // do localhost
-	{
-		System.err.println("Connecting via localhost; hope you set up the tunnel");
-		servers.add(new Triple("localhost",2501,"Slice: Plug-n-Serve"));
-		servers.add(new Triple("localhost",2502,"Physical Network"));
-		servers.add(new Triple("localhost",2503,"Slice: OpenPipes"));
-		servers.add(new Triple("localhost",2504,"Slice: OpenRoads"));
-		// servers.add(new Triple("localhost",2503,"Slice: Flow Dragging"));
-		servers.add(new Triple("localhost",2505,"All Slices + Production"));
-		servers.add(new Triple("localhost",2506,"Slice: Aggregation"));
-	}
-	else
-	{
-		System.err.println("Connecting directly... hope you're in Gates");
-		servers.add(new Triple("openflow8.stanford.edu",2503, "Slice: Plug-n-Serve"));
-		servers.add(new Triple("openflow5.stanford.edu",2503,"Physical Network"));
-		servers.add(new Triple("openflow5.stanford.edu",2507, "Slice: OpenPipes"));
-		servers.add(new Triple("171.64.95.163",2503, "Slice: OpenRoads"));
-		servers.add(new Triple("openflow5.stanford.edu",2506,"All Slices + Production"));
-		servers.add(new Triple("openflow6.stanford.edu",2503, "Slice: Aggregation"));
-	//	servers.add(new Triple("openflow5.stanford.edu",2504, "Slice Flow Dragging"));
-
-	}
+    System.err.println("Connecting via localhost; hope you set up the tunnel");
+    servers.add(new Triple("localhost",2501,"Black Slice"));
+    servers.add(new Triple("localhost",2502,"Blue Slice"));
+    servers.add(new Triple("localhost",2503,"Green Slice"));
+    servers.add(new Triple("localhost",2504,"Red Slice"));
         
-        // create the data structure to track multiple connections ad topologies
-        FVMultipleConnectionAndTopologyHandler mch = new FVMultipleConnectionAndTopologyHandler();
-        
-        // create a manager to handle drawing the topology info received by the connection
-        FVLayoutManager gm = new FVLayoutManager(mch);
+    // create the data structure to track multiple connections ad topologies
+    FVMultipleConnectionAndTopologyHandler mch = new FVMultipleConnectionAndTopologyHandler();
+    
+    // create a manager to handle drawing the topology info received by the connection
+    FVLayoutManager gm = new FVLayoutManager(mch);
 
-        //gm.setMinSliceHeight(400);
 	String yaml = "demo.yaml";
 	for (int i = 0; i < args.length; i++)
 	    if ((args[i].compareTo("fs") == 0)) {
-		System.out.println("Set full screen...");
-		gm.fullScreen = true;
+            System.out.println("Set full screen...");
+            gm.fullScreen = true;
 	    } else if (args[i].compareTo("1024x768") == 0)
 	    {
-		gm.addWindow(0, 0, 1024, 768, 0, 0, 1.0f);
-		yaml = "demo-1024x768.yaml";
+            gm.addWindow(0, 0, 1024, 768, 0, 0, 1.0f);
+            yaml = "demo-1024x768.yaml";
 	    } else if (args[i].compareTo("1280x1024") == 0)
 	    {
-		gm.addWindow(0, 0, 1280, 1024, 0, 0, 1.0f);
-		yaml = "demo-1280x1024.yaml";
+            gm.addWindow(0, 0, 1280, 1024, 0, 0, 1.0f);
+            yaml = "demo-1280x1024.yaml";
 	    } else if (args[i].compareTo("800x600") == 0)
 	    {
-		gm.addWindow(0, 0, 800, 600, 0, 0, 1.0f);
-		yaml = "demo-800x600.yaml";
-		Options.ImageDir = "images-800x600";
+            gm.addWindow(0, 0, 800, 600, 0, 0, 1.0f);
+            yaml = "demo-800x600.yaml";
+            Options.ImageDir = "images-800x600";
 	    } else if (args[i].compareTo("1920x1080") == 0)
 	    {
-		gm.addWindow(0, 0, 1920, 1080, 0, 0, 1.0f);
-		yaml = "demo-1920x1080.yaml";
-		Options.ImageDir = "images-1920x1080";
+            gm.addWindow(0, 0, 1920, 1080, 0, 0, 1.0f);
+            yaml = "demo-1920x1080.yaml";
+            Options.ImageDir = "images-1920x1080";
 	    }
 
         // layout the nodes with the spring algorithm by default
@@ -110,27 +82,18 @@ public final class FlowVisorGUI {
 	gm.loadDrawablePositionsFromFile(yaml);
 
         
-        // create the initial connection(s)
-        for(Triple<String, Integer, String> server : servers) {
-            FVConnectionHandler ch = new FVConnectionHandler(gm, 
-	    	server.a, 
-		server.b.shortValue(),		// stoopid java
-		server.c);
-            mch.addConnectionManager(ch);	
-        }
+    // create the initial connection(s)
+    for(Triple<String, Integer, String> server : servers) {
+        FVConnectionHandler ch = new FVConnectionHandler(gm, 
+                server.a, 
+                server.b.shortValue(),		// stoopid java
+                server.c);
+        mch.addConnectionManager(ch);	
+    }
         
         // start our managers
         gm.start();
         for(int i=0; i<mch.getNumConnectionManagers(); i++)
-	{
             mch.getConnectionManager(i).getConnection().start();
-	    if( i != FlowVisorGUI.MASTER_INDEX )	
-	    {
-		    DisplaySlice ds  = gm.getDisplaySlice(FlowVisorGUI.ALL_INDEX);
-		    FVTopology t = (FVTopology)mch.getTopology(i);
-		    ds.addTopology(t);
-	    }
-
-	}
     }
 }

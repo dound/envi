@@ -69,7 +69,8 @@ public class FVLayoutManager extends PZLayoutManager {
 	    super.addDrawable(d);
 	    for( DisplaySlice ds : displaySlices)
 	    {
-		    if(ds.getTitle().equals(Options.MASTER_SLICE))
+		    // if(ds.getTitle().equals(Options.MASTER_SLICE))
+		    if(true)
 		    {
 			    final String PATH_ICON_NEC      = Options.ImageDir + "/switch-nec-ip8800-v_small.png";
 			    final String PATH_ICON_AP       = Options.ImageDir + "/ap-small.png";
@@ -394,7 +395,7 @@ public class FVLayoutManager extends PZLayoutManager {
      */
     public void setLayoutSize(int width, int height) {
 	int nRows=2;
-	int nCols=3;
+	int nCols=2;
         int sliceHeight = height/nRows;// Math.max(minSliceHeight, height/Math.max(1, numVisibleSlices()));
         super.setLayoutSize(width/nRows, sliceHeight);
 

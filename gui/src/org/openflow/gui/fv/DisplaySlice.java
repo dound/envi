@@ -186,29 +186,21 @@ public class DisplaySlice {
     public void draw(Graphics2D gfx) {
         if(slicePaint == null || sliceShape == null || !isVisible())
             return;
-        
+
         Composite c = gfx.getComposite();
         gfx.setComposite(COMPOSITE_SLICE_PLANE);
         gfx.setPaint(slicePaint);
         gfx.fill(sliceShape);
         gfx.setComposite(c);
 
-	gfx.drawImage( ImageIcon.loadImage("images/ghost-bg-silhouette2.png"),xOffset,yOffset,sliceWidth,sliceHeight, null);
-        
+        gfx.drawImage( ImageIcon.loadImage("images/ghost-bg-silhouette2.png"),xOffset,yOffset,sliceWidth,sliceHeight, null);
+
         // draw the slice's title
-	// Nah mate, that ain't a hack.. *THIS* is a HACK!
-        if(title.equals(Options.MASTER_SLICE))
-	{
-        	gfx.setPaint(Color.RED);
-		gfx.setFont(TITLE_BIG_FONT);
-        	org.pzgui.StringDrawer.drawCenteredString(title, gfx, sliceWidth/2+xOffset, yOffset+gfx.getFontMetrics().getHeight());
-	}
-	else
-	{
-        	gfx.setPaint(org.pzgui.Constants.PAINT_DEFAULT);
-		gfx.setFont(TITLE_FONT);
-        	org.pzgui.StringDrawer.drawRightAlignedString(title, gfx, sliceWidth-5+xOffset, yOffset+gfx.getFontMetrics().getHeight());
-	}
+        gfx.setPaint(org.pzgui.Constants.PAINT_DEFAULT);
+        gfx.setFont(TITLE_FONT);
+        org.pzgui.StringDrawer.drawRightAlignedString(title, gfx, 
+                    sliceWidth-5+xOffset, yOffset+
+                        gfx.getFontMetrics().getHeight());
         gfx.setFont(org.pzgui.Constants.FONT_DEFAULT);
     }
 

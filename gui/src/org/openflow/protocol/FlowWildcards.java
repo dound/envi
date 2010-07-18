@@ -40,9 +40,13 @@ public class FlowWildcards {
         
         /** IP destination address. */
         OFPFW_NW_DST_SHIFT(1 << 14),
+
+        OFPFW_DL_VLAN_PCP( 1 << 20),
+        OFPFW_NW_TOS(1 << 21), 
+
         
         /** Wildcard all fields */
-        OFPFW_ALL((1 << 20) - 1),
+        OFPFW_ALL((1 << 22) - 1),
         ;
         
         /** bits corresponding to the wildcard in the bitfield */
@@ -158,6 +162,12 @@ public class FlowWildcards {
     public void setWildcardVLAN(boolean enable) {
         set(Wildcard.OFPFW_DL_VLAN, enable);
     }
+
+    /** Whether to wildcard on IP protocol */
+    public boolean isWildcardVLANPCP() {
+        return isSet(Wildcard.OFPFW_DL_VLAN_PCP);
+    }
+    
     
     /** Whether to wildcard on source MAC address */
     public boolean isWildcardEthernetSrc() {
@@ -192,6 +202,11 @@ public class FlowWildcards {
     /** Whether to wildcard on IP protocol */
     public boolean isWildcardIPProtocol() {
         return isSet(Wildcard.OFPFW_NW_PROTO);
+    }
+
+    /** Whether to wildcard on IP protocol */
+    public boolean isWildcardIPToS() {
+        return isSet(Wildcard.OFPFW_NW_TOS);
     }
     
     /** Set whether to wildcard on IP protocol */

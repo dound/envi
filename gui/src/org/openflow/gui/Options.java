@@ -9,7 +9,7 @@ package org.openflow.gui;
  */
 public final class Options {
     /** default server IP, if any */
-    public static final String DEFAULT_SERVER_IP = "127.0.0.1";
+    public static final String DEFAULT_SERVER_IP = "lavi-controller.openflow.interop.net";
     
     /** default port to connect to the server on */
     public static final short DEFAULT_PORT = 2503;
@@ -21,16 +21,19 @@ public final class Options {
     public static final boolean AUTO_TRACK_STATS_FOR_NEW_LINK = true;
     
     /** how often to refresh basic port statistics */
-    public static final int STATS_REFRESH_RATE_MSEC = 2000;
+    public static final int STATS_REFRESH_RATE_MSEC = 1000;
     
     /**
      * Whether links between nodes should be represented using one undirected
      * or two directed links.
      */
-    public static final boolean USE_DIRECTED_LINKS = true;
+    public static final boolean USE_DIRECTED_LINKS = false;
     
     /** whether to use a light or dark color scheme */
     public static final boolean USE_LIGHT_COLOR_SCHEME = true;
+    
+    /** ImageDirectory **/
+    public static String ImageDir = "images";
     
     /* prevents this class from being instantiated */
     private Options() {}

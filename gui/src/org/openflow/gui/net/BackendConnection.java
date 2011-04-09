@@ -244,7 +244,7 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
         System.out.println("Now connected to server");
         stats.connected();
         msgProcessor.connectionStateChange(true);
-    } 
+    }
     
     /** tells the connection to disconnect and then connect again */
     public void reconnect() {
@@ -397,8 +397,4 @@ public class BackendConnection<MSG_TYPE extends Message> extends Thread {
     public int getServerPort() {
         return serverPort;
     }
-
-	public SocketConnection getSocketConnection() {
-		return conn;
-	}
 }

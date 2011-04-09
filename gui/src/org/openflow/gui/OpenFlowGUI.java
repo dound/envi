@@ -22,8 +22,7 @@ public final class OpenFlowGUI {
      * Run a simple version of the GUI by starting a single connection which 
      * will populate a single topology drawn by a PZLayoutManager.
      */
-    @SuppressWarnings("unchecked")
-	public static void main(String args[]) {
+    public static void main(String args[]) {
         Pair<String, Short> serverPort = getServer(args);
         String server = serverPort.a;
         short port = serverPort.b;

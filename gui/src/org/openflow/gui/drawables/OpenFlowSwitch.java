@@ -5,21 +5,11 @@ import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
 
-import org.openflow.gui.Options;
-import org.openflow.gui.net.BackendConnection;
 import org.openflow.gui.net.protocol.NodeType;
-import org.openflow.gui.net.protocol.OFGMessage;
 import org.openflow.protocol.SwitchDescriptionStats;
 import org.openflow.util.string.DPIDUtil;
-import org.pzgui.icon.Icon;
-import org.pzgui.icon.ImageIcon;
 import org.pzgui.icon.ShapeIcon;
-
 
 /**
  * Describes an OpenFlow switch.
@@ -27,49 +17,37 @@ import org.pzgui.icon.ShapeIcon;
  * @author David Underhill
  */
 public class OpenFlowSwitch extends NodeWithPorts {
-    public OpenFlowSwitch(BackendConnection<OFGMessage> conn, long dpid) {
-        this(conn, dpid, NodeType.OPENFLOW_SWITCH);
+    public OpenFlowSwitch(long dpid) {
+        this(dpid, NodeType.OPENFLOW_SWITCH);
     }
     
-    public OpenFlowSwitch(BackendConnection<OFGMessage> conn, long dpid, NodeType nt) {
-        this(conn, "", 0, 0, dpid, nt);
+    public OpenFlowSwitch(long dpid, NodeType nt) {
+        this("", 0, 0, dpid, nt);
     }
     
-    public OpenFlowSwitch(BackendConnection<OFGMessage> conn, String name, int x, int y, long dpid) {
-        this(conn, name, x, y, dpid, NodeType.OPENFLOW_SWITCH);
+    public OpenFlowSwitch(String name, int x, int y, long dpid) {
+        this(name, x, y, dpid, NodeType.OPENFLOW_SWITCH);
     }
     
-    public OpenFlowSwitch(BackendConnection<OFGMessage> conn, String name, int x, int y, long dpid, NodeType nt) {
+    public OpenFlowSwitch(String name, int x, int y, long dpid, NodeType nt) {
         super(NodeType.OPENFLOW_SWITCH, name, x, y, newDefaultOpenFlowSwitchShape(nt));                
         this.datapathID = dpid;
-        this.conn = conn;
     }
     
     /** creates a new OpenFlowSwitch icon */
-    public static final Icon newDefaultOpenFlowSwitchShape(NodeType nt) {
+    public static final ShapeIcon newDefaultOpenFlowSwitchShape(NodeType nt) {
+        Paint fill;
         if(nt == NodeType.OPENFLOW_WIRELESS_ACCESS_POINT)
-            return new ShapeIcon(DEFAULT_SHAPE, DEFAULT_FILL_WIFI);
+            fill = DEFAULT_FILL_WIFI;
         else
-        	return new ImageIcon(Options.ImageDir + "/unknown.png", (float) 0.3);
+            fill = DEFAULT_FILL;
+        
+        return new ShapeIcon(DEFAULT_SHAPE, fill);
     }
     
-    private void updateIcon() {	   
-        if (! isStringSet(manufacturer))
-        	return;
-    	if (this.manufacturer.startsWith("HP-Labs")) {
-        	setIcon(new ImageIcon(Options.ImageDir + "/procurve.png",(float)0.05));
-    	} else if (this.manufacturer.startsWith("Stanford")) {
-    		setIcon(new ImageIcon(Options.ImageDir + "/switch-nec-ip8800.png",(float)0.05));
-    	} else if (this.manufacturer.startsWith("Big")) {
-    		setIcon(new ImageIcon(Options.ImageDir + "/indigo.png", (float)0.05));
-    	}
-    	// else leave as blue dot
-	}
     
     // ------------------- Drawing ------------------ //
     
-    BackendConnection<OFGMessage> conn;
-     
     /** default size of the DEFAULT_SHAPE */
     public static final int DEFAULT_SIZE = 40;
     
@@ -94,7 +72,7 @@ public class OpenFlowSwitch extends NodeWithPorts {
             
         // display switch description stats on mouse over
         if(this.isHovered() || this.isSelected()) {
-        	if(isStringSet(desc)) {
+            if(isStringSet(desc)) {
                 gfx.drawString(desc, x, y);
                 y += gfx.getFontMetrics().getHeight();
             }
@@ -190,14 +168,12 @@ public class OpenFlowSwitch extends NodeWithPorts {
         serial_num = stats.serial_num;
         desc = stats.desc;
         descUpdateTime = System.currentTimeMillis();
-        updateIcon();
     }
     
     
     // -------------------- Other ------------------- //
     
-
-	public String toString() {
+    public String toString() {
         return getName() + "; dpid=" + DPIDUtil.dpidToHex(getID());
     }
 }

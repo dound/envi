@@ -316,7 +316,7 @@ public class ConnectionHandler implements MessageProcessor<OFGMessage>,
         if(n.nodeType == NodeType.HOST)
             return new Host(n.id);
         else
-            return new OpenFlowSwitch(this.getConnection(), n.id, n.nodeType);
+            return new OpenFlowSwitch(n.id, n.nodeType);
     }
 
     /** remove nodes from the topology */

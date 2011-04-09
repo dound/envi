@@ -10,12 +10,12 @@ public class VirtualOpenFlowSwitch extends OpenFlowSwitch {
     private final int virtualSwitchIndex;
     
     public VirtualOpenFlowSwitch(long parentDPID, int virtualSwitchIndex) {
-        super(null, parentDPID);
+        super(parentDPID);
         this.virtualSwitchIndex = virtualSwitchIndex;
     }
     
     public VirtualOpenFlowSwitch(String name, int x, int y, long parentDPID, int virtualSwitchIndex) {
-        super(null, name, x, y, parentDPID);
+        super(name, x, y, parentDPID);
         this.virtualSwitchIndex = virtualSwitchIndex;
     }
     
